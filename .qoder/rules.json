@@ -1,0 +1,133 @@
+{
+  "project_rules": {
+    "name": "FusionAI Enterprise Suite",
+    "type": "AI-Driven Modular ERP Platform",
+    "architecture": "Microservices with AI Integration",
+    "ui_theme": "Purple Gradient Glassmorphism"
+  },
+  "development_guidelines": {
+    "code_style": {
+      "frontend": {
+        "framework": "React 18 with TypeScript",
+        "styling": "Tailwind CSS with custom properties",
+        "animations": "Framer Motion",
+        "state_management": "Zustand",
+        "api_client": "TanStack Query"
+      },
+      "backend": {
+        "framework": "FastAPI with Python 3.11+",
+        "database": "PostgreSQL with SQLAlchemy",
+        "caching": "Redis",
+        "vector_db": "Qdrant",
+        "background_tasks": "Celery",
+        "ai_framework": "LangChain"
+      }
+    },
+    "ui_requirements": {
+      "design_system": {
+        "colors": {
+          "primary": "#6B46C1",
+          "secondary": "#9333EA", 
+          "accent": "#EC4899",
+          "background": "#0F0F23",
+          "glass": "rgba(255, 255, 255, 0.05)"
+        },
+        "components": {
+          "cards": "GlassCard with gradient borders",
+          "buttons": "GradientButton with animations",
+          "background": "AnimatedBackground with gradients",
+          "spacing": "8px horizontal and vertical"
+        }
+      },
+      "animations": {
+        "required": true,
+        "library": "Framer Motion",
+        "effects": ["gradient_border", "glassmorphism", "smooth_transitions"]
+      }
+    },
+    "ai_agent_rules": {
+      "architecture": "Multi-agent system with orchestration",
+      "capabilities": [
+        "Natural language processing",
+        "Task automation",
+        "Decision making",
+        "Inter-agent communication",
+        "Learning from interactions"
+      ],
+      "constraints": {
+        "max_decision_amount": 10000,
+        "response_time_limit": 2000,
+        "context_window": 32000,
+        "human_approval_threshold": 0.8
+      }
+    },
+    "module_requirements": {
+      "total_modules": 23,
+      "implementation_order": [
+        "Dashboard", "Documents", "Sign", "Discuss",
+        "CRM", "Sales", "Inventory", "Purchase",
+        "Accounting", "Subscriptions", "POS", "Rental",
+        "Project", "Timesheets", "Planning", "Field Service",
+        "Helpdesk", "Knowledge", "Website", "Email Marketing",
+        "Social Marketing", "HR", "Manufacturing", "Studio"
+      ],
+      "each_module": {
+        "backend": ["API endpoints", "Database models", "AI agent"],
+        "frontend": ["UI components", "Glass design", "Animations"],
+        "integration": ["WebSocket updates", "Real-time sync", "AI assistance"]
+      }
+    },
+    "testing_requirements": {
+      "coverage_thresholds": {
+        "unit": 80,
+        "integration": 70,
+        "e2e": 60
+      },
+      "test_types": ["unit", "integration", "e2e", "performance", "ai_agent"]
+    },
+    "deployment_requirements": {
+      "containerization": "Docker with multi-stage builds",
+      "orchestration": "Kubernetes for production",
+      "monitoring": "Prometheus + Grafana",
+      "logging": "Structured logging with ELK stack",
+      "security": "OWASP compliance, encryption at rest/transit"
+    }
+  },
+  "memory_guidelines": {
+    "user_preferences": [
+      "Use existing design from https://github.com/Janar2510/AI-Powered-Saleguru-CRM",
+      "Maintain 8px spacing horizontally and vertically",
+      "Use colored icons and consistent headlines",
+      "Apply brand gradient to headlines",
+      "Only make explicitly requested changes",
+      "Update changelog.md and deployment docs when making important changes"
+    ],
+    "technical_preferences": [
+      "Always use CSS custom properties for colors",
+      "Apply gradient border animation to main cards",
+      "Use spacing system variables (--space-*)",
+      "Maintain horizontal alignment with --card-gap",
+      "Follow established component patterns"
+    ]
+  },
+  "quality_gates": {
+    "before_commit": [
+      "All tests pass",
+      "Linting passes",
+      "Type checking passes",
+      "AI agent tests pass",
+      "Documentation updated"
+    ],
+    "before_deployment": [
+      "Security scan passes",
+      "Performance benchmarks met",
+      "Load testing completed",
+      "Documentation complete",
+      "User acceptance testing passed"
+    ]
+  }
+}
+
+
+
+

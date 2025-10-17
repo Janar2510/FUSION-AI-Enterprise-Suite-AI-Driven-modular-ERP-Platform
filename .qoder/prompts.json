@@ -1,0 +1,19 @@
+{
+  "module_creation_prompt": "Create a complete ERP module with the following structure:\n1. Backend API endpoints with FastAPI\n2. Database models with SQLAlchemy\n3. Specialized AI agent for the module\n4. Frontend React components with glassmorphism UI\n5. Integration tests\n6. Documentation\n\nFollow the purple gradient theme and ensure all components use CSS custom properties.",
+  
+  "ai_agent_prompt": "Create a specialized AI agent that can:\n1. Process natural language requests for the module\n2. Automate routine tasks\n3. Provide intelligent insights and recommendations\n4. Coordinate with other agents\n5. Learn from user interactions\n\nInclude proper error handling, logging, and fallback mechanisms.",
+  
+  "ui_component_prompt": "Create a React component with:\n1. TypeScript interfaces\n2. Glassmorphism design with purple gradient theme\n3. Framer Motion animations\n4. Responsive design\n5. Accessibility features\n6. CSS custom properties for theming\n\nEnsure 8px spacing and use the established design system.",
+  
+  "api_endpoint_prompt": "Create FastAPI endpoints with:\n1. Proper request/response models\n2. Authentication and authorization\n3. Input validation\n4. Error handling\n5. OpenAPI documentation\n6. Rate limiting\n7. Logging and monitoring\n\nFollow RESTful conventions and include AI agent integration.",
+  
+  "database_model_prompt": "Create SQLAlchemy models with:\n1. Proper relationships and constraints\n2. Indexes for performance\n3. Soft delete support\n4. Audit fields (created_at, updated_at)\n5. Validation rules\n6. Migration scripts\n\nEnsure data integrity and optimize for AI agent queries.",
+  
+  "integration_test_prompt": "Create comprehensive integration tests covering:\n1. API endpoint functionality\n2. Database operations\n3. AI agent interactions\n4. Frontend-backend communication\n5. Error scenarios\n6. Performance benchmarks\n\nUse pytest for backend and Jest for frontend tests.",
+  
+  "documentation_prompt": "Create comprehensive documentation including:\n1. Module overview and features\n2. API documentation with examples\n3. AI agent capabilities and usage\n4. Frontend component documentation\n5. Integration guide\n6. Troubleshooting section\n\nUse clear examples and include code snippets."
+}
+
+
+
+

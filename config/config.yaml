@@ -1,0 +1,186 @@
+# FusionAI Enterprise Suite Configuration
+
+# Application Settings
+app:
+  name: "FusionAI Enterprise Suite"
+  version: "1.0.0"
+  environment: "development"
+  debug: true
+  host: "0.0.0.0"
+  port: 8000
+
+# Database Configuration
+database:
+  postgres:
+    host: "localhost"
+    port: 5432
+    name: "fusionai_erp"
+    user: "fusionai_user"
+    password: "fusionai_password"
+    pool_size: 20
+    max_overflow: 30
+  
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+    password: ""
+    max_connections: 20
+  
+  qdrant:
+    host: "localhost"
+    port: 6333
+    collection_name: "fusionai_vectors"
+    vector_size: 1536
+
+# AI Configuration
+ai:
+  openai:
+    api_key: "${OPENAI_API_KEY}"
+    model: "gpt-4-turbo-preview"
+    temperature: 0.7
+    max_tokens: 4000
+  
+  anthropic:
+    api_key: "${ANTHROPIC_API_KEY}"
+    model: "claude-3-sonnet-20240229"
+    temperature: 0.7
+    max_tokens: 4000
+  
+  langchain:
+    memory_type: "conversation_buffer_window"
+    k: 5
+    return_source_documents: true
+  
+  agents:
+    max_decision_amount: 10000
+    response_timeout: 30
+    context_window: 32000
+    human_approval_threshold: 0.8
+
+# Module Configuration
+modules:
+  enabled:
+    - "dashboard"
+    - "documents"
+    - "sign"
+    - "discuss"
+    - "crm"
+    - "sales"
+    - "inventory"
+    - "purchase"
+    - "accounting"
+    - "subscriptions"
+    - "pos"
+    - "rental"
+    - "project"
+    - "timesheets"
+    - "planning"
+    - "field_service"
+    - "helpdesk"
+    - "knowledge"
+    - "website"
+    - "email_marketing"
+    - "social_marketing"
+    - "hr"
+    - "manufacturing"
+    - "studio"
+  
+  auto_discovery: true
+  lazy_loading: true
+  hot_reload: true
+
+# Security Configuration
+security:
+  jwt:
+    secret_key: "${JWT_SECRET_KEY}"
+    algorithm: "HS256"
+    access_token_expire_minutes: 30
+    refresh_token_expire_days: 7
+  
+  cors:
+    origins: ["http://localhost:3000", "http://localhost:8080"]
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+    headers: ["*"]
+    credentials: true
+  
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
+    burst_size: 200
+
+# Monitoring Configuration
+monitoring:
+  logging:
+    level: "INFO"
+    format: "json"
+    file: "logs/fusionai.log"
+    max_size: "10MB"
+    backup_count: 5
+  
+  metrics:
+    enabled: true
+    port: 9090
+    path: "/metrics"
+  
+  health_checks:
+    enabled: true
+    path: "/health"
+    timeout: 5
+
+# Frontend Configuration
+frontend:
+  build:
+    output_dir: "dist"
+    public_path: "/"
+    source_map: true
+  
+  dev_server:
+    port: 3000
+    host: "localhost"
+    hot_reload: true
+  
+  module_federation:
+    enabled: true
+    remote_modules: true
+    shared_dependencies: true
+
+# Integration Configuration
+integrations:
+  email:
+    provider: "smtp"
+    host: "smtp.gmail.com"
+    port: 587
+    username: "${EMAIL_USERNAME}"
+    password: "${EMAIL_PASSWORD}"
+  
+  sms:
+    provider: "twilio"
+    account_sid: "${TWILIO_ACCOUNT_SID}"
+    auth_token: "${TWILIO_AUTH_TOKEN}"
+  
+  storage:
+    provider: "aws_s3"
+    bucket: "fusionai-storage"
+    region: "us-east-1"
+    access_key: "${AWS_ACCESS_KEY}"
+    secret_key: "${AWS_SECRET_KEY}"
+
+# Performance Configuration
+performance:
+  caching:
+    enabled: true
+    ttl: 3600
+    max_size: 1000
+  
+  compression:
+    enabled: true
+    level: 6
+  
+  pagination:
+    default_page_size: 20
+    max_page_size: 100
+
+
+
+
