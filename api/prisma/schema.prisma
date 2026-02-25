@@ -1,0 +1,1343 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Partner {
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  email               String?
+  phone               String?
+  mobile              String?
+  website             String?
+  vat                 String?
+  isCompany           Boolean               @default(false)
+  type                String                @default("contact")
+  street              String?
+  street2             String?
+  city                String?
+  state               String?
+  zip                 String?
+  country             String?
+  title               String?
+  jobPosition         String?
+  notes               String?
+  image               String?
+  lang                String?               @default("en")
+  color               Int                   @default(0)
+  active              Boolean               @default(true)
+  isCustomer          Boolean               @default(false)
+  isVendor            Boolean               @default(false)
+  parentId            Int?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  PartnerToPartnerTag PartnerToPartnerTag[]
+  invoices            AccountMove[]         @relation("InvoicePartner")
+  calendarEvents      CalendarAttendee[]
+  crmLeads            CrmLead[]
+  fsTasks             FsTask[]
+  helpdeskTickets     HelpdeskTicket[]
+  employeeLink        HrEmployee?
+  parent              Partner?              @relation("CompanyContacts", fields: [parentId], references: [id])
+  children            Partner[]             @relation("CompanyContacts")
+  purchaseOrders      PurchaseOrder[]
+  rentalOrders        RentalOrder[]
+  saleOrders          SaleOrder[]
+  subscriptions       Subscription[]
+  pickings            StockPicking[]
+
+  @@map("partners")
+}
+
+model PartnerTag {
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  color               Int                   @default(0)
+  PartnerToPartnerTag PartnerToPartnerTag[]
+
+  @@map("partner_tags")
+}
+
+model CrmStage {
+  id           Int       @id @default(autoincrement())
+  name         String
+  sequence     Int       @default(10)
+  foldedKanban Boolean   @default(false)
+  leads        CrmLead[]
+
+  @@map("crm_stages")
+}
+
+model CrmTag {
+  id    Int       @id @default(autoincrement())
+  name  String
+  color Int       @default(0)
+  leads CrmLead[] @relation("CrmLeadToCrmTag")
+
+  @@map("crm_tags")
+}
+
+model CrmLead {
+  id              Int         @id @default(autoincrement())
+  name            String
+  type            String      @default("lead")
+  active          Boolean     @default(true)
+  priority        Int         @default(0)
+  expectedRevenue Float       @default(0)
+  probability     Float       @default(10)
+  contactName     String?
+  emailFrom       String?
+  phone           String?
+  mobile          String?
+  street          String?
+  city            String?
+  state           String?
+  zip             String?
+  country         String?
+  website         String?
+  description     String?
+  lostReason      String?
+  color           Int         @default(0)
+  stageId         Int
+  partnerId       Int?
+  dateDeadline    DateTime?
+  dateClosed      DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  partner         Partner?    @relation(fields: [partnerId], references: [id])
+  stage           CrmStage    @relation(fields: [stageId], references: [id])
+  saleOrders      SaleOrder[]
+  tags            CrmTag[]    @relation("CrmLeadToCrmTag")
+
+  @@map("crm_leads")
+}
+
+model SaleOrder {
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  state         String          @default("draft")
+  dateOrder     DateTime        @default(now())
+  validityDate  DateTime?
+  note          String?
+  amountUntaxed Float           @default(0)
+  amountTax     Float           @default(0)
+  amountTotal   Float           @default(0)
+  partnerId     Int
+  crmLeadId     Int?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  invoices      AccountMove[]   @relation("SaleInvoices")
+  lines         SaleOrderLine[]
+  crmLead       CrmLead?        @relation(fields: [crmLeadId], references: [id])
+  partner       Partner         @relation(fields: [partnerId], references: [id])
+  pickings      StockPicking[]
+
+  @@map("sale_orders")
+}
+
+model SaleOrderLine {
+  id            Int       @id @default(autoincrement())
+  sequence      Int       @default(10)
+  name          String
+  productQty    Float     @default(1)
+  priceUnit     Float     @default(0)
+  discount      Float     @default(0)
+  priceSubtotal Float     @default(0)
+  priceTotal    Float     @default(0)
+  orderId       Int
+  productId     Int?
+  product       Product?  @relation(fields: [productId], references: [id])
+  order         SaleOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("sale_order_lines")
+}
+
+model PurchaseOrder {
+  id            Int                 @id @default(autoincrement())
+  name          String              @unique
+  state         String              @default("draft")
+  partnerRef    String?
+  dateOrder     DateTime            @default(now())
+  dateApprove   DateTime?
+  datePlanned   DateTime?
+  note          String?
+  amountUntaxed Float               @default(0)
+  amountTax     Float               @default(0)
+  amountTotal   Float               @default(0)
+  partnerId     Int
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  lines         PurchaseOrderLine[]
+  partner       Partner             @relation(fields: [partnerId], references: [id])
+  pickings      StockPicking[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderLine {
+  id            Int           @id @default(autoincrement())
+  sequence      Int           @default(10)
+  name          String
+  productQty    Float         @default(1)
+  qtyReceived   Float         @default(0)
+  qtyInvoiced   Float         @default(0)
+  priceUnit     Float         @default(0)
+  priceSubtotal Float         @default(0)
+  priceTotal    Float         @default(0)
+  orderId       Int
+  productId     Int?
+  product       Product?      @relation(fields: [productId], references: [id])
+  order         PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("purchase_order_lines")
+}
+
+model ProductCategory {
+  id       Int               @id @default(autoincrement())
+  name     String
+  parentId Int?
+  parent   ProductCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children ProductCategory[] @relation("CategoryHierarchy")
+  products Product[]
+
+  @@map("product_categories")
+}
+
+model Product {
+  id              Int                 @id @default(autoincrement())
+  name            String
+  internalRef     String?
+  barcode         String?
+  type            String              @default("consu")
+  salePrice       Float               @default(0)
+  costPrice       Float               @default(0)
+  description     String?
+  descriptionSale String?
+  image           String?
+  active          Boolean             @default(true)
+  weight          Float               @default(0)
+  volume          Float               @default(0)
+  categoryId      Int?
+  qtyOnHand       Float               @default(0)
+  qtyForecasted   Float               @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  invoiceLines    AccountMoveLine[]
+  mrpLines        MrpBomLine[]
+  mrpProductions  MrpProduction[]
+  posLines        PosOrderLine[]
+  category        ProductCategory?    @relation(fields: [categoryId], references: [id])
+  purchaseLines   PurchaseOrderLine[]
+  rentals         RentalOrderLine[]   @relation("RentalProductLink")
+  saleLines       SaleOrderLine[]
+  moves           StockMove[]
+  quants          StockQuant[]
+  qualityChecks   QualityCheck[]
+  qualityPoints   QualityPoint[]
+  mrpEcos         MrpEco[]
+
+  @@map("products")
+}
+
+model StockLocation {
+  id               Int                @id @default(autoincrement())
+  name             String
+  completeName     String
+  usage            String             @default("internal") // supplier, view, internal, customer, inventory, production, transit
+  active           Boolean            @default(true)
+  locationId       Int? // Parent location
+  warehouseId      Int?
+  companyId        Int?
+  parent           StockLocation?     @relation("LocationHierarchy", fields: [locationId], references: [id])
+  children         StockLocation[]    @relation("LocationHierarchy")
+  warehouse        StockWarehouse?    @relation(fields: [warehouseId], references: [id])
+  pickingsSrc      StockPicking[]     @relation("PickingSourceLocation")
+  pickingsDest     StockPicking[]     @relation("PickingDestLocation")
+  movesSrc         StockMove[]        @relation("MoveSourceLocation")
+  movesDest        StockMove[]        @relation("MoveDestLocation")
+  quants           StockQuant[]
+  pickingTypesSrc  StockPickingType[] @relation("PickingTypeSourceLocation")
+  pickingTypesDest StockPickingType[] @relation("PickingTypeDestLocation")
+
+  @@map("stock_locations")
+}
+
+model StockWarehouse {
+  id           Int                @id @default(autoincrement())
+  name         String
+  code         String             @unique
+  active       Boolean            @default(true)
+  locations    StockLocation[]
+  pickings     StockPicking[]
+  pickingTypes StockPickingType[]
+
+  @@map("stock_warehouses")
+}
+
+model StockPickingType {
+  id                    Int             @id @default(autoincrement())
+  name                  String
+  code                  String // incoming, outgoing, internal
+  sequenceCode          String
+  warehouseId           Int?
+  defaultLocationSrcId  Int?
+  defaultLocationDestId Int?
+  warehouse             StockWarehouse? @relation(fields: [warehouseId], references: [id])
+  defaultLocationSrc    StockLocation?  @relation("PickingTypeSourceLocation", fields: [defaultLocationSrcId], references: [id])
+  defaultLocationDest   StockLocation?  @relation("PickingTypeDestLocation", fields: [defaultLocationDestId], references: [id])
+  pickings              StockPicking[]
+
+  @@map("stock_picking_types")
+}
+
+model StockPicking {
+  id              Int       @id @default(autoincrement())
+  name            String    @unique
+  pickingTypeId   Int
+  state           String    @default("draft")
+  scheduledDate   DateTime?
+  dateDone        DateTime?
+  origin          String?
+  note            String?
+  locationId      Int?
+  locationDestId  Int?
+  partnerId       Int?
+  warehouseId     Int?
+  saleOrderId     Int?
+  purchaseOrderId Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  pickingType   StockPickingType @relation(fields: [pickingTypeId], references: [id])
+  location      StockLocation?   @relation("PickingSourceLocation", fields: [locationId], references: [id])
+  locationDest  StockLocation?   @relation("PickingDestLocation", fields: [locationDestId], references: [id])
+  partner       Partner?         @relation(fields: [partnerId], references: [id])
+  moves         StockMove[]
+  purchaseOrder PurchaseOrder?   @relation(fields: [purchaseOrderId], references: [id])
+  saleOrder     SaleOrder?       @relation(fields: [saleOrderId], references: [id])
+  warehouse     StockWarehouse?  @relation(fields: [warehouseId], references: [id])
+  qualityChecks QualityCheck[]
+
+  @@map("stock_pickings")
+}
+
+model StockMove {
+  id             Int      @id @default(autoincrement())
+  name           String
+  state          String   @default("draft")
+  productQty     Float    @default(0) // Demand
+  qtyDone        Float    @default(0) // Done
+  locationId     Int
+  locationDestId Int
+  pickingId      Int?
+  productId      Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  location     StockLocation @relation("MoveSourceLocation", fields: [locationId], references: [id])
+  locationDest StockLocation @relation("MoveDestLocation", fields: [locationDestId], references: [id])
+  product      Product       @relation(fields: [productId], references: [id])
+  picking      StockPicking? @relation(fields: [pickingId], references: [id], onDelete: Cascade)
+
+  @@map("stock_moves")
+}
+
+model StockQuant {
+  id               Int      @id @default(autoincrement())
+  productId        Int
+  locationId       Int
+  quantity         Float    @default(0) // On Hand
+  reservedQuantity Float    @default(0)
+  inDate           DateTime @default(now())
+
+  product  Product       @relation(fields: [productId], references: [id])
+  location StockLocation @relation(fields: [locationId], references: [id])
+
+  @@unique([productId, locationId])
+  @@map("stock_quants")
+}
+
+model AccountAccount {
+  id          Int               @id @default(autoincrement())
+  name        String
+  code        String            @unique
+  accountType String
+  reconcile   Boolean           @default(false)
+  deprecated  Boolean           @default(false)
+  active      Boolean           @default(true)
+  lines       AccountMoveLine[]
+  journals    AccountJournal[]  @relation("JournalDefaultAccount")
+
+  @@map("account_accounts")
+}
+
+model AccountJournal {
+  id               Int             @id @default(autoincrement())
+  name             String
+  code             String          @unique
+  type             String
+  active           Boolean         @default(true)
+  defaultAccountId Int?
+  defaultAccount   AccountAccount? @relation("JournalDefaultAccount", fields: [defaultAccountId], references: [id])
+  moves            AccountMove[]
+
+  @@map("account_journals")
+}
+
+model AccountMove {
+  id             Int               @id @default(autoincrement())
+  name           String            @unique
+  moveType       String
+  state          String            @default("draft")
+  date           DateTime          @default(now())
+  dueDate        DateTime?
+  ref            String?
+  amountUntaxed  Float             @default(0)
+  amountTax      Float             @default(0)
+  amountTotal    Float             @default(0)
+  amountResidual Float             @default(0)
+  paymentState   String            @default("not_paid")
+  journalId      Int
+  partnerId      Int?
+  saleOrderId    Int?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  lines          AccountMoveLine[]
+  saleOrder      SaleOrder?        @relation("SaleInvoices", fields: [saleOrderId], references: [id])
+  partner        Partner?          @relation("InvoicePartner", fields: [partnerId], references: [id])
+  journal        AccountJournal    @relation(fields: [journalId], references: [id])
+
+  @@map("account_moves")
+}
+
+model AccountMoveLine {
+  id            Int             @id @default(autoincrement())
+  name          String
+  quantity      Float           @default(1)
+  priceUnit     Float           @default(0)
+  priceSubtotal Float           @default(0)
+  priceTotal    Float           @default(0)
+  debit         Float           @default(0)
+  credit        Float           @default(0)
+  balance       Float           @default(0)
+  reconciled    Boolean         @default(false)
+  accountId     Int?
+  account       AccountAccount? @relation(fields: [accountId], references: [id])
+  moveId        Int
+  productId     Int?
+  product       Product?        @relation(fields: [productId], references: [id])
+  move          AccountMove     @relation(fields: [moveId], references: [id], onDelete: Cascade)
+
+  @@map("account_move_lines")
+}
+
+model FsTask {
+  id            Int         @id @default(autoincrement())
+  name          String
+  description   String?
+  state         String      @default("new")
+  priority      Int         @default(0)
+  scheduledDate DateTime?
+  dateDeadline  DateTime?
+  partnerId     Int?
+  employeeId    Int?
+  street        String?
+  city          String?
+  zip           String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  employee      HrEmployee? @relation(fields: [employeeId], references: [id])
+  partner       Partner?    @relation(fields: [partnerId], references: [id])
+
+  @@map("fs_tasks")
+}
+
+model RentalOrder {
+  id          Int               @id @default(autoincrement())
+  name        String
+  state       String            @default("draft")
+  pickupDate  DateTime
+  returnDate  DateTime
+  partnerId   Int
+  amountTotal Float             @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  lines       RentalOrderLine[]
+  partner     Partner           @relation(fields: [partnerId], references: [id])
+
+  @@map("rental_orders")
+}
+
+model RentalOrderLine {
+  id            Int         @id @default(autoincrement())
+  orderId       Int
+  productId     Int
+  productQty    Int         @default(1)
+  priceUnit     Float       @default(0)
+  priceSubtotal Float       @default(0)
+  product       Product     @relation("RentalProductLink", fields: [productId], references: [id])
+  order         RentalOrder @relation(fields: [orderId], references: [id])
+
+  @@map("rental_order_lines")
+}
+
+model HrDepartment {
+  id         Int            @id @default(autoincrement())
+  name       String
+  active     Boolean        @default(true)
+  color      Int            @default(0)
+  parentId   Int?
+  managerId  Int?           @unique
+  applicants HrApplicant[]
+  manager    HrEmployee?    @relation("DeptManager", fields: [managerId], references: [id])
+  parent     HrDepartment?  @relation("DeptHierarchy", fields: [parentId], references: [id])
+  children   HrDepartment[] @relation("DeptHierarchy")
+  employees  HrEmployee[]   @relation("DeptEmployees")
+
+  @@map("hr_departments")
+}
+
+model HrJob {
+  id                Int           @id @default(autoincrement())
+  name              String
+  description       String?
+  expectedEmployees Int           @default(1)
+  noOfEmployee      Int           @default(0)
+  state             String        @default("recruit")
+  applicants        HrApplicant[]
+  employees         HrEmployee[]
+
+  @@map("hr_jobs")
+}
+
+model HrEmployee {
+  id               Int            @id @default(autoincrement())
+  name             String
+  employeeNumber   String?
+  workEmail        String?
+  workPhone        String?
+  mobilePhone      String?
+  birthday         DateTime?
+  gender           String?
+  maritalStatus    String?
+  emergencyContact String?
+  emergencyPhone   String?
+  image            String?
+  active           Boolean        @default(true)
+  color            Int            @default(0)
+  departmentId     Int?
+  jobId            Int?
+  partnerId        Int?           @unique
+  managerId        Int?
+  coachId          Int?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  fsTasks          FsTask[]
+  appraisals       HrAppraisal[]
+  attendances      HrAttendance[]
+  managedDept      HrDepartment?  @relation("DeptManager")
+  manager          HrEmployee?    @relation("EmployeeManager", fields: [managerId], references: [id])
+  subordinates     HrEmployee[]   @relation("EmployeeManager")
+  coach            HrEmployee?    @relation("EmployeeCoach", fields: [coachId], references: [id])
+  coachees         HrEmployee[]   @relation("EmployeeCoach")
+  partner          Partner?       @relation(fields: [partnerId], references: [id])
+  job              HrJob?         @relation(fields: [jobId], references: [id])
+  department       HrDepartment?  @relation("DeptEmployees", fields: [departmentId], references: [id])
+  expenses         HrExpense[]
+  leaveRequests    HrLeave[]
+  payslips         HrPayslip[]
+  timesheets       HrTimesheet[]
+  planningSlots    PlanningSlot[]
+
+  @@map("hr_employees")
+}
+
+model HrTimesheet {
+  id         Int             @id @default(autoincrement())
+  date       DateTime        @default(now())
+  name       String
+  unitAmount Float           @default(0)
+  employeeId Int
+  taskId     Int?
+  projectId  Int?
+  project    ProjectProject? @relation(fields: [projectId], references: [id])
+  task       ProjectTask?    @relation(fields: [taskId], references: [id])
+  employee   HrEmployee      @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_timesheets")
+}
+
+model HrLeave {
+  id           Int        @id @default(autoincrement())
+  name         String?
+  state        String     @default("draft")
+  leaveType    String     @default("legal")
+  dateFrom     DateTime
+  dateTo       DateTime
+  numberOfDays Float      @default(1)
+  notes        String?
+  employeeId   Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  employee     HrEmployee @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_leaves")
+}
+
+model HrExpense {
+  id          Int        @id @default(autoincrement())
+  name        String
+  date        DateTime   @default(now())
+  state       String     @default("draft")
+  totalAmount Float      @default(0)
+  quantity    Float      @default(1)
+  unitAmount  Float      @default(0)
+  description String?
+  paymentMode String     @default("own_account")
+  receipt     String?
+  employeeId  Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employee    HrEmployee @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_expenses")
+}
+
+model ProjectStage {
+  id           Int           @id @default(autoincrement())
+  name         String
+  sequence     Int           @default(10)
+  foldedKanban Boolean       @default(false)
+  tasks        ProjectTask[]
+
+  @@map("project_stages")
+}
+
+model ProjectProject {
+  id            Int            @id @default(autoincrement())
+  name          String
+  description   String?
+  color         Int            @default(0)
+  active        Boolean        @default(true)
+  dateStart     DateTime?
+  date          DateTime?
+  taskCount     Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  timesheets    HrTimesheet[]
+  planningSlots PlanningSlot[]
+  tasks         ProjectTask[]
+
+  @@map("project_projects")
+}
+
+model ProjectTask {
+  id           Int            @id @default(autoincrement())
+  name         String
+  description  String?
+  priority     Int            @default(0)
+  sequence     Int            @default(10)
+  color        Int            @default(0)
+  active       Boolean        @default(true)
+  dateDeadline DateTime?
+  dateEnd      DateTime?
+  kanbanState  String         @default("normal")
+  stageId      Int
+  projectId    Int
+  parentId     Int?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  timesheets   HrTimesheet[]
+  parent       ProjectTask?   @relation("TaskHierarchy", fields: [parentId], references: [id])
+  subtasks     ProjectTask[]  @relation("TaskHierarchy")
+  project      ProjectProject @relation(fields: [projectId], references: [id])
+  stage        ProjectStage   @relation(fields: [stageId], references: [id])
+
+  @@map("project_tasks")
+}
+
+model HelpdeskStage {
+  id           Int              @id @default(autoincrement())
+  name         String
+  sequence     Int              @default(10)
+  foldedKanban Boolean          @default(false)
+  tickets      HelpdeskTicket[]
+
+  @@map("helpdesk_stages")
+}
+
+model HelpdeskTicket {
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String?
+  priority     Int           @default(0)
+  kanbanState  String        @default("normal")
+  active       Boolean       @default(true)
+  stageId      Int
+  partnerId    Int?
+  dateDeadline DateTime?
+  dateClosed   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  partner      Partner?      @relation(fields: [partnerId], references: [id])
+  stage        HelpdeskStage @relation(fields: [stageId], references: [id])
+
+  @@map("helpdesk_tickets")
+}
+
+model CalendarEvent {
+  id          Int                @id @default(autoincrement())
+  name        String
+  description String?
+  start       DateTime
+  stop        DateTime
+  allday      Boolean            @default(false)
+  location    String?
+  privacy     String             @default("public")
+  showAs      String             @default("busy")
+  recurrency  Boolean            @default(false)
+  color       Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  attendees   CalendarAttendee[]
+
+  @@map("calendar_events")
+}
+
+model CalendarAttendee {
+  id        Int           @id @default(autoincrement())
+  state     String        @default("needsAction")
+  role      String        @default("req")
+  eventId   Int
+  partnerId Int
+  partner   Partner       @relation(fields: [partnerId], references: [id])
+  event     CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, partnerId])
+  @@map("calendar_attendees")
+}
+
+model MrpBom {
+  id          Int             @id @default(autoincrement())
+  name        String?
+  code        String?
+  type        String          @default("normal")
+  productQty  Float           @default(1)
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  lines       MrpBomLine[]
+  productions MrpProduction[]
+  mrpEcos     MrpEco[]
+
+  @@map("mrp_boms")
+}
+
+model MrpBomLine {
+  id         Int     @id @default(autoincrement())
+  productQty Float   @default(1)
+  bomId      Int
+  productId  Int
+  product    Product @relation(fields: [productId], references: [id])
+  bom        MrpBom  @relation(fields: [bomId], references: [id], onDelete: Cascade)
+
+  @@map("mrp_bom_lines")
+}
+
+model MrpProduction {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  state        String         @default("draft")
+  productQty   Float          @default(1)
+  qtyProduced  Float          @default(0)
+  dateStart    DateTime?
+  dateFinished DateTime?
+  origin       String?
+  bomId        Int?
+  productId    Int?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  bom          MrpBom?        @relation(fields: [bomId], references: [id])
+  product      Product?       @relation(fields: [productId], references: [id])
+  workOrders   MrpWorkorder[]
+  qualityChecks QualityCheck[]
+
+  @@map("mrp_productions")
+}
+
+model MrpWorkorder {
+  id             Int           @id @default(autoincrement())
+  name           String
+  state          String        @default("pending")
+  duration       Float         @default(0)
+  durationActual Float         @default(0)
+  sequence       Int           @default(10)
+  productionId   Int
+  workcenterId   Int?
+  production     MrpProduction @relation(fields: [productionId], references: [id], onDelete: Cascade)
+  workcenter     MrpWorkcenter? @relation(fields: [workcenterId], references: [id])
+
+  @@map("mrp_workorders")
+}
+
+model MrpWorkcenter {
+  id               Int            @id @default(autoincrement())
+  name             String
+  code             String?
+  timeEfficiency   Float          @default(100)
+  capacity         Float          @default(1)
+  oeeTarget        Float          @default(90)
+  timeStart        Float          @default(0)
+  timeStop         Float          @default(0)
+  costsHour        Float          @default(0)
+  active           Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  workOrders       MrpWorkorder[]
+
+  @@map("mrp_workcenters")
+}
+
+model PosConfig {
+  id       Int          @id @default(autoincrement())
+  name     String
+  active   Boolean      @default(true)
+  sessions PosSession[]
+
+  @@map("pos_configs")
+}
+
+model PosSession {
+  id                  Int        @id @default(autoincrement())
+  name                String     @unique
+  state               String     @default("opening_control")
+  startAt             DateTime   @default(now())
+  stopAt              DateTime?
+  cashRegisterBalance Float      @default(0)
+  configId            Int
+  orders              PosOrder[]
+  config              PosConfig  @relation(fields: [configId], references: [id])
+
+  @@map("pos_sessions")
+}
+
+model PosOrder {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  state        String         @default("draft")
+  dateOrder    DateTime       @default(now())
+  amountTotal  Float          @default(0)
+  amountTax    Float          @default(0)
+  amountPaid   Float          @default(0)
+  amountReturn Float          @default(0)
+  note         String?
+  sessionId    Int
+  lines        PosOrderLine[]
+  session      PosSession     @relation(fields: [sessionId], references: [id])
+
+  @@map("pos_orders")
+}
+
+model PosOrderLine {
+  id            Int      @id @default(autoincrement())
+  name          String
+  qty           Float    @default(1)
+  priceUnit     Float    @default(0)
+  priceSubtotal Float    @default(0)
+  discount      Float    @default(0)
+  orderId       Int
+  productId     Int?
+  product       Product? @relation(fields: [productId], references: [id])
+  order         PosOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("pos_order_lines")
+}
+
+model MailChannel {
+  id          Int           @id @default(autoincrement())
+  name        String
+  channelType String        @default("channel")
+  description String?
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  messages    MailMessage[]
+
+  @@map("mail_channels")
+}
+
+model MailMessage {
+  id          Int          @id @default(autoincrement())
+  body        String
+  messageType String       @default("comment")
+  authorName  String?
+  date        DateTime     @default(now())
+  channelId   Int?
+  resModel    String?
+  resId       Int?
+  channel     MailChannel? @relation(fields: [channelId], references: [id])
+
+  @@map("mail_messages")
+}
+
+model EventEvent {
+  id             Int                 @id @default(autoincrement())
+  name           String
+  dateBegin      DateTime
+  dateEnd        DateTime
+  location       String?
+  description    String?
+  state          String              @default("draft")
+  seatsMax       Int                 @default(0)
+  seatsAvailable Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  registrations  EventRegistration[]
+
+  @@map("event_events")
+}
+
+model EventRegistration {
+  id      Int        @id @default(autoincrement())
+  name    String
+  email   String?
+  phone   String?
+  state   String     @default("draft")
+  eventId Int
+  event   EventEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_registrations")
+}
+
+model FleetVehicle {
+  id           Int               @id @default(autoincrement())
+  name         String
+  licensePlate String?
+  model        String?
+  brand        String?
+  color        String?
+  fuelType     String?
+  odometer     Float             @default(0)
+  state        String            @default("active")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  logs         FleetVehicleLog[]
+
+  @@map("fleet_vehicles")
+}
+
+model FleetVehicleLog {
+  id          Int          @id @default(autoincrement())
+  date        DateTime     @default(now())
+  type        String
+  description String?
+  amount      Float        @default(0)
+  odometer    Float        @default(0)
+  vehicleId   Int
+  vehicle     FleetVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("fleet_vehicle_logs")
+}
+
+model MaintenanceEquipment {
+  id         Int                  @id @default(autoincrement())
+  name       String
+  serialNo   String?
+  model      String?
+  category   String?
+  location   String?
+  assignDate DateTime?
+  cost       Float                @default(0)
+  note       String?
+  active     Boolean              @default(true)
+  requests   MaintenanceRequest[]
+
+  @@map("maintenance_equipment")
+}
+
+model MaintenanceRequest {
+  id              Int                   @id @default(autoincrement())
+  name            String
+  description     String?
+  requestDate     DateTime              @default(now())
+  closeDate       DateTime?
+  priority        Int                   @default(0)
+  stage           String                @default("new")
+  maintenanceType String                @default("corrective")
+  equipmentId     Int?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  equipment       MaintenanceEquipment? @relation(fields: [equipmentId], references: [id])
+
+  @@map("maintenance_requests")
+}
+
+model Survey {
+  id          Int               @id @default(autoincrement())
+  title       String
+  description String?
+  state       String            @default("draft")
+  scoringType String            @default("no_scoring")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  questions   SurveyQuestion[]
+  responses   SurveyUserInput[]
+
+  @@map("surveys")
+}
+
+model SurveyQuestion {
+  id              Int            @id @default(autoincrement())
+  title           String
+  questionType    String         @default("text_box")
+  sequence        Int            @default(10)
+  isRequired      Boolean        @default(false)
+  constrMandatory Boolean        @default(false)
+  surveyId        Int
+  answers         SurveyAnswer[]
+  survey          Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@map("survey_questions")
+}
+
+model SurveyAnswer {
+  id         Int            @id @default(autoincrement())
+  value      String
+  sequence   Int            @default(10)
+  isCorrect  Boolean        @default(false)
+  questionId Int
+  question   SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("survey_answers")
+}
+
+model SurveyUserInput {
+  id            Int       @id @default(autoincrement())
+  state         String    @default("new")
+  startDatetime DateTime  @default(now())
+  endDatetime   DateTime?
+  email         String?
+  surveyId      Int
+  survey        Survey    @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@map("survey_user_inputs")
+}
+
+model Note {
+  id        Int      @id @default(autoincrement())
+  name      String
+  body      String?
+  stage     String   @default("new")
+  color     Int      @default(0)
+  sequence  Int      @default(10)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notes")
+}
+
+model KnowledgeArticle {
+  id          Int      @id @default(autoincrement())
+  title       String
+  body        String?
+  category    String?
+  isPublished Boolean  @default(true)
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("knowledge_articles")
+}
+
+model LunchSupplier {
+  id       Int            @id @default(autoincrement())
+  name     String
+  phone    String?
+  email    String?
+  active   Boolean        @default(true)
+  products LunchProduct[]
+
+  @@map("lunch_suppliers")
+}
+
+model LunchProduct {
+  id          Int           @id @default(autoincrement())
+  name        String
+  price       Float         @default(0)
+  category    String?
+  description String?
+  active      Boolean       @default(true)
+  supplierId  Int
+  orders      LunchOrder[]
+  supplier    LunchSupplier @relation(fields: [supplierId], references: [id])
+
+  @@map("lunch_products")
+}
+
+model LunchOrder {
+  id        Int          @id @default(autoincrement())
+  state     String       @default("new")
+  date      DateTime     @default(now())
+  quantity  Float        @default(1)
+  price     Float        @default(0)
+  note      String?
+  productId Int
+  product   LunchProduct @relation(fields: [productId], references: [id])
+
+  @@map("lunch_orders")
+}
+
+model WebsitePage {
+  id             Int      @id @default(autoincrement())
+  name           String
+  url            String   @unique
+  content        String?
+  isPublished    Boolean  @default(false)
+  viewCount      Int      @default(0)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("website_pages")
+}
+
+model MassMailing {
+  id            Int       @id @default(autoincrement())
+  subject       String
+  bodyHtml      String?
+  state         String    @default("draft")
+  sentDate      DateTime?
+  scheduledDate DateTime?
+  sentCount     Int       @default(0)
+  openedCount   Int       @default(0)
+  clickedCount  Int       @default(0)
+  bouncedCount  Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("mass_mailings")
+}
+
+model SocialPost {
+  id            Int       @id @default(autoincrement())
+  content       String
+  state         String    @default("draft")
+  scheduledDate DateTime?
+  publishedDate DateTime?
+  postFacebook  Boolean   @default(false)
+  postTwitter   Boolean   @default(false)
+  postLinkedin  Boolean   @default(false)
+  likes         Int       @default(0)
+  comments      Int       @default(0)
+  shares        Int       @default(0)
+  clicks        Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("social_posts")
+}
+
+model HrApplicant {
+  id           Int           @id @default(autoincrement())
+  name         String
+  partnerName  String?
+  email        String?
+  phone        String?
+  stage        String        @default("new")
+  priority     Int           @default(0)
+  salary       Float         @default(0)
+  source       String?
+  description  String?
+  jobId        Int?
+  departmentId Int?
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  department   HrDepartment? @relation(fields: [departmentId], references: [id])
+  job          HrJob?        @relation(fields: [jobId], references: [id])
+
+  @@map("hr_applicants")
+}
+
+model HrAttendance {
+  id          Int        @id @default(autoincrement())
+  checkIn     DateTime
+  checkOut    DateTime?
+  workedHours Float      @default(0)
+  employeeId  Int
+  createdAt   DateTime   @default(now())
+  employee    HrEmployee @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_attendances")
+}
+
+model HrPayslip {
+  id          Int        @id @default(autoincrement())
+  name        String
+  state       String     @default("draft")
+  dateFrom    DateTime
+  dateTo      DateTime
+  basicWage   Float      @default(0)
+  grossSalary Float      @default(0)
+  netSalary   Float      @default(0)
+  deductions  Float      @default(0)
+  employeeId  Int
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  employee    HrEmployee @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_payslips")
+}
+
+model HrAppraisal {
+  id               Int        @id @default(autoincrement())
+  state            String     @default("new")
+  deadline         DateTime?
+  finalInterview   DateTime?
+  managerFeedback  String?
+  employeeFeedback String?
+  overallRating    Int        @default(0)
+  employeeId       Int
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  employee         HrEmployee @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_appraisals")
+}
+
+model QualityPoint {
+  id        Int            @id @default(autoincrement())
+  name      String
+  testType  String         @default("passfail") // passfail, measure
+  productId Int?
+  teamId    String?
+  notes     String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  checks    QualityCheck[]
+  product   Product?       @relation(fields: [productId], references: [id])
+
+  @@map("quality_points")
+}
+
+model QualityCheck {
+  id           Int           @id @default(autoincrement())
+  name         String
+  state        String        @default("none") // none, pass, fail
+  testType     String        @default("passfail")
+  measureValue Float?
+  notes        String?
+  picture      String?
+  pointId      Int?
+  productId    Int?
+  productionId Int?
+  pickingId    Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  point        QualityPoint? @relation(fields: [pointId], references: [id])
+  product      Product?      @relation(fields: [productId], references: [id])
+  production   MrpProduction? @relation(fields: [productionId], references: [id])
+  picking      StockPicking? @relation(fields: [pickingId], references: [id])
+
+  @@map("quality_checks")
+}
+
+model MrpEco {
+  id              Int       @id @default(autoincrement())
+  name            String
+  stage           String    @default("draft") // draft, confirmed, progress, done
+  type            String    @default("product") // product, bom, routing
+  description     String?
+  effectivity     String?   // as_soon_as_possible, date
+  effectivityDate DateTime?
+  approvalState   String    @default("none") // none, approved, rejected
+  productId       Int?
+  bomId           Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  product         Product?  @relation(fields: [productId], references: [id])
+  bom             MrpBom?   @relation(fields: [bomId], references: [id])
+
+  @@map("mrp_ecos")
+}
+
+model Subscription {
+  id                Int       @id @default(autoincrement())
+  name              String?
+  state             String    @default("draft")
+  plan              String    @default("starter")
+  mrr               Float     @default(0)
+  startDate         DateTime  @default(now())
+  nextBilling       DateTime?
+  endDate           DateTime?
+  recurringInterval Int       @default(1)
+  recurringRule     String    @default("monthly")
+  partnerId         Int?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  partner           Partner?  @relation(fields: [partnerId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model PlanningSlot {
+  id         Int             @id @default(autoincrement())
+  role       String?
+  hours      Float           @default(0)
+  startDate  DateTime
+  endDate    DateTime
+  note       String?
+  state      String          @default("draft")
+  employeeId Int?
+  projectId  Int?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  project    ProjectProject? @relation(fields: [projectId], references: [id])
+  employee   HrEmployee?     @relation(fields: [employeeId], references: [id])
+
+  @@map("planning_slots")
+}
+
+model MarketingCampaign {
+  id          Int       @id @default(autoincrement())
+  name        String
+  type        String    @default("email")
+  state       String    @default("draft")
+  budget      Float     @default(0)
+  spent       Float     @default(0)
+  leads       Int       @default(0)
+  conversions Int       @default(0)
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("marketing_campaigns")
+}
+
+model PartnerToPartnerTag {
+  A            Int
+  B            Int
+  partner_tags PartnerTag @relation(fields: [B], references: [id], onDelete: Cascade)
+  partners     Partner    @relation(fields: [A], references: [id], onDelete: Cascade)
+
+  @@unique([A, B], map: "_PartnerToPartnerTag_AB_unique")
+  @@index([B], map: "_PartnerToPartnerTag_B_index")
+  @@map("_PartnerToPartnerTag")
+}
+
+model SystemConfig {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_configs")
+}

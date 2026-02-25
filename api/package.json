@@ -1,0 +1,51 @@
+{
+  "name": "fusionai-api",
+  "version": "1.0.0",
+  "description": "FusionAI Enterprise Suite - Node.js + Prisma API",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "prisma migrate reset --force",
+    "db:studio": "prisma studio",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "lint": "tsc --noEmit"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "keywords": [
+    "erp",
+    "fusionai",
+    "prisma",
+    "express"
+  ],
+  "author": "FusionAI Team",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^4.22.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.8.0",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^4.17.25",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.0.0",
+    "nodemon": "^3.1.0",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

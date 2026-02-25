@@ -1,0 +1,466 @@
+import React, { useEffect, useState, useMemo } from 'react';
+import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
+import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
+import { OdooKanbanBase } from '@/components/views/OdooKanbanBase';
+import { OdooListBase } from '@/components/views/OdooListBase';
+import { OdooFormBase } from '@/components/views/OdooFormBase';
+import { useCRMStore, CrmLead } from '../stores/crmStore';
+import { useSalesStore } from '@/modules/sales/stores/salesStore';
+import { Mail, Phone, DollarSign, Target, Briefcase, ShoppingCart } from 'lucide-react';
+import { DropResult } from 'react-beautiful-dnd';
+import { BreadcrumbHeader } from '@/components/shared/BreadcrumbHeader';
+import { SmartButton } from '@/components/shared/SmartButton';
+import { CRMSettings } from './CRMSettings';
+
+// Internal form wrapper removed as nested routing is now handling CRM views
+
+export const CRMModule: React.FC = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const {
+        pipelineStages,
+        allLeads,
+        fetchPipeline,
+        fetchAllLeads,
+        createLead,
+        updateLead,
+        moveLeadStage
+    } = useCRMStore();
+    const { orders, fetchAllOrders } = useSalesStore();
+
+    const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        fetchPipeline();
+        fetchAllLeads();
+        fetchAllOrders();
+    }, [fetchPipeline, fetchAllLeads, fetchAllOrders]);
+
+    let currentView: ViewType = 'kanban';
+    if (location.pathname.includes('/leads/list')) currentView = 'list';
+    else if (location.pathname.includes('/leads/') || location.pathname.includes('/new')) currentView = 'form';
+    else if (location.pathname.endsWith('/list')) currentView = 'list';
+
+    // Route transitions
+    const handleViewChange = (view: ViewType) => {
+        if (view === 'list') navigate('/module/crm/leads/list');
+        else if (view === 'kanban') navigate('/module/crm');
+        else if (view === 'form') navigate('/module/crm/leads/new');
+    };
+
+    const handleNew = () => navigate('/module/crm/leads/new');
+
+    const handleDiscard = () => navigate('/module/crm');
+
+    // Current Form State
+    const [formData, setFormData] = useState<Partial<CrmLead>>({});
+    const [activeRecord, setActiveRecord] = useState<CrmLead | null>(null);
+
+    // Sync form data with URL
+    useEffect(() => {
+        if (currentView === 'form') {
+            const isNew = location.pathname.endsWith('/new');
+            if (isNew) {
+                setActiveRecord(null);
+                setFormData({
+                    name: 'New Deal',
+                    type: 'opportunity',
+                    expectedRevenue: 0,
+                    probability: 10,
+                    stageId: pipelineStages[0]?.id
+                });
+            } else {
+                const match = location.pathname.match(/\/(?:leads\/)?(\d+)/);
+                if (match) {
+                    const id = parseInt(match[1]);
+                    const lead = allLeads.find(l => l.id === id);
+                    if (lead) {
+                        setActiveRecord(lead);
+                        setFormData(lead);
+                    }
+                }
+            }
+        }
+    }, [location.pathname, currentView, allLeads, pipelineStages]);
+
+    const handleSave = async () => {
+        if (activeRecord) {
+            await updateLead(activeRecord.id, formData);
+        } else {
+            await createLead(formData);
+        }
+        navigate('/module/crm');
+    };
+
+    const handleDragEnd = (result: DropResult) => {
+        if (!result.destination) return;
+        const leadId = parseInt(result.draggableId);
+        const newStageId = parseInt(result.destination.droppableId);
+
+        if (result.source.droppableId !== result.destination.droppableId) {
+            moveLeadStage(leadId, newStageId);
+        }
+    };
+
+    const handleRowClick = (lead: CrmLead) => {
+        navigate(`/module/crm/leads/${lead.id}`);
+    };
+
+    // Breadcrumbs Logic
+    const customLabels = useMemo(() => {
+        const labels: Record<string, string> = {
+            '/module/crm/leads': 'Leads'
+        };
+        if (activeRecord) {
+            labels[`/module/crm/leads/${activeRecord.id}`] = activeRecord.name;
+        } else if (location.pathname.endsWith('/new')) {
+            labels['/module/crm/leads/new'] = 'New Lead';
+        }
+        return labels;
+    }, [activeRecord, location.pathname]);
+
+    const renderKanbanCard = (lead: CrmLead) => {
+        const getBadgeColor = (colorIndex: number) => {
+            const colors = ['text-gray-400 bg-gray-400/10', 'text-red-400 bg-red-400/10', 'text-orange-400 bg-orange-400/10', 'text-yellow-400 bg-yellow-400/10', 'text-green-400 bg-green-400/10', 'text-teal-400 bg-teal-400/10', 'text-blue-400 bg-blue-400/10', 'text-indigo-400 bg-indigo-400/10', 'text-purple-400 bg-purple-400/10', 'text-pink-400 bg-pink-400/10'];
+            return colors[(colorIndex || 0) % colors.length];
+        };
+
+        return (
+            <div onClick={() => handleRowClick(lead)}>
+                <h4 className="font-bold text-white mb-2 line-clamp-2">{lead.name}</h4>
+                {lead.tags && lead.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                        {lead.tags.map(tag => (
+                            <span key={tag.id} className={`text-[10px] font-medium px-1.5 py-0.5 rounded-sm ${getBadgeColor(tag.color)}`}>
+                                {tag.name}
+                            </span>
+                        ))}
+                    </div>
+                )}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center text-white/70 text-sm gap-2">
+                        <Briefcase className="w-3.5 h-3.5" />
+                        <span className="truncate">{lead.partner?.name || lead.contactName || 'No Contact'}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                        <div className="flex gap-0.5">
+                            {[1, 2, 3].map(p => (
+                                <span key={p} className={`text-sm ${lead.priority >= p ? 'text-yellow-500' : 'text-white/20'}`}>★</span>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-3">
+                            {!!lead.expectedRevenue && lead.expectedRevenue > 0 && (
+                                <span className="font-semibold text-white/90 text-sm">
+                                    ${lead.expectedRevenue.toLocaleString()}
+                                </span>
+                            )}
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold shadow-sm" title="Assigned / Contact">
+                                {lead.partner?.name ? lead.partner.name.charAt(0).toUpperCase() : (lead.contactName ? lead.contactName.charAt(0).toUpperCase() : 'U')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Linked Sales Orders logic
+    const linkedOrders = useMemo(() => {
+        if (!activeRecord?.partner?.id) return [];
+        return orders.filter(o => o.partnerId === activeRecord.partner?.id);
+    }, [activeRecord, orders]);
+
+    const totalOrderValue = linkedOrders.reduce((sum, o) => sum + (o.amountTotal || 0), 0);
+
+    const [showMessages, setShowMessages] = useState(false);
+
+    return (
+        <OdooViewManager
+            title={<BreadcrumbHeader customLabels={customLabels} />}
+            currentView={currentView}
+            onViewChange={handleViewChange}
+            onNew={handleNew}
+            onSave={handleSave}
+            onDiscard={handleDiscard}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onSettings={() => navigate('/module/crm/settings')}
+        >
+            <Routes>
+                <Route path="/" element={
+                    <OdooKanbanBase
+                        columns={pipelineStages.map(stage => {
+                            const filteredLeads = (stage.leads || []).filter(lead =>
+                                !searchTerm ||
+                                lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                (lead.contactName && lead.contactName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                                (lead.partner?.name && lead.partner.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                            );
+
+                            const expectedRevenueSum = filteredLeads.reduce((sum, lead) => sum + (lead.expectedRevenue || 0), 0);
+                            return {
+                                id: stage.id.toString(),
+                                title: stage.name,
+                                items: filteredLeads,
+                                headerExtra: (
+                                    <div className="w-full text-xs text-white/70 font-medium tracking-wide">
+                                        ${expectedRevenueSum.toLocaleString()}
+                                    </div>
+                                )
+                            };
+                        })}
+                        onDragEnd={handleDragEnd}
+                        renderCard={renderKanbanCard}
+                        keyExtractor={(lead) => lead.id.toString()}
+                        onCardAdd={(stageId) => {
+                            setFormData(prev => ({ ...prev, stageId: parseInt(stageId) }));
+                            navigate('/module/crm/leads/new');
+                        }}
+                    />
+                } />
+
+                <Route path="/leads/list" element={
+                    <OdooListBase
+                        data={allLeads.filter(l => l.name.toLowerCase().includes(searchTerm.toLowerCase()))}
+                        onRowClick={handleRowClick}
+                        keyExtractor={(l) => l.id.toString()}
+                        columns={[
+                            { key: 'name', label: 'Opportunity' },
+                            {
+                                key: 'contactName',
+                                label: 'Contact',
+                                render: (l) => l.partner?.name || l.contactName || '-'
+                            },
+                            { key: 'emailFrom', label: 'Email' },
+                            { key: 'phone', label: 'Phone' },
+                            {
+                                key: 'expectedRevenue',
+                                label: 'Expected Revenue',
+                                render: (l) => `$${l.expectedRevenue?.toLocaleString() || 0}`
+                            },
+                            {
+                                key: 'stage',
+                                label: 'Stage',
+                                render: (l) => (
+                                    <span className="bg-primary-purple/20 text-primary-purple px-2 py-1 rounded-full text-xs font-medium">
+                                        {l.stage?.name || 'Unknown'}
+                                    </span>
+                                )
+                            }
+                        ]}
+                    />
+                } />
+
+                <Route path="/leads/*" element={
+                    <OdooFormBase
+                        statusRibbon={
+                            <div className="flex gap-1 mb-2">
+                                {pipelineStages.map(stage => (
+                                    <button
+                                        key={stage.id}
+                                        onClick={() => setFormData({ ...formData, stageId: stage.id })}
+                                        className={`px-4 py-2 border-r border-y first:border-l first:rounded-l-full last:rounded-r-full border-white/10 text-sm font-medium transition-colors
+                        ${formData.stageId === stage.id ? 'bg-primary-purple text-white shadow-inner' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+                                    >
+                                        {stage.name}
+                                    </button>
+                                ))}
+                            </div>
+                        }
+                        smartButtons={
+                            <>
+                                <SmartButton
+                                    icon={ShoppingCart}
+                                    label="Sales"
+                                    value={linkedOrders.length > 0 ? `$${totalOrderValue.toLocaleString()}` : '0'}
+                                    onClick={() => navigate('/module/sales')}
+                                    isActive={linkedOrders.length > 0}
+                                />
+                                <SmartButton
+                                    icon={Mail}
+                                    label="Messages"
+                                    value={showMessages ? "Hide" : "Show"}
+                                    onClick={() => setShowMessages(!showMessages)}
+                                    isActive={showMessages}
+                                />
+                            </>
+                        }
+                        headerContent={
+                            <div className="flex flex-col gap-4 relative">
+                                {formData.active === false && (
+                                    <div className="absolute top-0 right-0 overflow-hidden w-32 h-32 pointer-events-none -mt-4 -mr-4">
+                                        <div className="absolute bg-red-600/90 text-white shadow-lg text-sm font-bold uppercase py-1 px-10 text-center right-[-35px] top-[32px] transform rotate-45 border border-red-500/30">
+                                            Lost
+                                        </div>
+                                    </div>
+                                )}
+                                {pipelineStages.findIndex(s => s.id === formData.stageId) === pipelineStages.length - 1 && formData.active !== false && (
+                                    <div className="absolute top-0 right-0 overflow-hidden w-32 h-32 pointer-events-none -mt-4 -mr-4">
+                                        <div className="absolute bg-green-500/90 text-white shadow-lg text-sm font-bold uppercase py-1 px-10 text-center right-[-35px] top-[32px] transform rotate-45 border border-green-500/30">
+                                            Won
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex gap-2 mb-2">
+                                    <button
+                                        className="px-4 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30 rounded-md text-sm font-medium transition-colors"
+                                        onClick={() => setFormData({ ...formData, stageId: pipelineStages[pipelineStages.length - 1]?.id, active: true })}
+                                    >
+                                        Mark Won
+                                    </button>
+                                    <button
+                                        className="px-4 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-md text-sm font-medium transition-colors"
+                                        onClick={() => setFormData({ ...formData, active: false })}
+                                    >
+                                        Mark Lost
+                                    </button>
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Product Pricing Model"
+                                    className="text-4xl font-bold bg-transparent border-none outline-none text-white focus:ring-0 p-0 placeholder-white/20"
+                                    value={formData.name || ''}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                />
+                                <div className="flex gap-4">
+                                    <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-md text-sm font-semibold border border-green-500/30 w-fit shrink-0 flex items-center gap-1">
+                                        <DollarSign className="w-4 h-4" />
+                                        <input
+                                            type="number"
+                                            className="bg-transparent border-none p-0 outline-none w-24 text-green-400"
+                                            value={formData.expectedRevenue || 0}
+                                            onChange={(e) => setFormData({ ...formData, expectedRevenue: parseFloat(e.target.value) })}
+                                        />
+                                    </span>
+                                    <span className="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-md text-sm font-semibold border border-blue-500/30 flex items-center gap-2">
+                                        <Target className="w-4 h-4" />
+                                        <input
+                                            type="number"
+                                            className="bg-transparent border-none p-0 outline-none w-12 text-blue-400"
+                                            value={formData.probability || 0}
+                                            onChange={(e) => setFormData({ ...formData, probability: parseFloat(e.target.value) })}
+                                        />
+                                        %
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                        leftPanels={
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm font-medium flex items-center gap-2">
+                                            <Briefcase className="w-4 h-4" /> Customer
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="Customer Name"
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none active:border-white/20 focus:border-primary-purple transition-all"
+                                            value={formData.contactName || ''}
+                                            onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm font-medium flex items-center gap-2">
+                                            <Mail className="w-4 h-4" /> Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                            value={formData.emailFrom || ''}
+                                            onChange={(e) => setFormData({ ...formData, emailFrom: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm font-medium flex items-center gap-2">
+                                            <Phone className="w-4 h-4" /> Phone
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                            value={formData.phone || ''}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        rightPanels={
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-white/60 text-sm font-medium">Expected Closing</label>
+                                    <input
+                                        type="date"
+                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-white/60 text-sm font-medium">Priority</label>
+                                    <div className="flex gap-2">
+                                        {[0, 1, 2, 3].map(p => (
+                                            <button
+                                                key={p}
+                                                onClick={() => setFormData({ ...formData, priority: p })}
+                                                className={`w-8 h-8 rounded-full border border-white/10 transition-colors ${formData.priority === p ? 'bg-yellow-500 text-black' : 'hover:bg-white/10 text-white/40'}`}
+                                            >
+                                                ★
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        chatter={
+                            showMessages && (
+                                <div className="bg-white/5 border border-white/10 rounded-xl p-6 mt-6">
+                                    <div className="flex gap-4 border-b border-white/10 pb-4 mb-4">
+                                        <button className="text-primary-purple font-medium text-sm flex items-center gap-2">
+                                            <Mail className="w-4 h-4" /> Send Message
+                                        </button>
+                                        <button className="text-white/60 font-medium text-sm hover:text-white transition-colors">
+                                            Log Note
+                                        </button>
+                                        <button className="text-white/60 font-medium text-sm hover:text-white transition-colors">
+                                            Schedule Activity
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-primary-purple transition-colors mb-4"
+                                        rows={3}
+                                        placeholder="Type a message..."
+                                    />
+                                    <div className="flex justify-end">
+                                        <button className="bg-primary-purple hover:bg-primary-purple/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                            Send
+                                        </button>
+                                    </div>
+
+                                    <div className="mt-8 space-y-4">
+                                        <div className="flex gap-4">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                                                S
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-white font-medium text-sm">System</span>
+                                                    <span className="text-white/40 text-xs">2 hours ago</span>
+                                                </div>
+                                                <p className="text-white/70 text-sm mt-1">Lead created automatically from incoming email.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        }
+                    />
+                } />
+
+                <Route path="/list" element={<Navigate to="/module/crm/leads/list" replace />} />
+                <Route path="/new" element={<Navigate to="/module/crm/leads/new" replace />} />
+                <Route path="/settings" element={<CRMSettings />} />
+            </Routes>
+        </OdooViewManager>
+    );
+};
