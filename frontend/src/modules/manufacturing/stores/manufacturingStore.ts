@@ -33,10 +33,27 @@ export interface MrpWorkcenter {
     active: boolean;
 }
 
+export interface MrpRoutingOperation {
+    id: number;
+    name: string;
+    sequence: number;
+    routingId: number;
+    workcenterId: number;
+    duration: number;
+    workcenter?: MrpWorkcenter;
+}
+
+export interface MrpRouting {
+    id: number;
+    name: string;
+    active: boolean;
+    operations: MrpRoutingOperation[];
+}
+
 export interface MrpWorkorder {
     id: number;
     name: string;
-    state: string;
+    state: string; // pending, ready, progress, done, cancel
     duration: number;
     durationActual: number;
     sequence: number;
@@ -45,10 +62,24 @@ export interface MrpWorkorder {
     workcenter?: MrpWorkcenter;
 }
 
+export interface QualityCheck {
+    id: number;
+    name: string;
+    state: string; // none, pass, fail
+    testType: string;
+    measureValue?: number;
+    notes?: string;
+    pointId?: number;
+    productId?: number;
+    productionId?: number;
+    workorderId?: number;
+    createdAt: string;
+}
+
 export interface MrpProduction {
     id: number;
     name: string;
-    state: string; // draft, confirmed, progress, done, cancel
+    state: string;
     productQty: number;
     qtyProduced: number;
     dateStart?: string | null;
@@ -59,38 +90,91 @@ export interface MrpProduction {
     bom?: MrpBom | null;
     product?: { id: number; name: string };
     workOrders?: MrpWorkorder[];
+    qualityChecks?: QualityCheck[];
 }
 
 interface ManufacturingStore {
     boms: MrpBom[];
     orders: MrpProduction[];
     workcenters: MrpWorkcenter[];
+    routings: MrpRouting[];
+    qualityChecks: QualityCheck[];
     loading: boolean;
     error: string | null;
+    aiSchedule: any;
 
     fetchBoms: () => Promise<void>;
     createBom: (data: Partial<MrpBom>) => Promise<MrpBom | undefined>;
 
     fetchWorkcenters: () => Promise<void>;
+    createWorkcenter: (data: Partial<MrpWorkcenter>) => Promise<void>;
+
+    fetchRoutings: () => Promise<void>;
+    createRouting: (data: Partial<MrpRouting>) => Promise<void>;
 
     fetchOrders: () => Promise<void>;
+    fetchOrderDetails: (id: number) => Promise<MrpProduction | undefined>;
     createOrder: (data: Partial<MrpProduction>) => Promise<MrpProduction | undefined>;
     startOrder: (id: number) => Promise<void>;
     finishOrder: (id: number) => Promise<void>;
+
+    fetchQualityChecks: () => Promise<void>;
+    updateQualityCheck: (id: number, data: Partial<QualityCheck>) => Promise<void>;
+
+    optimizeSchedule: () => Promise<void>;
+    recordQualityData: (workcenterId: number, passRate: number, defectRate: number, temp: number | null, humidity: number | null) => Promise<void>;
 }
 
 export const useManufacturingStore = create<ManufacturingStore>((set, get) => ({
     boms: [],
     orders: [],
     workcenters: [],
+    routings: [],
+    qualityChecks: [],
     loading: false,
     error: null,
+    aiSchedule: null,
 
     fetchWorkcenters: async () => {
         try {
             set({ loading: true, error: null });
             const res = await axios.get(`${API_BASE}/api/manufacturing/workcenters`);
             set({ workcenters: res.data, loading: false });
+        } catch (err: any) {
+            console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    createWorkcenter: async (data) => {
+        try {
+            set({ loading: true, error: null });
+            await axios.post(`${API_BASE}/api/manufacturing/workcenters`, data);
+            await get().fetchWorkcenters();
+            set({ loading: false });
+        } catch (err: any) {
+            console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    fetchRoutings: async () => {
+        try {
+            set({ loading: true, error: null });
+            const res = await axios.get(`${API_BASE}/api/manufacturing/routings`);
+            set({ routings: res.data, loading: false });
+        } catch (err: any) {
+            console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    createRouting: async (data) => {
+        try {
+            set({ loading: true, error: null });
+            await axios.post(`${API_BASE}/api/manufacturing/routings`, data);
+            await get().fetchRoutings();
+            set({ loading: false });
         } catch (err: any) {
             console.error(err);
             set({ error: err.message, loading: false });
@@ -132,6 +216,15 @@ export const useManufacturingStore = create<ManufacturingStore>((set, get) => ({
         }
     },
 
+    fetchOrderDetails: async (id) => {
+        try {
+            const res = await axios.get(`${API_BASE}/api/manufacturing/orders/${id}`);
+            return res.data;
+        } catch (err: any) {
+            console.error(err);
+        }
+    },
+
     createOrder: async (data) => {
         try {
             set({ loading: true, error: null });
@@ -162,6 +255,57 @@ export const useManufacturingStore = create<ManufacturingStore>((set, get) => ({
             set({ loading: true, error: null });
             await axios.post(`${API_BASE}/api/manufacturing/orders/${id}/done`);
             await get().fetchOrders();
+            set({ loading: false });
+        } catch (err: any) {
+            console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    optimizeSchedule: async () => {
+        try {
+            set({ loading: true, error: null });
+            const res = await axios.post(`${API_BASE}/api/manufacturing/ai/optimize-schedule`);
+            set({ aiSchedule: res.data, loading: false });
+        } catch (err: any) {
+            console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    recordQualityData: async (workcenterId, passRate, defectRate, temp, humidity) => {
+        try {
+            set({ loading: true, error: null });
+            await axios.post(`${API_BASE}/api/manufacturing/ai/quality-data`, {
+                workcenter_id: workcenterId,
+                pass_rate: passRate,
+                defect_rate: defectRate,
+                temperature: temp,
+                humidity: humidity
+            });
+            set({ loading: false });
+        } catch (err: any) {
+            console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    fetchQualityChecks: async () => {
+        try {
+            set({ loading: true, error: null });
+            const res = await axios.get(`${API_BASE}/api/quality/checks`);
+            set({ qualityChecks: res.data.data, loading: false });
+        } catch (err: any) {
+            console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    updateQualityCheck: async (id, data) => {
+        try {
+            set({ loading: true, error: null });
+            await axios.put(`${API_BASE}/api/quality/checks/${id}`, data);
+            await get().fetchQualityChecks();
             set({ loading: false });
         } catch (err: any) {
             console.error(err);

@@ -149,6 +149,39 @@ class Discount(Base):
     valid_to = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class LoyaltyProgram(Base):
+    __tablename__ = "pos_loyalty_programs"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    points_per_dollar = Column(Float, default=1.0)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    rewards = relationship("LoyaltyReward", back_populates="program")
+    cards = relationship("LoyaltyCard", back_populates="program")
+
+class LoyaltyReward(Base):
+    __tablename__ = "pos_loyalty_rewards"
+    id = Column(Integer, primary_key=True, index=True)
+    program_id = Column(Integer, ForeignKey("pos_loyalty_programs.id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    points_cost = Column(Float, nullable=False)
+    discount_amount = Column(Float, nullable=False)
+    is_active = Column(Boolean, default=True)
+    
+    program = relationship("LoyaltyProgram", back_populates="rewards")
+
+class LoyaltyCard(Base):
+    __tablename__ = "pos_loyalty_cards"
+    id = Column(Integer, primary_key=True, index=True)
+    program_id = Column(Integer, ForeignKey("pos_loyalty_programs.id"), nullable=False)
+    customer_id = Column(Integer, ForeignKey("crm_contacts.id"), index=True)
+    points = Column(Float, default=0.0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    program = relationship("LoyaltyProgram", back_populates="cards")
+    customer = relationship("CRMContact", foreign_keys=[customer_id])
+
 # Pydantic Models
 class TerminalBase(BaseModel):
     terminal_id: str
@@ -323,6 +356,39 @@ class Discount(DiscountBase):
     id: int
     created_at: datetime
     
+    class Config:
+        from_attributes = True
+
+class LoyaltyProgramBase(BaseModel):
+    name: str
+    points_per_dollar: float = 1.0
+    is_active: bool = True
+
+class LoyaltyProgram(LoyaltyProgramBase):
+    id: int
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class LoyaltyRewardBase(BaseModel):
+    name: str
+    points_cost: float
+    discount_amount: float
+    is_active: bool = True
+
+class LoyaltyReward(LoyaltyRewardBase):
+    id: int
+    program_id: int
+    class Config:
+        from_attributes = True
+
+class LoyaltyCardBase(BaseModel):
+    customer_id: int
+    points: float = 0.0
+
+class LoyaltyCard(LoyaltyCardBase):
+    id: int
+    program_id: int
     class Config:
         from_attributes = True
 

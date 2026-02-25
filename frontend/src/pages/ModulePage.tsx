@@ -11,6 +11,7 @@ import { DiscussMain } from '@/modules/discuss'
 import { CRMModule } from '@/modules/crm/components/CRMModule'
 import { SalesModule } from '@/modules/sales/components/SalesModule'
 import { InventoryModule } from '@/modules/inventory/components/InventoryModule'
+import { StorefrontModule } from '@/modules/ecommerce'
 import { AccountingModule } from '@/modules/accounting/components/AccountingModule'
 import { HRModule } from '@/modules/hr/components/HRModule'
 import { ProjectModule } from '@/modules/project/components/ProjectModule'
@@ -43,6 +44,9 @@ import { PayrollModule } from '@/modules/payroll/components/PayrollModule'
 import { AppraisalsModule } from '@/modules/appraisals/components/AppraisalsModule'
 import { QualityModule } from '@/modules/quality/components/QualityModule'
 import { PlmModule } from '@/modules/plm/components/PlmModule'
+import { SpreadsheetModule } from '@/modules/spreadsheet/components/SpreadsheetModule'
+import { AutomationModule } from '@/modules/automation/components/AutomationModule'
+import SupplyChainModule from '@/modules/supply-chain/components/SupplyChainModule'
 
 const ModulePage: React.FC = () => {
   const { moduleName } = useParams<{ moduleName: string }>()
@@ -63,6 +67,8 @@ const ModulePage: React.FC = () => {
         return <SalesModule />
       case 'inventory':
         return <InventoryModule />
+      case 'ecommerce':
+        return <StorefrontModule />
       case 'accounting':
         return <AccountingModule />
       case 'hr':
@@ -127,6 +133,12 @@ const ModulePage: React.FC = () => {
         return <QualityModule />
       case 'plm':
         return <PlmModule />
+      case 'spreadsheet':
+        return <SpreadsheetModule />
+      case 'automation':
+        return <AutomationModule />
+      case 'supply_chain':
+        return <SupplyChainModule />
       default:
         return (
           <GlassCard className="p-8">

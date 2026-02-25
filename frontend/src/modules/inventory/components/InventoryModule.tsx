@@ -6,7 +6,7 @@ import { OdooDataGrid } from '@/components/shared/OdooDataGrid';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { MetricGrid } from '@/components/shared/MetricCard';
 import { useInventoryStore, Product, StockPicking, StockMove } from '../stores/inventoryStore';
-import { Package, Truck, ArrowRightLeft, Database, ChevronRight, LayoutDashboard, ListChecks } from 'lucide-react';
+import { Package, Truck, ArrowRightLeft, Database, ChevronRight, LayoutDashboard, ListChecks, Brain, Zap } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export const InventoryModule: React.FC = () => {
@@ -23,7 +23,11 @@ export const InventoryModule: React.FC = () => {
         createProduct,
         updateProduct,
         createPicking,
-        validatePicking
+        validatePicking,
+        forecastDemand,
+        optimizeReorders,
+        aiForecast,
+        aiOptimization
     } = useInventoryStore();
 
     const [activeTab, setActiveTab] = useState<'dashboard' | 'pickings' | 'products' | 'quants'>('dashboard');
@@ -99,6 +103,39 @@ export const InventoryModule: React.FC = () => {
 
         return (
             <div className="space-y-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold text-white">Inventory Overview</h2>
+                    <button onClick={async () => {
+                        try {
+                            await optimizeReorders();
+                            toast.success("AI Reorder Optimization Complete");
+                        } catch (e: any) {
+                            toast.error("AI Optimization failed");
+                        }
+                    }} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">
+                        <Brain className="w-5 h-5" />
+                        AI Reorder Optimization
+                    </button>
+                </div>
+
+                {aiOptimization && aiOptimization.recommendations && (
+                    <GlassCard className="p-4 mb-6 border-blue-500/50">
+                        <div className="flex items-center gap-3 mb-3">
+                            <Brain className="w-6 h-6 text-blue-400" />
+                            <h3 className="text-lg font-bold text-white">AI Recommendations</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {aiOptimization.recommendations.map((rec: any, idx: number) => (
+                                <div key={idx} className="bg-white/5 p-3 rounded-lg border border-white/10">
+                                    <p className="text-sm text-white/80 font-medium">Product ID: {rec.product_id}</p>
+                                    <p className="text-sm text-white/60">{rec.action} {rec.amount} units</p>
+                                    <p className="text-xs text-blue-400 mt-1">{rec.reasoning}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </GlassCard>
+                )}
+
                 <MetricGrid metrics={metrics} />
                 <h3 className="text-xl font-medium text-white px-2 mt-8 mb-4">Operations</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -179,6 +216,37 @@ export const InventoryModule: React.FC = () => {
                         </div>
                         <div className="space-y-2"><label className="text-white/60 text-sm font-medium">Cost Price</label>
                             <input type="number" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all" value={productFormData.costPrice || 0} onChange={(e) => setProductFormData({ ...productFormData, costPrice: parseFloat(e.target.value) })} />
+                        </div>
+                        <div className="pt-6 border-t border-white/10 mt-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-medium text-white">AI Demand Forecasting</h3>
+                                {activeProduct && (
+                                    <button onClick={async () => {
+                                        try {
+                                            await forecastDemand(activeProduct.id, 30);
+                                            toast.success("Forecast generated");
+                                        } catch (e) {
+                                            toast.error("Failed to generate forecast");
+                                        }
+                                    }} className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-md text-sm font-medium transition-colors">
+                                        <Zap className="w-4 h-4" /> Generate 30d Forecast
+                                    </button>
+                                )}
+                            </div>
+                            {aiForecast && aiForecast.forecasts && (
+                                <div className="bg-white/5 rounded-lg border border-white/10 p-4">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm font-medium text-white/60">Predicted Total Demand</span>
+                                        <span className="text-xl font-bold text-blue-400">{aiForecast.predicted_total_demand}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm font-medium text-white/60">Recommended Safety Stock</span>
+                                        <span className="text-xl font-bold text-green-400">{aiForecast.recommended_safety_stock}</span>
+                                    </div>
+                                    <p className="text-xs text-white/50 mt-2 italic">Based on exponential smoothing of average daily velocity.</p>
+                                </div>
+                            )}
+                            {!aiForecast && <p className="text-sm text-white/40 italic">Generate a forecast to see AI predictions for this product.</p>}
                         </div>
                     </div>
                 </div>

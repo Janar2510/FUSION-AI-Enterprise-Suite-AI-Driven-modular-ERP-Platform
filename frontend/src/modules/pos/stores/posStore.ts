@@ -45,6 +45,20 @@ export interface PosOrder {
     lines: PosOrderLine[];
 }
 
+export interface LoyaltyProgram {
+    id: number;
+    name: string;
+    points_per_dollar: number;
+    is_active: boolean;
+}
+
+export interface LoyaltyCard {
+    id: number;
+    program_id: number;
+    customer_id: number;
+    points: number;
+}
+
 interface PosStore {
     configs: PosConfig[];
     sessions: PosSession[];
@@ -61,6 +75,12 @@ interface PosStore {
     fetchOrders: (sessionId?: number) => Promise<void>;
     createOrder: (data: Partial<PosOrder>) => Promise<PosOrder | undefined>;
     payOrder: (id: number, amount: number) => Promise<void>;
+
+    loyaltyPrograms: LoyaltyProgram[];
+    currentLoyaltyCard: LoyaltyCard | null;
+    fetchLoyaltyPrograms: () => Promise<void>;
+    fetchLoyaltyCard: (customerId: number) => Promise<void>;
+    addLoyaltyPoints: (customerId: number, points: number) => Promise<void>;
 }
 
 export const usePosStore = create<PosStore>((set, get) => ({
@@ -156,6 +176,38 @@ export const usePosStore = create<PosStore>((set, get) => ({
         } catch (err: any) {
             console.error(err);
             set({ error: err.message, loading: false });
+        }
+    },
+
+    loyaltyPrograms: [],
+    currentLoyaltyCard: null,
+
+    fetchLoyaltyPrograms: async () => {
+        try {
+            const res = await axios.get(`${API_BASE}/api/pos/loyalty-programs`);
+            set({ loyaltyPrograms: res.data });
+        } catch (err: any) {
+            console.error('Error fetching loyalty programs', err);
+        }
+    },
+
+    fetchLoyaltyCard: async (customerId: number) => {
+        try {
+            set({ loading: true, error: null });
+            const res = await axios.get(`${API_BASE}/api/pos/loyalty-cards/${customerId}`);
+            set({ currentLoyaltyCard: res.data, loading: false });
+        } catch (err: any) {
+            console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    addLoyaltyPoints: async (customerId: number, points: number) => {
+        try {
+            const res = await axios.post(`${API_BASE}/api/pos/loyalty-cards/${customerId}/add-points?points=${points}`);
+            set({ currentLoyaltyCard: res.data });
+        } catch (err: any) {
+            console.error(err);
         }
     }
 

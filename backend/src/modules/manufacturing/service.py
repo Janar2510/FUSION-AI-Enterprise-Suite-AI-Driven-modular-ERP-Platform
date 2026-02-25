@@ -13,14 +13,17 @@ from .models import (
     ProductionOrder, Product, WorkCenter, Routing, RoutingOperation,
     ProductionOperation, BillOfMaterial, BOMItem, InventoryItem,
     MaterialRequirement, QualityCheck, ProductionStatus, QualityStatus,
-    OrderPriority, InventoryType
+    OrderPriority, InventoryType, MasterProductionSchedule,
+    SubcontractingOrder, MPSStatus
 )
 from .schemas import (
     ProductionOrderCreate, ProductionOrderUpdate, ProductionOrderResponse,
     ProductCreate, ProductUpdate, ProductResponse,
     WorkCenterCreate, WorkCenterUpdate, WorkCenterResponse,
     QualityCheckCreate, QualityCheckResponse,
-    ManufacturingDashboardMetrics, ManufacturingAnalytics
+    ManufacturingDashboardMetrics, ManufacturingAnalytics,
+    MPSCreate, MPSResponse, SubcontractingOrderCreate,
+    SubcontractingOrderResponse
 )
 
 
@@ -556,6 +559,72 @@ class ManufacturingService:
             await self.db.rollback()
             print(f"Error creating product: {e}")
             raise
+
+    # Master Production Schedule (MPS)
+    async def create_mps(self, mps_data: MPSCreate) -> Dict:
+        try:
+            mps = MasterProductionSchedule(
+                name=mps_data.name,
+                product_id=mps_data.product_id,
+                period=mps_data.period,
+                date_start=mps_data.date_start,
+                date_stop=mps_data.date_stop,
+                forecasted_demand=mps_data.forecasted_demand,
+                forecasted_inventory=mps_data.forecasted_inventory,
+                replenish_quantity=mps_data.replenish_quantity
+            )
+            self.db.add(mps)
+            await self.db.commit()
+            await self.db.refresh(mps)
+            return self._serialize_mps(mps)
+        except Exception as e:
+            await self.db.rollback()
+            raise
+
+    def _serialize_mps(self, mps: MasterProductionSchedule) -> Dict:
+        return {
+            "id": mps.id,
+            "name": mps.name,
+            "product_id": mps.product_id,
+            "period": mps.period,
+            "date_start": mps.date_start.isoformat(),
+            "date_stop": mps.date_stop.isoformat(),
+            "forecasted_demand": mps.forecasted_demand,
+            "forecasted_inventory": mps.forecasted_inventory,
+            "replenish_quantity": mps.replenish_quantity,
+            "status": mps.status
+        }
+
+    # Subcontracting
+    async def create_subcontracting_order(self, order_data: SubcontractingOrderCreate) -> Dict:
+        try:
+            order = SubcontractingOrder(
+                name=order_data.name,
+                subcontractor_id=order_data.subcontractor_id,
+                product_id=order_data.product_id,
+                bom_id=order_data.bom_id,
+                quantity=order_data.quantity,
+                purchase_order_id=order_data.purchase_order_id
+            )
+            self.db.add(order)
+            await self.db.commit()
+            await self.db.refresh(order)
+            return self._serialize_subcontracting_order(order)
+        except Exception as e:
+            await self.db.rollback()
+            raise
+
+    def _serialize_subcontracting_order(self, order: SubcontractingOrder) -> Dict:
+        return {
+            "id": order.id,
+            "name": order.name,
+            "subcontractor_id": order.subcontractor_id,
+            "product_id": order.product_id,
+            "bom_id": order.bom_id,
+            "quantity": order.quantity,
+            "purchase_order_id": order.purchase_order_id,
+            "created_at": order.created_at.isoformat() if order.created_at else None
+        }
 
     # Quality Check Management
     async def get_quality_checks(

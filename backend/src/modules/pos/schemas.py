@@ -8,7 +8,8 @@ from .models import (
     Sale, SaleCreate, SaleUpdate, SaleItem,
     Payment, PaymentCreate, PaymentUpdate,
     TaxRate, TaxRateCreate, TaxRateUpdate,
-    Discount, DiscountCreate, DiscountUpdate
+    Discount, DiscountCreate, DiscountUpdate,
+    LoyaltyProgramBase, LoyaltyProgram, LoyaltyRewardBase, LoyaltyReward, LoyaltyCardBase, LoyaltyCard
 )
 
 # Dashboard and Analytics Schemas
@@ -61,7 +62,8 @@ __all__ = [
     "Sale", "SaleCreate", "SaleUpdate", "SaleItem",
     "Payment", "PaymentCreate", "PaymentUpdate",
     "TaxRate", "TaxRateCreate", "TaxRateUpdate",
-    "Discount", "DiscountCreate", "DiscountUpdate"
+    "Discount", "DiscountCreate", "DiscountUpdate",
+    "LoyaltyProgramBase", "LoyaltyProgram", "LoyaltyRewardBase", "LoyaltyReward", "LoyaltyCardBase", "LoyaltyCard"
 ]
 
 

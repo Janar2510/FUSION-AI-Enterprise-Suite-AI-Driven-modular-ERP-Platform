@@ -88,6 +88,8 @@ interface InventoryStore {
   quants: StockQuant[];
   loading: boolean;
   error: string | null;
+  aiForecast: any;
+  aiOptimization: any;
 
   fetchAllProducts: (search?: string) => Promise<void>;
   fetchCategories: () => Promise<void>;
@@ -100,6 +102,9 @@ interface InventoryStore {
   validatePicking: (id: number) => Promise<void>;
 
   fetchQuants: () => Promise<void>;
+
+  forecastDemand: (productId: number, days: number) => Promise<void>;
+  optimizeReorders: () => Promise<void>;
 }
 
 export const useInventoryStore = create<InventoryStore>((set, get) => ({
@@ -110,6 +115,8 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
   quants: [],
   loading: false,
   error: null,
+  aiForecast: null,
+  aiOptimization: null,
 
   fetchAllProducts: async (search = '') => {
     try {
@@ -213,6 +220,28 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
       set({ loading: true, error: null });
       const res = await axios.get(`${API_BASE}/api/inventory/quants?limit=500`);
       set({ quants: res.data.data, loading: false });
+    } catch (err: any) {
+      console.error(err);
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  forecastDemand: async (productId: number, days: number = 30) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await axios.get(`${API_BASE}/api/inventory/ai/forecast/${productId}?days_ahead=${days}`);
+      set({ aiForecast: res.data, loading: false });
+    } catch (err: any) {
+      console.error(err);
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  optimizeReorders: async () => {
+    try {
+      set({ loading: true, error: null });
+      const res = await axios.post(`${API_BASE}/api/inventory/ai/optimize-reorders`);
+      set({ aiOptimization: res.data, loading: false });
     } catch (err: any) {
       console.error(err);
       set({ error: err.message, loading: false });

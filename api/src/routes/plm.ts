@@ -31,7 +31,10 @@ plmRoutes.get('/:id', asyncHandler(async (req, res) => {
             bom: { include: { lines: { include: { product: true } } } }
         }
     });
-    if (!data) return res.status(404).json({ error: 'ECO not found' });
+    if (!data) {
+        res.status(404).json({ error: 'ECO not found' });
+        return;
+    }
     res.json(data);
 }));
 
@@ -53,7 +56,8 @@ plmRoutes.put('/:id', asyncHandler(async (req, res) => {
     if (updates.stage === 'done') {
         const eco = await prisma.mrpEco.findUnique({ where: { id } });
         if (!eco || eco.approvalState === 'rejected') {
-            return res.status(400).json({ error: 'Cannot apply ECO changes if not approved or if it does not exist.' });
+            res.status(400).json({ error: 'Cannot apply ECO changes if not approved or if it does not exist.' });
+            return;
         }
 
         // MVP: Applying ECO simply moves stage to done. Future extension: modify BOM lines

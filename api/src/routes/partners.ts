@@ -23,7 +23,13 @@ partnerRoutes.get('/', asyncHandler(async (req, res) => {
     if (isCompany !== undefined) where.isCompany = isCompany === 'true';
 
     const [data, total] = await Promise.all([
-        prisma.partner.findMany({ where, skip, take: limit, orderBy: { name: 'asc' }, include: { parent: true, tags: true } }),
+        prisma.partner.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: { name: 'asc' },
+            include: { parent: true, tags: true }
+        }),
         prisma.partner.count({ where }),
     ]);
 
@@ -36,7 +42,10 @@ partnerRoutes.get('/:id', asyncHandler(async (req, res) => {
         where: { id: parseInt(req.params.id) },
         include: { parent: true, children: true, tags: true, crmLeads: true, saleOrders: { take: 5 } },
     });
-    if (!partner) { res.status(404).json({ error: 'Partner not found' }); return; }
+    if (!partner) {
+        res.status(404).json({ error: 'Partner not found' });
+        return;
+    }
     res.json(partner);
 }));
 

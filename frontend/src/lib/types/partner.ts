@@ -40,6 +40,9 @@ export interface Partner {
     // Tags
     tags?: PartnerTag[];
 
+    // Passkeys
+    passkeys?: any[];
+
     // Timestamps
     createdAt: string;
     updatedAt: string;

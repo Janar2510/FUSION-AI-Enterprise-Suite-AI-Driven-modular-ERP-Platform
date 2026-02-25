@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Filter, ArrowLeft, LayoutList, LayoutGrid, LayoutDashboard, Settings } from 'lucide-react';
+import { Plus, Search, Filter, ArrowLeft, LayoutList, LayoutGrid, LayoutDashboard, Settings, Network, Table } from 'lucide-react';
 
-export type ViewType = 'list' | 'kanban' | 'form' | 'dashboard';
+export type ViewType = 'list' | 'kanban' | 'form' | 'dashboard' | 'timeline' | 'hierarchy';
 
 interface OdooViewManagerProps {
     title: React.ReactNode;
@@ -12,6 +12,7 @@ interface OdooViewManagerProps {
     onSave?: () => void;
     onDiscard?: () => void;
     onSettings?: () => void;
+    onExport?: () => void;
     searchTerm: string;
     onSearchChange: (value: string) => void;
     viewsAvailable?: ViewType[];
@@ -26,6 +27,7 @@ export function OdooViewManager({
     onSave,
     onDiscard,
     onSettings,
+    onExport,
     searchTerm,
     onSearchChange,
     viewsAvailable = ['list', 'kanban', 'form'],
@@ -99,6 +101,17 @@ export function OdooViewManager({
                         </button>
                     )}
 
+                    {onExport && (
+                        <button
+                            onClick={onExport}
+                            className="p-2 text-primary-purple hover:text-white bg-primary-purple/10 border border-primary-purple/20 rounded-md hover:bg-primary-purple transition-all flex items-center gap-2 group"
+                            title="Export to Neural Spreadsheet"
+                        >
+                            <Table className="w-5 h-5" />
+                            <span className="text-[10px] font-black uppercase tracking-widest hidden lg:block">Intelligence</span>
+                        </button>
+                    )}
+
                     <div className="flex items-center bg-white/5 rounded-md p-1 border border-white/10">
                         {viewsAvailable.includes('dashboard') && (
                             <button
@@ -122,6 +135,14 @@ export function OdooViewManager({
                                 className={`p-1.5 rounded-sm transition-colors ${currentView === 'kanban' ? 'bg-white/20 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}
                             >
                                 <LayoutGrid className="w-4 h-4" />
+                            </button>
+                        )}
+                        {viewsAvailable.includes('hierarchy') && (
+                            <button
+                                onClick={() => onViewChange('hierarchy')}
+                                className={`p-1.5 rounded-sm transition-colors ${currentView === 'hierarchy' ? 'bg-white/20 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}
+                            >
+                                <Network className="w-4 h-4" />
                             </button>
                         )}
                     </div>

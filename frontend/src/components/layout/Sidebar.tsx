@@ -44,6 +44,7 @@ import {
   Truck,
   ChevronDown,
   MessageSquare,
+  Store,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -69,6 +70,7 @@ const sections: NavSection[] = [
       { name: 'Sales', href: '/module/sales', icon: ShoppingCart },
       { name: 'Purchase', href: '/module/purchases', icon: Truck },
       { name: 'Inventory', href: '/module/inventory', icon: Package },
+      { name: 'Supply Chain', href: '/module/supply_chain', icon: GitPullRequest },
     ],
   },
   {
@@ -120,6 +122,7 @@ const sections: NavSection[] = [
       { name: 'Social', href: '/module/social_marketing', icon: Share2 },
       { name: 'Events', href: '/module/events', icon: Ticket },
       { name: 'Website', href: '/module/website', icon: Globe },
+      { name: 'eCommerce', href: '/module/ecommerce', icon: Store },
     ],
   },
   {

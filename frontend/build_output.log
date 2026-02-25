@@ -1,0 +1,729 @@
+
+> fusionai-enterprise-suite-frontend@1.0.0 build
+> tsc && vite build
+
+src/App.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/App.tsx(135,20): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/components/shared/BreadcrumbHeader.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/components/shared/GradientButton.tsx(58,9): error TS6133: 'pulseVariants' is declared but its value is never read.
+src/components/shared/ModuleDashboard.tsx(54,7): error TS6133: 'colorClasses' is declared but its value is never read.
+src/components/shared/ModuleDashboard.tsx(63,7): error TS6133: 'changeTypeClasses' is declared but its value is never read.
+src/components/shared/ModuleDashboard.tsx(130,17): error TS2322: Type '"outline" | "primary" | "secondary"' is not assignable to type '"primary" | "secondary" | "ghost" | "danger" | "success" | undefined'.
+  Type '"outline"' is not assignable to type '"primary" | "secondary" | "ghost" | "danger" | "success" | undefined'.
+src/components/shared/ModuleDashboard.tsx(143,11): error TS2322: Type '{ title: string; value: string | number; change: string | undefined; trend: "up" | "down" | "neutral"; icon: ComponentType<any>; color: string; }[]' is not assignable to type 'Omit<MetricCardProps, "delay">[]'.
+  Type '{ title: string; value: string | number; change: string | undefined; trend: "up" | "down" | "neutral"; icon: React.ComponentType<any>; color: string; }' is not assignable to type 'Omit<MetricCardProps, "delay">'.
+    Types of property 'icon' are incompatible.
+      Type 'ComponentType<any>' is not assignable to type 'LucideIcon'.
+        Property '$$typeof' is missing in type 'ComponentClass<any, any>' but required in type 'ForwardRefExoticComponent<LucideProps>'.
+src/components/shared/ModuleDashboard.tsx(143,41): error TS6133: 'index' is declared but its value is never read.
+src/components/shared/ModuleMetricsCard.tsx(2,1): error TS6133: 'motion' is declared but its value is never read.
+src/components/shared/OdooDataGrid.tsx(145,44): error TS6133: 'idx' is declared but its value is never read.
+src/components/shared/SmartButton.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/views/OdooListBase.tsx(42,47): error TS6133: 'rowIndex' is declared but its value is never read.
+src/contexts/WebSocketContext.tsx(31,31): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/hooks/useWebSocket.ts(2,10): error TS6133: 'io' is declared but its value is never read.
+src/hooks/useWebSocket.ts(20,27): error TS6133: 'callback' is declared but its value is never read.
+src/hooks/useWebSocket.ts(23,28): error TS6133: 'callback' is declared but its value is never read.
+src/lib/api.ts(3,34): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/lib/api.ts(23,12): error TS2339: Property 'metadata' does not exist on type 'InternalAxiosRequestConfig<any>'.
+src/lib/api.ts(37,39): error TS2339: Property 'metadata' does not exist on type 'InternalAxiosRequestConfig<any>'.
+src/lib/api/prismaApi.ts(9,36): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+src/lib/utils.ts(56,16): error TS2503: Cannot find namespace 'NodeJS'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(7,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(8,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(11,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(39,3): error TS2304: Cannot find name 'beforeEach'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(41,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(44,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(45,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(49,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(50,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(53,13): error TS2741: Property 'partners' is missing in type '{}' but required in type 'CompanyListProps'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(56,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(57,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(58,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(60,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(61,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(62,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(65,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(66,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(67,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(70,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(71,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(75,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(76,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(79,13): error TS2741: Property 'partners' is missing in type '{}' but required in type 'CompanyListProps'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(81,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(84,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(85,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(89,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(90,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(93,13): error TS2741: Property 'partners' is missing in type '{}' but required in type 'CompanyListProps'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(95,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(98,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(99,31): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(101,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(105,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(109,13): error TS2741: Property 'partners' is missing in type '{}' but required in type 'CompanyListProps'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(116,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(117,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(118,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(130,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(141,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(142,32): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(144,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(149,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(152,13): error TS2741: Property 'partners' is missing in type '{}' but required in type 'CompanyListProps'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(162,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(166,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(167,32): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(169,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(174,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(177,13): error TS2741: Property 'partners' is missing in type '{}' but required in type 'CompanyListProps'.
+src/modules/contact_hub/__tests__/CompanyList.test.tsx(187,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(7,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(8,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(12,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(14,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(17,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(58,3): error TS2304: Cannot find name 'beforeEach'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(60,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(63,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(64,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(69,19): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(70,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(71,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(72,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(75,13): error TS2741: Property 'onClose' is missing in type '{}' but required in type 'ContactDetailProps'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(79,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(80,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(81,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(82,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(86,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(89,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(90,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(93,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(94,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(97,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(98,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(103,19): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(104,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(105,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(106,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(109,13): error TS2741: Property 'onClose' is missing in type '{}' but required in type 'ContactDetailProps'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(111,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(114,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(115,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(120,19): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(121,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(122,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(123,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(126,13): error TS2741: Property 'onClose' is missing in type '{}' but required in type 'ContactDetailProps'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(128,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(131,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(132,31): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(134,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(139,19): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(140,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(142,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(145,13): error TS2741: Property 'onClose' is missing in type '{}' but required in type 'ContactDetailProps'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(152,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(153,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(154,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(165,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(178,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(179,31): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(180,26): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(183,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(183,16): error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(185,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(190,19): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(191,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(192,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(196,13): error TS2741: Property 'onClose' is missing in type '{}' but required in type 'ContactDetailProps'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(208,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactDetail.test.tsx(213,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(4,1): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(4,16): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(6,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(7,3): error TS2304: Cannot find name 'beforeEach'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(9,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(12,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(15,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(16,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(17,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(18,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(19,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(20,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(21,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(29,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(32,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(47,6): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(47,27): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(55,17): error TS2339: Property 'createContact' does not exist on type 'ContactHubState'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(65,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(66,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(69,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(99,6): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(99,27): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(105,17): error TS2339: Property 'fetchContacts' does not exist on type 'ContactHubState'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(108,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(111,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(127,11): error TS2551: Property 'setSelectedContact' does not exist on type 'ContactHubState'. Did you mean 'selectedContact'?
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(130,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(133,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(154,6): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(154,27): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(160,17): error TS2339: Property 'searchContacts' does not exist on type 'ContactHubState'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(163,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(166,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(167,6): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(167,27): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(171,19): error TS2339: Property 'fetchContacts' does not exist on type 'ContactHubState'.
+src/modules/contact_hub/__tests__/contactHubStore.test.ts(177,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(6,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(21,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(29,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(65,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(66,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(68,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(69,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(70,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(71,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(74,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(75,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(77,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(78,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(79,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(80,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(83,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(84,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(86,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(87,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(90,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(91,26): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(92,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; onSearch: any; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(97,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(100,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(101,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(107,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(108,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(111,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(112,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(116,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(119,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(120,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(122,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(123,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(124,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(125,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(128,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(129,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(131,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(132,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(135,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(136,25): error TS2322: Type '{ contacts: never[]; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(138,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(139,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(142,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(143,26): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(144,25): error TS2322: Type '{ contacts: { id: string; type: string; email: string; first_name: string; last_name: string; full_name: string; title: string; company_name: string; tags: string[]; custom_fields: {}; engagement_score: number; created_at: string; updated_at: string; last_activity_at: string; }[]; onSearch: any; }' is not assignable to type 'IntrinsicAttributes & ContactListProps'.
+  Property 'contacts' does not exist on type 'IntrinsicAttributes & ContactListProps'.
+src/modules/contact_hub/__tests__/ContactList.test.tsx(151,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/modules/contact_hub/__tests__/integration.test.tsx(7,1): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/integration.test.tsx(7,16): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/integration.test.tsx(10,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/integration.test.tsx(25,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/integration.test.tsx(34,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/integration.test.tsx(48,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/integration.test.tsx(56,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(57,3): error TS2304: Cannot find name 'beforeEach'.
+src/modules/contact_hub/__tests__/integration.test.tsx(59,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/integration.test.tsx(81,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(84,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(85,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(86,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(89,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(92,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(93,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(94,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(95,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(96,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(99,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(103,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(108,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(113,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(116,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(137,6): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/integration.test.tsx(137,27): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/integration.test.tsx(149,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(149,14): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/integration.test.tsx(150,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(151,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(156,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(160,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(167,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(174,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(177,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(194,6): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/integration.test.tsx(194,27): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/integration.test.tsx(208,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(208,14): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/integration.test.tsx(209,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(210,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(215,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(232,6): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/integration.test.tsx(232,27): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/integration.test.tsx(246,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(246,14): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/integration.test.tsx(247,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(248,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/integration.test.tsx(253,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/integration.test.tsx(254,6): error TS2304: Cannot find name 'global'.
+src/modules/contact_hub/__tests__/integration.test.tsx(254,27): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/integration.test.tsx(259,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(7,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(8,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(12,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(14,12): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(15,12): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(16,9): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(17,11): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(20,9): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(21,15): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(24,15): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(27,8): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(28,8): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(32,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(54,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(94,3): error TS2304: Cannot find name 'beforeEach'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(96,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(99,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(100,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(105,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(106,27): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(112,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(115,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(116,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(117,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(120,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(121,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(124,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(125,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(130,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(131,27): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(136,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(139,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(140,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(145,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(146,27): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(151,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(154,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(155,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(160,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(161,27): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(173,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(174,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(175,9): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(180,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(181,31): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(182,36): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(184,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(201,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(202,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(207,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(208,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(213,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(214,27): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(219,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(220,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(223,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(224,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(229,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(230,27): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(248,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(251,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(252,36): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(254,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(259,22): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/RelationshipMap.test.tsx(271,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(7,1): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(8,23): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(11,1): error TS2582: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(48,3): error TS2304: Cannot find name 'beforeEach'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(50,5): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(53,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(54,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(58,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(64,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(65,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(66,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(68,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(69,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(70,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(72,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(73,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(74,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(77,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(78,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(81,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(82,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(86,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(91,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(94,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(95,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(99,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(104,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(107,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(108,38): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(110,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(125,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(126,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(131,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(132,38): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(134,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(149,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(154,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(155,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(159,29): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(164,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(165,5): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(168,3): error TS2582: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha`.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(169,38): error TS2708: Cannot use namespace 'jest' as a value.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(171,44): error TS2694: Namespace 'global.jest' has no exported member 'Mock'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(195,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/__tests__/TimelineView.test.tsx(196,7): error TS2304: Cannot find name 'expect'.
+src/modules/contact_hub/components/CompanyDetail.tsx(4,6): error TS6133: 'Building' is declared but its value is never read.
+src/modules/contact_hub/components/CompanyDetail.tsx(5,30): error TS6133: 'Facebook' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(4,49): error TS6133: 'User' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(4,55): error TS6133: 'Calendar' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(5,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(5,15): error TS6133: 'Activity' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(5,25): error TS6133: 'MessageSquare' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(5,46): error TS6133: 'Star' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(5,57): error TS6133: 'Globe' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(6,22): error TS6133: 'Facebook' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(6,32): error TS6133: 'Link' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(24,26): error TS6133: 'setTimelineEvents' is declared but its value is never read.
+src/modules/contact_hub/components/ContactDetail.tsx(28,11): error TS2339: Property 'getContact' does not exist on type 'ContactHubState'.
+src/modules/contact_hub/components/ContactDetail.tsx(28,23): error TS2339: Property 'fetchContactTimeline' does not exist on type 'ContactHubState'.
+src/modules/contact_hub/components/ContactHubDashboard.tsx(5,3): error TS6133: 'Plus' is declared but its value is never read.
+src/modules/contact_hub/components/ContactHubDashboard.tsx(26,5): error TS6133: 'pagination' is declared but its value is never read.
+src/modules/contact_hub/components/ContactList.tsx(5,3): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/modules/contact_hub/components/ContactList.tsx(5,26): error TS6133: 'Globe' is declared but its value is never read.
+src/modules/contact_hub/components/RelationshipMap.tsx(3,18): error TS6133: 'Filter' is declared but its value is never read.
+src/modules/contact_hub/components/TimelineView.tsx(4,3): error TS6133: 'Filter' is declared but its value is never read.
+src/modules/contact_hub/components/TimelineView.tsx(4,11): error TS6133: 'Calendar' is declared but its value is never read.
+src/modules/contact_hub/components/TimelineView.tsx(12,10): error TS6133: 'filterContact' is declared but its value is never read.
+src/modules/contact_hub/components/TimelineView.tsx(12,25): error TS6133: 'setFilterContact' is declared but its value is never read.
+src/modules/contact_hub/stores/contactHubStore.ts(4,3): error TS6133: 'Contact' is declared but its value is never read.
+src/modules/contact_hub/stores/contactHubStore.ts(5,3): error TS6133: 'Company' is declared but its value is never read.
+src/modules/contact_hub/stores/contactHubStore.ts(6,3): error TS6133: 'Activity' is declared but its value is never read.
+src/modules/contact_hub/stores/contactHubStore.ts(7,3): error TS6133: 'Relationship' is declared but its value is never read.
+src/modules/contact_hub/stores/contactHubStore.ts(13,3): error TS6133: 'TimelineEvent' is declared but its value is never read.
+src/modules/contact_hub/stores/contactHubStore.ts(356,26): error TS7006: Parameter 'contact' implicitly has an 'any' type.
+src/modules/contact_hub/stores/contactHubStore.ts(357,26): error TS7006: Parameter 'company' implicitly has an 'any' type.
+src/modules/crm/components/AIInsightsPanel.tsx(5,16): error TS6133: 'Clock' is declared but its value is never read.
+src/modules/crm/components/AIInsightsPanel.tsx(5,35): error TS6133: 'Users' is declared but its value is never read.
+src/modules/crm/components/ContactDetail.tsx(5,15): error TS6133: 'Activity' is declared but its value is never read.
+src/modules/crm/components/ContactDetail.tsx(5,32): error TS6133: 'Tag' is declared but its value is never read.
+src/modules/crm/components/ContactDetail.tsx(6,9): error TS6133: 'DollarSign' is declared but its value is never read.
+src/modules/crm/components/ContactDetail.tsx(6,21): error TS6133: 'Target' is declared but its value is never read.
+src/modules/crm/components/ContactDetail.tsx(6,29): error TS6133: 'Eye' is declared but its value is never read.
+src/modules/crm/components/ContactDetail.tsx(26,5): error TS6133: 'updateContact' is declared but its value is never read.
+src/modules/crm/components/ContactDetail.tsx(36,28): error TS2551: Property 'lead_scoring' does not exist on type 'Contact'. Did you mean 'lead_score'?
+src/modules/crm/components/ContactDetail.tsx(37,29): error TS2339: Property 'next_best_action' does not exist on type 'Contact'.
+src/modules/crm/components/ContactDetail.tsx(133,31): error TS2339: Property 'qualification' does not exist on type 'never'.
+src/modules/crm/components/ContactDetail.tsx(231,38): error TS2339: Property 'scoring_factors' does not exist on type 'never'.
+src/modules/crm/components/ContactDetail.tsx(239,34): error TS2339: Property 'recommended_action' does not exist on type 'never'.
+src/modules/crm/components/ContactDetail.tsx(242,72): error TS2339: Property 'recommended_action' does not exist on type 'never'.
+src/modules/crm/components/ContactDetail.tsx(261,73): error TS2339: Property 'action' does not exist on type 'never'.
+src/modules/crm/components/ContactDetail.tsx(265,61): error TS2339: Property 'channel' does not exist on type 'never'.
+src/modules/crm/components/ContactDetail.tsx(269,61): error TS2339: Property 'timing' does not exist on type 'never'.
+src/modules/crm/components/ContactList.tsx(4,11): error TS6133: 'Filter' is declared but its value is never read.
+src/modules/crm/components/ContactList.tsx(5,3): error TS6133: 'Star' is declared but its value is never read.
+src/modules/crm/components/ContactList.tsx(5,21): error TS6133: 'Clock' is declared but its value is never read.
+src/modules/crm/components/DealPipeline.tsx(4,24): error TS6133: 'Search' is declared but its value is never read.
+src/modules/crm/components/DealPipeline.tsx(4,73): error TS6133: 'TrendingUp' is declared but its value is never read.
+src/modules/crm/components/DealPipeline.tsx(38,10): error TS6133: 'selectedDeal' is declared but its value is never read.
+src/modules/crm/components/DealPipeline.tsx(39,10): error TS6133: 'showCreateDeal' is declared but its value is never read.
+src/modules/crm/components/DealPipeline.tsx(41,11): error TS6133: 'fetchPipeline' is declared but its value is never read.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(2,37): error TS6133: 'waitFor' is declared but its value is never read.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(142,43): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(143,56): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(153,40): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(154,47): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(155,47): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(165,45): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(166,48): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(167,47): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(168,48): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(246,62): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(262,57): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(263,63): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(264,43): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(287,47): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(288,47): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(298,46): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(299,56): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/DashboardLayout.test.tsx(300,38): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/dashboardStore.test.ts(111,29): error TS2339: Property 'width' does not exist on type 'Widget'.
+src/modules/dashboard/__tests__/useDashboard.test.ts(160,36): error TS2551: Property 'setSelectedWidget' does not exist on type '{ dashboardData: { widgets: never[]; insights: never[]; }; selectedWidget: null; isEditMode: boolean; showInsights: boolean; isFullscreen: boolean; loading: boolean; error: null; showWidgetCreator: boolean; ... 24 more ...; fetchDashboardData: Mock<...>; }'. Did you mean 'selectedWidget'?
+src/modules/dashboard/__tests__/useDashboard.test.ts(161,36): error TS2551: Property 'setEditMode' does not exist on type '{ dashboardData: { widgets: never[]; insights: never[]; }; selectedWidget: null; isEditMode: boolean; showInsights: boolean; isFullscreen: boolean; loading: boolean; error: null; showWidgetCreator: boolean; ... 24 more ...; fetchDashboardData: Mock<...>; }'. Did you mean 'isEditMode'?
+src/modules/dashboard/__tests__/useDashboard.test.ts(171,7): error TS2304: Cannot find name 'global'.
+src/modules/dashboard/__tests__/useDashboard.test.ts(178,36): error TS2551: Property 'setSelectedWidget' does not exist on type '{ dashboardData: { widgets: never[]; insights: never[]; }; selectedWidget: null; isEditMode: boolean; showInsights: boolean; isFullscreen: boolean; loading: boolean; error: null; showWidgetCreator: boolean; ... 24 more ...; fetchDashboardData: Mock<...>; }'. Did you mean 'selectedWidget'?
+src/modules/dashboard/__tests__/useDashboard.test.ts(179,36): error TS2551: Property 'setEditMode' does not exist on type '{ dashboardData: { widgets: never[]; insights: never[]; }; selectedWidget: null; isEditMode: boolean; showInsights: boolean; isFullscreen: boolean; loading: boolean; error: null; showWidgetCreator: boolean; ... 24 more ...; fetchDashboardData: Mock<...>; }'. Did you mean 'isEditMode'?
+src/modules/dashboard/__tests__/useDashboard.test.ts(187,7): error TS2304: Cannot find name 'global'.
+src/modules/dashboard/__tests__/useDashboard.test.ts(228,36): error TS2551: Property 'setSelectedWidget' does not exist on type '{ dashboardData: { widgets: never[]; insights: never[]; }; selectedWidget: null; isEditMode: boolean; showInsights: boolean; isFullscreen: boolean; loading: boolean; error: null; showWidgetCreator: boolean; ... 24 more ...; fetchDashboardData: Mock<...>; }'. Did you mean 'selectedWidget'?
+src/modules/dashboard/__tests__/useDashboard.test.ts(229,36): error TS2551: Property 'setFullscreen' does not exist on type '{ dashboardData: { widgets: never[]; insights: never[]; }; selectedWidget: null; isEditMode: boolean; showInsights: boolean; isFullscreen: boolean; loading: boolean; error: null; showWidgetCreator: boolean; ... 24 more ...; fetchDashboardData: Mock<...>; }'. Did you mean 'isFullscreen'?
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(55,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(57,45): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(58,50): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(59,40): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(60,47): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(64,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(66,37): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(67,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(68,45): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(72,13): error TS2322: Type '{ loading: true; widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 6 more ...; created_by: number; }; ... 6 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(74,62): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(85,53): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(86,39): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(93,13): error TS2322: Type '{ widget: { is_active: boolean; id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(95,42): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(102,13): error TS2322: Type '{ widget: { is_public: boolean; id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(104,40): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(108,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(110,37): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(114,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(119,38): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(120,43): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(121,42): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(122,41): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(123,40): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(127,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(139,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(151,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(163,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(175,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(187,13): error TS2322: Type '{ widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(192,38): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(197,44): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement | null>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(205,34): error TS2322: Type '{ widget: { widget_type: string; id: number; title: string; description: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(206,54): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(208,15): error TS2322: Type '{ widget: { widget_type: string; id: number; title: string; description: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(209,46): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(211,15): error TS2322: Type '{ widget: { widget_type: string; id: number; title: string; description: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; refresh_interval: number; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(212,53): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(221,13): error TS2322: Type '{ widget: { last_refresh: Date; id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 6 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(223,48): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(227,13): error TS2322: Type '{ data: null; widget: { id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 6 more ...; created_by: number; }; ... 6 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(229,37): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(236,34): error TS2322: Type '{ widget: { color_scheme: string; id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(237,38): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(239,15): error TS2322: Type '{ widget: { color_scheme: string; id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(240,39): error TS2339: Property 'toBeInTheDocument' does not exist on type 'Assertion<HTMLElement>'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(247,13): error TS2322: Type '{ widget: { refresh_interval: number; id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/__tests__/WidgetCard.test.tsx(259,13): error TS2322: Type '{ widget: { refresh_interval: number; id: number; title: string; description: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; config: { test: string; }; data_source: string; ... 5 more ...; created_by: number; }; ... 7 more ...; onMaximize: Mock<...>; }' is not assignable to type 'WidgetCardProps'.
+  Types of property 'error' are incompatible.
+    Type 'null' is not assignable to type 'string | undefined'.
+src/modules/dashboard/components/DashboardLayout.tsx(80,19): error TS6133: 'isConnected' is declared but its value is never read.
+src/modules/dashboard/components/DashboardLayout.tsx(156,9): error TS6133: 'handleEditWidget' is declared but its value is never read.
+src/modules/dashboard/components/WidgetCard.tsx(47,3): error TS6133: 'data' is declared but its value is never read.
+src/modules/dashboard/components/WidgetCreator.tsx(11,3): error TS6133: 'Palette' is declared but its value is never read.
+src/modules/dashboard/components/WidgetCreator.tsx(16,1): error TS6133: 'GlassCard' is declared but its value is never read.
+src/modules/dashboard/components/WidgetCreator.tsx(40,3): error TS6133: 'position' is declared but its value is never read.
+src/modules/dashboard/hooks/useDashboard.ts(17,5): error TS6133: 'updateWidget' is declared but its value is never read.
+src/modules/dashboard/hooks/useDashboard.ts(21,5): error TS6133: 'updateWidgetLayout' is declared but its value is never read.
+src/modules/dashboard/hooks/useDashboard.ts(133,9): error TS6133: 'handleLayoutChangeCallback' is declared but its value is never read.
+src/modules/dashboard/index.ts(11,1): error TS2308: Module './components' has already exported a member named 'DashboardLayout'. Consider explicitly re-exporting to resolve the ambiguity.
+src/modules/dashboard/index.ts(11,1): error TS2308: Module './stores/dashboardStore' has already exported a member named 'AIInsight'. Consider explicitly re-exporting to resolve the ambiguity.
+src/modules/dashboard/index.ts(11,1): error TS2308: Module './stores/dashboardStore' has already exported a member named 'DashboardData'. Consider explicitly re-exporting to resolve the ambiguity.
+src/modules/dashboard/index.ts(11,1): error TS2308: Module './stores/dashboardStore' has already exported a member named 'Widget'. Consider explicitly re-exporting to resolve the ambiguity.
+src/modules/dashboard/stores/dashboardStore.ts(176,15): error TS2345: Argument of type '(state: DashboardState) => { dashboardData: { widgets: (Widget | { data: any; loading: false; error: null; id: number; title: string; description?: string | undefined; ... 11 more ...; created_by?: number | undefined; })[]; insights: AIInsight[]; layout?: Record<...> | undefined; analytics?: Record<...> | undefined;...' is not assignable to parameter of type 'DashboardState | Partial<DashboardState> | ((state: DashboardState) => DashboardState | Partial<DashboardState>)'.
+  Type '(state: DashboardState) => { dashboardData: { widgets: (Widget | { data: any; loading: false; error: null; id: number; title: string; description?: string | undefined; ... 11 more ...; created_by?: number | undefined; })[]; insights: AIInsight[]; layout?: Record<...> | undefined; analytics?: Record<...> | undefined;...' is not assignable to type '(state: DashboardState) => DashboardState | Partial<DashboardState>'.
+    Type '{ dashboardData: { widgets: (Widget | { data: any; loading: false; error: null; id: number; title: string; description?: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; ... 9 more ...; created_by?: number; })[]; insights: AIInsight[]; layout?: Record<string, any>; ana...' is not assignable to type 'DashboardState | Partial<DashboardState>'.
+      Type '{ dashboardData: { widgets: (Widget | { data: any; loading: false; error: null; id: number; title: string; description?: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; ... 9 more ...; created_by?: number; })[]; insights: AIInsight[]; layout?: Record<string, any>; ana...' is not assignable to type 'Partial<DashboardState>'.
+        The types of 'dashboardData.widgets' are incompatible between these types.
+          Type '(Widget | { data: any; loading: false; error: null; id: number; title: string; description?: string | undefined; widget_type: string; position: { x: number; y: number; width: number; height: number; }; ... 9 more ...; created_by?: number | undefined; })[]' is not assignable to type 'Widget[]'.
+            Type 'Widget | { data: any; loading: false; error: null; id: number; title: string; description?: string | undefined; widget_type: string; position: { x: number; y: number; width: number; height: number; }; ... 9 more ...; created_by?: number | undefined; }' is not assignable to type 'Widget'.
+              Type '{ data: any; loading: false; error: null; id: number; title: string; description?: string; widget_type: string; position: { x: number; y: number; width: number; height: number; }; ... 9 more ...; created_by?: number; }' is not assignable to type 'Widget'.
+                Types of property 'error' are incompatible.
+                  Type 'null' is not assignable to type 'string | undefined'.
+src/modules/discuss/components/AIAssistantPanel.tsx(13,3): error TS6133: 'channel' is declared but its value is never read.
+src/modules/discuss/components/AIAssistantPanel.tsx(17,10): error TS6133: 'aiResponse' is declared but its value is never read.
+src/modules/discuss/components/ChannelSidebar.tsx(4,1): error TS6133: 'GlassCard' is declared but its value is never read.
+src/modules/discuss/components/ChannelSidebar.tsx(49,46): error TS2345: Argument of type 'Channel' is not assignable to parameter of type 'number'.
+src/modules/discuss/components/ChannelSidebar.tsx(64,26): error TS2339: Property 'ai_assistant_enabled' does not exist on type 'Channel'.
+src/modules/discuss/components/ChannelSidebar.tsx(74,22): error TS2339: Property 'unread_count' does not exist on type 'Channel'.
+src/modules/discuss/components/ChannelSidebar.tsx(76,26): error TS2339: Property 'unread_count' does not exist on type 'Channel'.
+src/modules/discuss/components/DiscussMain.tsx(3,66): error TS6133: 'Plus' is declared but its value is never read.
+src/modules/discuss/components/DiscussMain.tsx(22,5): error TS6133: 'channels' is declared but its value is never read.
+src/modules/discuss/components/DiscussMain.tsx(23,5): error TS2339: Property 'sendMessage' does not exist on type 'DiscussState'.
+src/modules/discuss/components/DiscussMain.tsx(24,5): error TS6133: 'setCurrentChannel' is declared but its value is never read.
+src/modules/discuss/components/DiscussMain.tsx(28,11): error TS2339: Property 'data' does not exist on type 'UseWebSocketReturn'.
+src/modules/discuss/components/DiscussMain.tsx(28,25): error TS2339: Property 'send' does not exist on type 'UseWebSocketReturn'.
+src/modules/discuss/components/DiscussMain.tsx(117,32): error TS2339: Property 'ai_assistant_enabled' does not exist on type 'Channel'.
+src/modules/discuss/components/DiscussMain.tsx(188,30): error TS2339: Property 'ai_assistant_enabled' does not exist on type 'Channel'.
+src/modules/discuss/components/DiscussMain.tsx(241,23): error TS2322: Type '"dark"' is not assignable to type 'Theme | undefined'.
+src/modules/discuss/components/MessageBubble.tsx(3,10): error TS6133: 'MoreVertical' is declared but its value is never read.
+src/modules/discuss/hooks/useDiscuss.ts(3,10): error TS6133: 'Channel' is declared but its value is never read.
+src/modules/discuss/hooks/useDiscuss.ts(3,28): error TS6133: 'AIInsight' is declared but its value is never read.
+src/modules/discuss/hooks/useDiscuss.ts(3,39): error TS6133: 'AIAction' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(11,3): error TS6133: 'Edit' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(13,3): error TS6133: 'Eye' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(20,3): error TS6133: 'Tag' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(21,3): error TS6133: 'Calendar' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(22,3): error TS6133: 'User' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(25,3): error TS6133: 'Folder' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(90,10): error TS6133: 'selectedDocuments' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(90,29): error TS6133: 'setSelectedDocuments' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(169,65): error TS6133: 'index' is declared but its value is never read.
+src/modules/documents/components/DocumentManager.tsx(208,29): error TS2339: Property 'createElement' does not exist on type 'Document'.
+src/modules/documents/components/DocumentManager.tsx(211,16): error TS2339: Property 'body' does not exist on type 'Document'.
+src/modules/documents/components/DocumentViewer.tsx(13,3): error TS6133: 'ChevronLeft' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(14,3): error TS6133: 'ChevronRight' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(21,3): error TS6133: 'Tag' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(22,3): error TS6133: 'Calendar' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(23,3): error TS6133: 'User' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(24,3): error TS6133: 'DollarSign' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(25,3): error TS6133: 'Building' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(26,3): error TS6133: 'Hash' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(30,1): error TS6133: 'api' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(99,10): error TS6133: 'loading' is declared but its value is never read.
+src/modules/documents/components/DocumentViewer.tsx(99,19): error TS6133: 'setLoading' is declared but its value is never read.
+src/modules/documents/hooks/useDocuments.ts(36,5): error TS6133: 'setUploading' is declared but its value is never read.
+src/modules/documents/hooks/useDocuments.ts(37,5): error TS6133: 'setUploadProgress' is declared but its value is never read.
+src/modules/documents/hooks/useDocuments.ts(167,46): error TS6133: 'doc' is declared but its value is never read.
+src/modules/documents/hooks/useDocuments.ts(257,28): error TS6133: 'document' is declared but its value is never read.
+src/modules/documents/hooks/useDocuments.ts(262,30): error TS6133: 'document' is declared but its value is never read.
+src/modules/documents/hooks/useDocuments.ts(267,29): error TS6133: 'document' is declared but its value is never read.
+src/modules/documents/index.ts(4,1): error TS2308: Module './stores/documentsStore' has already exported a member named 'Document'. Consider explicitly re-exporting to resolve the ambiguity.
+src/modules/documents/index.ts(4,1): error TS2308: Module './stores/documentsStore' has already exported a member named 'DocumentFilters'. Consider explicitly re-exporting to resolve the ambiguity.
+src/modules/documents/index.ts(4,1): error TS2308: Module './stores/documentsStore' has already exported a member named 'DocumentSearch'. Consider explicitly re-exporting to resolve the ambiguity.
+src/modules/documents/stores/documentsStore.ts(159,28): error TS2339: Property 'query' does not exist on type 'DocumentSearch | DocumentsState'.
+  Property 'query' does not exist on type 'DocumentsState'.
+src/modules/documents/stores/documentsStore.ts(159,72): error TS2339: Property 'query' does not exist on type 'DocumentSearch | DocumentsState'.
+  Property 'query' does not exist on type 'DocumentsState'.
+src/modules/documents/stores/documentsStore.ts(170,47): error TS2339: Property 'limit' does not exist on type 'DocumentSearch | DocumentsState'.
+  Property 'limit' does not exist on type 'DocumentsState'.
+src/modules/documents/stores/documentsStore.ts(171,48): error TS2339: Property 'offset' does not exist on type 'DocumentSearch | DocumentsState'.
+  Property 'offset' does not exist on type 'DocumentsState'.
+src/modules/documents/stores/documentsStore.ts(179,60): error TS2339: Property 'limit' does not exist on type 'DocumentSearch | DocumentsState'.
+  Property 'limit' does not exist on type 'DocumentsState'.
+src/modules/documents/stores/documentsStore.ts(194,69): error TS6133: 'index' is declared but its value is never read.
+src/modules/documents/stores/documentsStore.ts(241,33): error TS2339: Property 'createElement' does not exist on type 'Document'.
+src/modules/documents/stores/documentsStore.ts(244,20): error TS2339: Property 'body' does not exist on type 'Document'.
+src/modules/hr/components/HRModule.tsx(10,41): error TS6133: 'ArrowUpRight' is declared but its value is never read.
+src/modules/hr/components/HRModule.tsx(10,68): error TS6133: 'Building' is declared but its value is never read.
+src/modules/hr/components/HRModule.tsx(264,27): error TS6133: 'pendingLeaves' is declared but its value is never read.
+src/modules/hr/components/HRModule.tsx(266,27): error TS6133: 'totalWorkedHours' is declared but its value is never read.
+src/modules/invoicing/components/InvoicingDashboard.tsx(4,1): error TS6192: All imports in import declaration are unused.
+src/modules/invoicing/stores/invoicingStore.ts(52,18): error TS6133: 'get' is declared but its value is never read.
+src/modules/plm/components/PlmModule.tsx(13,42): error TS6133: 'loading' is declared but its value is never read.
+src/modules/plm/stores/plmStore.ts(32,51): error TS6133: 'get' is declared but its value is never read.
+src/modules/project/index.ts(1,45): error TS2307: Cannot find module './components/ProjectDashboard' or its corresponding type declarations.
+src/modules/project/index.ts(3,1): error TS2308: Module './types' has already exported a member named 'ProjectTask'. Consider explicitly re-exporting to resolve the ambiguity.
+src/modules/quality/components/QualityModule.tsx(5,41): error TS6133: 'QualityPoint' is declared but its value is never read.
+src/modules/quality/stores/qualityStore.ts(53,59): error TS6133: 'get' is declared but its value is never read.
+src/modules/sales/index.ts(3,32): error TS2307: Cannot find module './components/SalesDashboard' or its corresponding type declarations.
+src/modules/sign/components/DocumentViewer.tsx(11,3): error TS6133: 'EyeIcon' is declared but its value is never read.
+src/modules/sign/components/DocumentViewer.tsx(166,48): error TS6133: 'index' is declared but its value is never read.
+src/modules/sign/components/SignatureCanvas.tsx(2,1): error TS6133: 'motion' is declared but its value is never read.
+src/modules/sign/components/SignMain.tsx(9,10): error TS6133: 'SignatureRequest' is declared but its value is never read.
+src/modules/sign/components/SignMain.tsx(16,3): error TS6133: 'UserGroupIcon' is declared but its value is never read.
+src/modules/sign/components/SignMain.tsx(35,9): error TS6133: 'fileInputRef' is declared but its value is never read.
+src/modules/sign/hooks/useSign.ts(3,28): error TS6133: 'Signer' is declared but its value is never read.
+src/modules/sign/stores/signStore.ts(2,28): error TS6133: 'Signer' is declared but its value is never read.
+src/modules/sign/stores/signStore.ts(27,53): error TS6133: 'get' is declared but its value is never read.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(13,9): error TS2304: Cannot find name 'useSocialStore'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(18,54): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(19,54): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(43,37): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(61,32): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(80,60): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(94,60): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(108,60): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(122,60): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(134,40): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(136,35): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(138,69): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(140,75): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(148,75): error TS2304: Cannot find name 'SocialPost'.
+src/modules/social-marketing/components/SocialMarketingModule.tsx(150,68): error TS2304: Cannot find name 'SocialPost'.
+src/modules/subscriptions/components/SubscriptionsDashboard.tsx(7,22): error TS6133: 'DollarSign' is declared but its value is never read.
+src/pages/ContactHub.tsx(5,40): error TS2322: Type 'Promise<typeof import("/Users/janarkuusk/FusionAI Enterprise Suite - AI-Driven Modular ERP Platform/frontend/src/modules/contact_hub/components/ContactHubDashboard")>' is not assignable to type 'Promise<{ default: ComponentType<any>; }>'.
+  Property 'default' is missing in type 'typeof import("/Users/janarkuusk/FusionAI Enterprise Suite - AI-Driven Modular ERP Platform/frontend/src/modules/contact_hub/components/ContactHubDashboard")' but required in type '{ default: ComponentType<any>; }'.
+src/pages/Dashboard.tsx(157,9): error TS2322: Type '{ title: string; value: string; change: string; trend: string; icon: LucideIcon; color: string; }[]' is not assignable to type 'Omit<MetricCardProps, "delay">[]'.
+  Type '{ title: string; value: string; change: string; trend: string; icon: LucideIcon; color: string; }' is not assignable to type 'Omit<MetricCardProps, "delay">'.
+    Types of property 'trend' are incompatible.
+      Type 'string' is not assignable to type '"up" | "down" | "neutral" | undefined'.
+src/pages/Dashboard.tsx(192,31): error TS2322: Type '{ name: string; description: string; icon: LucideIcon; status: string; color: string; }' is not assignable to type 'Module'.
+  Types of property 'status' are incompatible.
+    Type 'string' is not assignable to type '"loading" | "active" | "inactive"'.
+src/pages/Settings.tsx(63,35): error TS6133: 'isLoading' is declared but its value is never read.
+src/stores/crmStore.ts(436,15): error TS6133: 'updatedDeal' is declared but its value is never read.
+src/stores/discussStore.ts(91,15): error TS2551: Property 'loadMessages' does not exist on type 'DiscussState'. Did you mean 'messages'?
+src/stores/discussStore.ts(249,26): error TS7006: Parameter 'channelId' implicitly has an 'any' type.
+src/stores/globalMetricsStore.ts(49,31): error TS6133: 'get' is declared but its value is never read.
+src/stores/globalMetricsStore.ts(73,32): error TS6133: 'moduleName' is declared but its value is never read.
+src/stores/partnerStore.ts(21,33): error TS6133: 'get' is declared but its value is never read.

@@ -61,6 +61,12 @@ try:
 except ImportError:
     dashboard_router = None
 
+# Import eCommerce module
+try:
+    from src.modules.ecommerce.router import router as ecommerce_router
+except ImportError:
+    ecommerce_router = None
+
 # Import Cross-Module Integration
 try:
     from src.core.cross_module_integration import cross_module, ModuleType
@@ -133,6 +139,9 @@ if accounting_ai_router:
     
 if invoicing_router:
     app.include_router(invoicing_router)
+    
+if ecommerce_router:
+    app.include_router(ecommerce_router)
     
 # Root endpoint
 @app.get("/")

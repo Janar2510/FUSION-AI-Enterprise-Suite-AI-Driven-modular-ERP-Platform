@@ -11,10 +11,13 @@ from enum import Enum
 
 class ProductionStatus(str, Enum):
     """Production status enumeration"""
+    DRAFT = "draft"
     PLANNED = "planned"
+    CONFIRMED = "confirmed"
     IN_PROGRESS = "in_progress"
+    TO_CLOSE = "to_close"
+    DONE = "done"
     ON_HOLD = "on_hold"
-    COMPLETED = "completed"
     CANCELLED = "cancelled"
 
 
@@ -51,6 +54,50 @@ class CheckType(str, Enum):
     IN_PROCESS = "in_process"
     FINAL = "final"
     RANDOM = "random"
+
+class MPSStatus(str, Enum):
+    DRAFT = "draft"
+    CONFIRMED = "confirmed"
+
+# Master Production Schedule (MPS)
+class MPSBase(BaseModel):
+    name: str
+    product_id: int
+    period: str = "month"
+    date_start: datetime
+    date_stop: datetime
+    forecasted_demand: int = 0
+    forecasted_inventory: int = 0
+    replenish_quantity: int = 0
+
+class MPSCreate(MPSBase):
+    pass
+
+class MPSResponse(MPSBase):
+    id: int
+    status: MPSStatus
+    
+    class Config:
+        from_attributes = True
+
+# Subcontracting
+class SubcontractingOrderBase(BaseModel):
+    name: str
+    subcontractor_id: int
+    product_id: int
+    bom_id: int
+    quantity: int
+    purchase_order_id: Optional[int] = None
+
+class SubcontractingOrderCreate(SubcontractingOrderBase):
+    pass
+
+class SubcontractingOrderResponse(SubcontractingOrderBase):
+    id: int
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
 
 
 # Base schemas

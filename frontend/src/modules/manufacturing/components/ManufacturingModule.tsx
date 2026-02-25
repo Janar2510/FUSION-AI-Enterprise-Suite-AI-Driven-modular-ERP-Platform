@@ -3,27 +3,46 @@ import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { OdooDataGrid, ColumnDef } from '@/components/shared/OdooDataGrid';
-import { useManufacturingStore, MrpBom, MrpProduction, MrpBomLine } from '../stores/manufacturingStore';
+import { useManufacturingStore, MrpBom, MrpProduction, MrpBomLine, MrpWorkcenter, MrpRouting, MrpRoutingOperation } from '../stores/manufacturingStore';
 import { useInventoryStore } from '@/modules/inventory/stores/inventoryStore';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { MetricGrid } from '@/components/shared/MetricCard';
-import { LayoutDashboard, Factory, Cpu, Layers } from 'lucide-react';
+import {
+    LayoutDashboard, Factory, Cpu, Layers, Brain, GitCommit, Box, Package, Activity
+} from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { HierarchyView, HierarchyNode } from '@/components/views/HierarchyView';
+
+import { WorkcenterDashboard } from './WorkcenterDashboard';
+
+type ManufacturingView = 'dashboard' | 'orders' | 'boms' | 'workcenters' | 'routings' | 'quality';
 
 export const ManufacturingModule: React.FC = () => {
     const {
         boms,
         orders,
+        workcenters,
+        routings,
+        qualityChecks,
         fetchBoms,
         fetchOrders,
+        fetchWorkcenters,
+        fetchRoutings,
+        fetchQualityChecks,
         createBom,
         createOrder,
+        createWorkcenter,
+        createRouting,
         startOrder,
-        finishOrder
+        finishOrder,
+        optimizeSchedule,
+        aiSchedule,
+        recordQualityData
     } = useManufacturingStore();
 
     const { products, fetchAllProducts } = useInventoryStore();
 
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'orders' | 'boms'>('dashboard');
+    const [view, setView] = useState<ManufacturingView>('dashboard');
     const [currentView, setCurrentView] = useState<ViewType>('dashboard');
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -38,54 +57,83 @@ export const ManufacturingModule: React.FC = () => {
     useEffect(() => {
         fetchBoms();
         fetchOrders();
+        fetchWorkcenters();
+        fetchRoutings();
+        fetchQualityChecks();
         fetchAllProducts();
     }, []);
 
+    const [activeWorkcenter, setActiveWorkcenter] = useState<MrpWorkcenter | null>(null);
+    const [workcenterFormData, setWorkcenterFormData] = useState<Partial<MrpWorkcenter>>({
+        active: true,
+        timeEfficiency: 100,
+        capacity: 1,
+        oeeTarget: 90
+    });
+
+    const [activeRouting, setActiveRouting] = useState<MrpRouting | null>(null);
+    const [routingFormData, setRoutingFormData] = useState<Partial<MrpRouting>>({
+        active: true,
+        operations: []
+    });
+
     const handleNew = () => {
-        if (activeTab === 'dashboard' || activeTab === 'orders') {
-            setActiveTab('orders');
+        if (view === 'dashboard' || view === 'orders') {
+            setView('orders');
             setActiveOrder(null);
-            setOrderFormData({
-                state: 'draft',
-                productQty: 1,
-                qtyProduced: 0
-            });
-        } else {
+            setOrderFormData({ state: 'draft', productQty: 1, qtyProduced: 0 });
+        } else if (view === 'boms') {
             setActiveBom(null);
-            setBomFormData({
-                active: true,
-                type: 'normal',
-                productQty: 1,
-                lines: []
-            });
+            setBomFormData({ active: true, type: 'normal', productQty: 1, lines: [] });
+        } else if (view === 'workcenters') {
+            setActiveWorkcenter(null);
+            setWorkcenterFormData({ active: true, timeEfficiency: 100, capacity: 1, oeeTarget: 90 });
+        } else if (view === 'routings') {
+            setActiveRouting(null);
+            setRoutingFormData({ active: true, operations: [] });
         }
         setCurrentView('form');
     };
 
     const handleRowClick = (record: any) => {
-        if (activeTab === 'orders') {
+        if (view === 'orders') {
             setActiveOrder(record);
             setOrderFormData(record);
-        } else {
+        } else if (view === 'boms') {
             setActiveBom(record);
             setBomFormData(record);
+        } else if (view === 'workcenters') {
+            setActiveWorkcenter(record);
+            setWorkcenterFormData(record);
+        } else if (view === 'routings') {
+            setActiveRouting(record);
+            setRoutingFormData(record);
         }
         setCurrentView('form');
     };
 
     const handleSave = async () => {
-        if (activeTab === 'orders') {
-            if (!activeOrder) {
-                const newOrder = await createOrder(orderFormData);
-                if (newOrder) setActiveOrder(newOrder);
+        try {
+            if (view === 'orders') {
+                if (!activeOrder) await createOrder(orderFormData);
+                else toast.error("Update not implemented");
+            } else if (view === 'boms') {
+                if (!activeBom) await createBom(bomFormData);
+                else toast.error("Update not implemented");
+            } else if (view === 'workcenters') {
+                await createWorkcenter(workcenterFormData);
+                toast.success("Work Center saved");
+            } else if (view === 'routings') {
+                await createRouting(routingFormData);
+                toast.success("Routing saved");
             }
-        } else {
-            if (!activeBom) {
-                const newBom = await createBom(bomFormData);
-                if (newBom) setActiveBom(newBom);
-            }
+            setCurrentView('list');
+            // Refresh data
+            if (view === 'workcenters') fetchWorkcenters();
+            if (view === 'routings') fetchRoutings();
+        } catch (e) {
+            toast.error("Failed to save");
         }
-        setCurrentView('list');
     };
 
     const handleStartOrder = async () => {
@@ -133,13 +181,62 @@ export const ManufacturingModule: React.FC = () => {
     // --------------------------------------------------------------------------
     const renderDashboard = () => {
         const metrics = [
-            { title: 'Manufacturing Orders', value: orders.length.toString(), icon: Factory },
-            { title: 'In Progress', value: orders.filter(o => o.state === 'progress').length.toString(), icon: Cpu },
-            { title: 'Bills of Material', value: boms.length.toString(), icon: Layers }
+            { title: 'Manufacturing Orders', value: orders.length.toString(), icon: Factory, color: 'text-blue-400' },
+            { title: 'In Progress', value: orders.filter(o => o.state === 'progress').length.toString(), icon: Cpu, color: 'text-yellow-400' },
+            { title: 'Work Centers', value: workcenters.length.toString(), icon: Layers, color: 'text-green-400' }
         ];
 
         return (
             <div className="space-y-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold text-white">Manufacturing Overview</h2>
+                    <button onClick={async () => {
+                        try {
+                            await optimizeSchedule();
+                            toast.success("AI Production Schedule Optimized");
+                        } catch (e: any) {
+                            toast.error("AI Optimization failed");
+                        }
+                    }} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">
+                        <Brain className="w-5 h-5" />
+                        AI Optimize Schedule
+                    </button>
+                </div>
+
+                {aiSchedule && aiSchedule.schedule && (
+                    <GlassCard className="p-4 mb-6 border-blue-500/50">
+                        <div className="flex items-center gap-3 mb-3">
+                            <Brain className="w-6 h-6 text-blue-400" />
+                            <h3 className="text-lg font-bold text-white">Optimized Schedule</h3>
+                            <span className="text-xs bg-white/10 px-2 py-1 object-center rounded tracking-wider text-white/70">Efficiency: {(aiSchedule.metadata.efficiencyScore * 100).toFixed(1)}%</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {aiSchedule.schedule.map((order: any, idx: number) => (
+                                <div key={idx} className="bg-white/5 p-3 rounded-lg border border-white/10">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <p className="text-sm font-bold text-white">Order #{order.orderId}</p>
+                                        <span className="text-xs text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">Priority {order.priorityScore}</span>
+                                    </div>
+                                    <p className="text-xs text-white/60 mb-2">{order.reasoning}</p>
+                                    <div className="flex items-center gap-2 text-xs text-white/80">
+                                        <GitCommit className="w-3 h-3 text-emerald-400" />
+                                        Workcenter: {order.allocatedWorkcenter}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-white/80">
+                                        ⏱ Start: {new Date(order.estimatedStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {aiSchedule.qualityAlert && (
+                            <div className="mt-4 p-3 rounded bg-red-500/10 border border-red-500/20">
+                                <p className="text-sm font-semibold text-red-400">⚠️ Quality Alert</p>
+                                <p className="text-xs text-red-400/80">{aiSchedule.qualityAlert}</p>
+                            </div>
+                        )}
+                    </GlassCard>
+                )}
+
                 <MetricGrid metrics={metrics} />
                 <h3 className="text-xl font-medium text-white px-2 mt-8 mb-4">Operations</h3>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -150,13 +247,63 @@ export const ManufacturingModule: React.FC = () => {
                         </div>
                         <div className="space-y-3">
                             {orders.slice(0, 5).map(o => (
-                                <div key={o.id} className="flex justify-between items-center p-3 bg-white/5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors" onClick={() => { setActiveTab('orders'); handleRowClick(o); }}>
+                                <div key={o.id} className="flex justify-between items-center p-3 bg-white/5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors" onClick={() => { setView('orders'); handleRowClick(o); }}>
                                     <span className="text-white font-medium">{o.name}</span>
                                     <span className="text-white/60 text-sm bg-black/20 px-2 py-1 rounded">{o.state}</span>
                                 </div>
                             ))}
                             {orders.length === 0 && <span className="text-white/40 italic">No recent orders</span>}
                         </div>
+                    </GlassCard>
+
+                    <GlassCard className="p-6">
+                        <div className="flex items-center gap-3 mb-6">
+                            <Brain className="w-5 h-5 text-purple-400" />
+                            <h3 className="text-xl font-medium text-white">Log Quality Data</h3>
+                        </div>
+                        <form className="space-y-4" onSubmit={async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(e.currentTarget);
+                            try {
+                                await recordQualityData(
+                                    parseInt(formData.get('workcenterId') as string),
+                                    parseFloat(formData.get('passRate') as string),
+                                    parseFloat(formData.get('defectRate') as string),
+                                    formData.get('temp') ? parseFloat(formData.get('temp') as string) : null,
+                                    formData.get('humidity') ? parseFloat(formData.get('humidity') as string) : null
+                                );
+                                toast.success("Quality data logged to AI model");
+                                e.currentTarget.reset();
+                            } catch (e: any) {
+                                toast.error("Failed to log quality data");
+                            }
+                        }}>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs text-white/60">Work Center ID</label>
+                                    <input name="workcenterId" type="number" required className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs text-white/60">Pass Rate (0-100)</label>
+                                    <input name="passRate" type="number" step="0.1" required className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs text-white/60">Defect Rate (0-100)</label>
+                                    <input name="defectRate" type="number" step="0.1" required className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs text-white/60">Temp (°C)</label>
+                                    <input name="temp" type="number" step="0.1" className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs text-white/60">Humidity (%)</label>
+                                    <input name="humidity" type="number" step="0.1" className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white" />
+                                </div>
+                            </div>
+                            <button type="submit" className="w-full py-2 bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded text-sm font-bold transition-colors">
+                                Submit to AI Analyzer
+                            </button>
+                        </form>
                     </GlassCard>
                 </div>
             </div>
@@ -398,16 +545,77 @@ export const ManufacturingModule: React.FC = () => {
     );
 
 
+    const renderHierarchy = () => {
+        if (view === 'boms' && activeBom) {
+            const buildBomTree = (bom: MrpBom): HierarchyNode => ({
+                id: bom.id,
+                name: bom.name || bom.code || `BOM ${bom.id}`,
+                subtitle: `Main Assembly - ${bom.productQty} Units`,
+                color: '#8b5cf6',
+                details: [
+                    { icon: <Package className="w-3 h-3" />, text: bom.type === 'normal' ? 'Manufacture' : 'Kit' }
+                ],
+                children: (bom.lines || []).map(line => ({
+                    id: `line-${line.id}`,
+                    name: products.find(p => p.id === line.productId)?.name || `Component ${line.productId}`,
+                    subtitle: `${line.productQty} Units`,
+                    color: '#10b981',
+                    details: [
+                        { icon: <Box className="w-3 h-3" />, text: 'Component' }
+                    ]
+                }))
+            });
+
+            return <HierarchyView data={[buildBomTree(activeBom)]} />;
+        } else if (view === 'boms') {
+            return (
+                <div className="flex flex-col items-center justify-center h-full opacity-40">
+                    <Layers className="w-16 h-16 mb-4" />
+                    <p className="text-xl font-bold uppercase tracking-widest">Select a BOM to View Hierarchy</p>
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <div className="h-full flex flex-col">
-            <div className="flex bg-white/5 rounded-lg border border-white/10 p-1 mb-4 w-fit ml-6 mt-4 relative z-10">
-                <button onClick={() => { setActiveTab('dashboard'); setCurrentView('dashboard'); }} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-primary-purple text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><LayoutDashboard className="w-4 h-4" /> Overview</button>
-                <button onClick={() => { setActiveTab('orders'); setCurrentView('list'); }} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'orders' ? 'bg-primary-purple text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><Factory className="w-4 h-4" /> Operations</button>
-                <button onClick={() => { setActiveTab('boms'); setCurrentView('list'); }} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'boms' ? 'bg-primary-purple text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><Layers className="w-4 h-4" /> Bills of Material</button>
+            <div className="flex bg-white/5 rounded-lg border border-white/10 p-1 mb-4 w-fit ml-6 mt-4 relative z-10 overflow-x-auto max-w-[calc(100vw-4rem)]">
+                {[
+                    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, viewType: 'dashboard' },
+                    { id: 'orders', label: 'Operations', icon: Factory, viewType: 'list' },
+                    { id: 'boms', label: 'Bills of Material', icon: Layers, viewType: 'list' },
+                    { id: 'workcenters', label: 'Work Centers', icon: Cpu, viewType: 'list' },
+                    { id: 'routings', label: 'Routings', icon: GitCommit, viewType: 'list' },
+                    { id: 'quality', label: 'Quality', icon: Activity, viewType: 'list' },
+                ].map(nav => {
+                    const Icon = nav.icon;
+                    const isActive = view === nav.id;
+                    return (
+                        <button
+                            key={nav.id}
+                            onClick={() => { setView(nav.id as ManufacturingView); setCurrentView(nav.viewType as ViewType); }}
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap ${isActive ? 'bg-primary-purple text-white shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/5'
+                                }`}
+                        >
+                            <Icon className="w-4 h-4" /> {nav.label}
+                        </button>
+                    );
+                })}
             </div>
 
             <OdooViewManager
-                title={activeTab === 'dashboard' ? 'Manufacturing Overview' : activeTab === 'orders' ? 'Manufacturing Orders' : 'Bills of Material'}
+                title={(() => {
+                    switch (view) {
+                        case 'dashboard': return 'Manufacturing Overview';
+                        case 'orders': return 'Manufacturing Orders';
+                        case 'boms': return 'Bills of Material';
+                        case 'workcenters': return 'Work Centers Hub';
+                        case 'routings': return 'Production Routings';
+                        case 'quality': return 'Quality Control';
+                        default: return 'Manufacturing';
+                    }
+                })()}
                 currentView={currentView}
                 onViewChange={setCurrentView}
                 onNew={handleNew}
@@ -415,13 +623,121 @@ export const ManufacturingModule: React.FC = () => {
                 onDiscard={() => setCurrentView('list')}
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
-                viewsAvailable={activeTab === 'dashboard' ? ['dashboard'] : ['list', 'form']}
+                viewsAvailable={(() => {
+                    if (view === 'dashboard') return ['dashboard'];
+                    if (view === 'boms') return ['list', 'hierarchy', 'form'];
+                    return ['list', 'form'];
+                })()}
             >
-                {activeTab === 'dashboard' && currentView === 'dashboard' && renderDashboard()}
-                {activeTab === 'orders' && currentView === 'list' && renderOrdersList()}
-                {activeTab === 'orders' && currentView === 'form' && renderOrderForm()}
-                {activeTab === 'boms' && currentView === 'list' && renderBomsList()}
-                {activeTab === 'boms' && currentView === 'form' && renderBomForm()}
+                {view === 'dashboard' && currentView === 'dashboard' && renderDashboard()}
+                {view === 'orders' && currentView === 'list' && renderOrdersList()}
+                {view === 'orders' && currentView === 'form' && renderOrderForm()}
+                {view === 'boms' && currentView === 'list' && renderBomsList()}
+                {view === 'boms' && currentView === 'hierarchy' && renderHierarchy()}
+                {view === 'boms' && currentView === 'form' && renderBomForm()}
+
+                {view === 'workcenters' && currentView === 'list' && (
+                    <WorkcenterDashboard workcenters={workcenters} />
+                )}
+                {view === 'workcenters' && currentView === 'form' && (
+                    <OdooFormBase
+                        headerContent={<h1 className="text-4xl font-bold text-white">{activeWorkcenter ? activeWorkcenter.name : 'New Work Center'}</h1>}
+                        leftPanels={
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm">Name</label>
+                                        <input className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={workcenterFormData.name || ''} onChange={e => setWorkcenterFormData({ ...workcenterFormData, name: e.target.value })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm">Code</label>
+                                        <input className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={workcenterFormData.code || ''} onChange={e => setWorkcenterFormData({ ...workcenterFormData, code: e.target.value })} />
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm">OEE Target (%)</label>
+                                        <input type="number" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={workcenterFormData.oeeTarget || 90} onChange={e => setWorkcenterFormData({ ...workcenterFormData, oeeTarget: parseFloat(e.target.value) })} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm">Capacity (units/hr)</label>
+                                        <input type="number" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={workcenterFormData.capacity || 1} onChange={e => setWorkcenterFormData({ ...workcenterFormData, capacity: parseFloat(e.target.value) })} />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    />
+                )}
+
+                {view === 'routings' && currentView === 'list' && (
+                    <OdooListBase
+                        data={routings.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase()))}
+                        onRowClick={handleRowClick}
+                        keyExtractor={(r) => r.id.toString()}
+                        columns={[
+                            { key: 'name', label: 'Routing Name', render: (r) => <span className="font-bold">{r.name}</span> },
+                            { key: 'active', label: 'Active', render: (r) => r.active ? 'Yes' : 'No' },
+                            { key: 'ops', label: 'Operations', render: (r) => `${r.operations?.length || 0} Steps` }
+                        ]}
+                    />
+                )}
+                {view === 'routings' && currentView === 'form' && (
+                    <OdooFormBase
+                        headerContent={<h1 className="text-4xl font-bold text-white">{activeRouting ? activeRouting.name : 'New Routing'}</h1>}
+                        leftPanels={
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-white/60 text-sm">Routing Name</label>
+                                    <input className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white" value={routingFormData.name || ''} onChange={e => setRoutingFormData({ ...routingFormData, name: e.target.value })} />
+                                </div>
+                                <div className="mt-8">
+                                    <h3 className="text-white font-medium mb-4">Operations</h3>
+                                    <OdooDataGrid
+                                        columns={[
+                                            { key: 'name', label: 'Operation', type: 'string', editable: true },
+                                            { key: 'workcenterId', label: 'Work Center', type: 'select', options: workcenters.map(wc => ({ value: wc.id, label: wc.name })), editable: true },
+                                            { key: 'duration', label: 'Duration (m)', type: 'number', editable: true }
+                                        ]}
+                                        data={routingFormData.operations || []}
+                                        onRowChange={(idx, row) => {
+                                            const ops = [...(routingFormData.operations || [])];
+                                            ops[idx] = row;
+                                            setRoutingFormData({ ...routingFormData, operations: ops });
+                                        }}
+                                        onDeleteRow={(idx) => {
+                                            const ops = [...(routingFormData.operations || [])];
+                                            ops.splice(idx, 1);
+                                            setRoutingFormData({ ...routingFormData, operations: ops });
+                                        }}
+                                    />
+                                    <button onClick={() => setRoutingFormData({ ...routingFormData, operations: [...(routingFormData.operations || []), { id: Date.now(), name: 'New Op', workcenterId: workcenters[0]?.id, duration: 60, sequence: (routingFormData.operations?.length || 0) + 1, routingId: activeRouting?.id || 0 } as MrpRoutingOperation] })} className="mt-4 text-primary-purple text-sm font-medium">+ Add Operation</button>
+                                </div>
+                            </div>
+                        }
+                    />
+                )}
+
+                {view === 'quality' && currentView === 'list' && (
+                    <div className="p-6">
+                        <OdooListBase
+                            data={qualityChecks.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()))}
+                            columns={[
+                                { key: 'name', label: 'Check', render: (c) => <span className="font-bold">{c.name}</span> },
+                                { key: 'production', label: 'Source', render: (c) => (c as any).production?.name || '-' },
+                                {
+                                    key: 'state', label: 'Status', render: (c) => (
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${c.state === 'pass' ? 'bg-green-500/20 text-green-400' :
+                                            c.state === 'fail' ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-400'
+                                            }`}>
+                                            {c.state.toUpperCase()}
+                                        </span>
+                                    )
+                                }
+                            ]}
+                            keyExtractor={(c) => c.id.toString()}
+                        />
+                    </div>
+                )}
             </OdooViewManager>
         </div>
     );

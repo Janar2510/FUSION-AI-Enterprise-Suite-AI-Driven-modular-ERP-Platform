@@ -4,11 +4,14 @@ import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
 
 // Load environment variables
 dotenv.config();
 
 // Import routes
+import { authRoutes } from './routes/auth';
 import { partnerRoutes } from './routes/partners';
 import { crmRoutes } from './routes/crm';
 import { saleRoutes } from './routes/sales';
@@ -42,6 +45,10 @@ import { subscriptionRoutes } from './routes/subscriptions';
 import { planningRoutes } from './routes/planning';
 import { campaignRoutes } from './routes/campaigns';
 import { settingsRoutes } from './routes/settings';
+import { ecommerceRoutes } from './routes/ecommerce';
+import { skillsRoutes } from './routes/skills';
+import { spreadsheetRoutes } from './routes/spreadsheet';
+import { automationRoutes } from './routes/automation';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -55,6 +62,18 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'fusion-ai-ultra-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
 app.use(morgan('dev'));
 
 // ── Health Check ────────────────────────────────────────────
@@ -69,12 +88,13 @@ app.get('/api/health', (_req: Request, res: Response) => {
             'calendar', 'manufacturing', 'pos', 'messaging', 'events',
             'fleet', 'maintenance', 'surveys', 'notes', 'dashboard',
             'fs-rental', 'marketing-web', 'knowledge', 'recruitment',
-            'attendance', 'payroll', 'appraisals', 'quality', 'plm',
+            'attendance', 'payroll', 'appraisals', 'quality', 'plm', 'skills', 'auth',
         ],
     });
 });
 
 // ── API Routes ──────────────────────────────────────────────
+app.use('/api/auth', authRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/crm', crmRoutes);
 app.use('/api/sales', saleRoutes);
@@ -108,6 +128,10 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/planning', planningRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/ecommerce', ecommerceRoutes);
+app.use('/api/skills', skillsRoutes);
+app.use('/api/spreadsheet', spreadsheetRoutes);
+app.use('/api/automation', automationRoutes);
 
 // ── 404 Handler ─────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

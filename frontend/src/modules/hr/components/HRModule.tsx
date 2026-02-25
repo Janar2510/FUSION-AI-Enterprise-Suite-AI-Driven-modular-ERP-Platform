@@ -7,7 +7,8 @@ import { useHRStore, HrEmployee, HrDepartment } from '../stores/hrStore';
 import { useLeavesStore } from '@/modules/leaves/stores/leavesStore';
 import { usePayrollStore } from '@/modules/payroll/stores/payrollStore';
 import { useAttendanceStore } from '@/modules/attendance/stores/attendanceStore';
-import { CalendarOff, Landmark, Clock4, ArrowUpRight, Phone, Mail, Building } from 'lucide-react';
+import { CalendarOff, Landmark, Clock4, Phone, Mail, Building, Briefcase, MapPin } from 'lucide-react';
+import { HierarchyView, HierarchyNode } from '@/components/views/HierarchyView';
 
 export const HRModule: React.FC = () => {
     const navigate = useNavigate();
@@ -261,9 +262,7 @@ export const HRModule: React.FC = () => {
                     const empPayslips = payslips.filter((p: any) => p.employeeId === empId);
                     const empAttendance = attendanceRecords.filter(a => a.employeeId === empId);
                     const approvedLeaves = empLeaves.filter(l => l.state === 'validate');
-                    const pendingLeaves = empLeaves.filter(l => l.state === 'draft' || l.state === 'confirm');
                     const totalLeaveDays = approvedLeaves.reduce((s, l) => s + l.numberOfDays, 0);
-                    const totalWorkedHours = empAttendance.reduce((s, a) => s + (a.workedHours || 0), 0);
 
                     return (
                         <div className="space-y-4">
@@ -418,6 +417,50 @@ export const HRModule: React.FC = () => {
         />
     );
 
+    const renderHierarchy = () => {
+        if (activeTab === 'employees') {
+            // Employee Org Chart (Manager -> Subordinates)
+            const buildEmployeeTree = (managerId: number | null = null): HierarchyNode[] => {
+                return employees
+                    .filter(e => e.managerId === managerId)
+                    .map(emp => ({
+                        id: emp.id,
+                        name: emp.name,
+                        subtitle: emp.job?.name || emp.jobId?.toString() || 'Position',
+                        details: [
+                            { icon: <Mail className="w-3 h-3" />, text: emp.workEmail || 'No Email' },
+                            { icon: <Building className="w-3 h-3" />, text: emp.department?.name || 'No Dept' }
+                        ],
+                        color: emp.department?.id === 1 ? '#a855f7' : emp.department?.id === 2 ? '#3b82f6' : '#10b981',
+                        children: buildEmployeeTree(emp.id)
+                    }));
+            };
+
+            const data = buildEmployeeTree(null); // Roots (no manager)
+            return <HierarchyView data={data} onNodeClick={(id) => handleRowClick(employees.find(e => e.id === id))} />;
+        } else {
+            // Department Hierarchy
+            const buildDeptTree = (parentId: number | null = null): HierarchyNode[] => {
+                return departments
+                    .filter(d => d.parentId === parentId)
+                    .map(dept => ({
+                        id: dept.id,
+                        name: dept.name,
+                        subtitle: `${dept._count?.employees || 0} Employees`,
+                        details: [
+                            { icon: <Briefcase className="w-3 h-3" />, text: dept.manager?.name || 'No Manager' },
+                            { icon: <MapPin className="w-3 h-3" />, text: 'HQ Global' }
+                        ],
+                        color: '#6366f1',
+                        children: buildDeptTree(dept.id)
+                    }));
+            };
+
+            const data = buildDeptTree(null);
+            return <HierarchyView data={data} onNodeClick={(id) => handleRowClick(departments.find(d => d.id === id))} />;
+        }
+    };
+
     return (
         <OdooViewManager
             title={activeTab === 'employees' ? 'Employees' : 'Departments'}
@@ -428,7 +471,7 @@ export const HRModule: React.FC = () => {
             onDiscard={() => setCurrentView('kanban')}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            viewsAvailable={['kanban', 'list', 'form']}
+            viewsAvailable={['kanban', 'list', 'hierarchy', 'form']}
         >
             <div className="flex gap-4 border-b border-white/10 mb-6 px-4">
                 {[
@@ -451,6 +494,7 @@ export const HRModule: React.FC = () => {
 
             {currentView === 'kanban' && (activeTab === 'employees' ? renderEmployeesKanban() : renderDepartmentsKanban())}
             {currentView === 'list' && (activeTab === 'employees' ? renderEmployeesList() : renderDepartmentsList())}
+            {currentView === 'hierarchy' && renderHierarchy()}
             {currentView === 'form' && (activeTab === 'employees' ? renderEmployeeForm() : renderDepartmentForm())}
         </OdooViewManager>
     );

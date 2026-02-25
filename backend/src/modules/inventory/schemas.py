@@ -18,6 +18,23 @@ class StockMovementType(str, Enum):
     RETURN = "return"
     DAMAGE = "damage"
     LOSS = "loss"
+    PRODUCTION = "production"
+
+class LocationType(str, Enum):
+    SUPPLIER = "supplier"
+    VIEW = "view"
+    INTERNAL = "internal"
+    CUSTOMER = "customer"
+    INVENTORY = "inventory"
+    PRODUCTION = "production"
+    TRANSIT = "transit"
+
+class RuleAction(str, Enum):
+    PULL = "pull"
+    PUSH = "push"
+    PULL_PUSH = "pull_push"
+    BUY = "buy"
+    MANUFACTURE = "manufacture"
 
 # Warehouse Location Schemas
 class WarehouseLocationBase(BaseModel):
@@ -44,12 +61,53 @@ class WarehouseLocationResponse(WarehouseLocationBase):
     class Config:
         from_attributes = True
 
+# Stock Location (Hierarchical) Schemas
+class StockLocationBase(BaseModel):
+    name: str
+    location_type: LocationType = LocationType.INTERNAL
+    parent_id: Optional[int] = None
+    warehouse_id: Optional[int] = None
+    is_scrap: bool = False
+    is_return: bool = False
+    barcode: Optional[str] = None
+    max_weight: Optional[float] = None
+
+class StockLocationCreate(StockLocationBase):
+    pass
+
+class StockLocationResponse(StockLocationBase):
+    id: int
+    complete_name: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Stock Rule Schemas
+class StockRuleBase(BaseModel):
+    name: str
+    action: RuleAction
+    source_location_id: Optional[int] = None
+    destination_location_id: Optional[int] = None
+    delay: int = 0
+
+class StockRuleCreate(StockRuleBase):
+    pass
+
+class StockRuleResponse(StockRuleBase):
+    id: int
+    
+    class Config:
+        from_attributes = True
+
 # Product Category Schemas
 class ProductCategoryBase(BaseModel):
     name: str
     description: Optional[str] = None
     parent_id: Optional[int] = None
     is_active: bool = True
+    costing_method: str = "standard"
+    putaway_strategy_id: Optional[int] = None
 
 class ProductCategoryCreate(ProductCategoryBase):
     pass
@@ -78,6 +136,7 @@ class ProductBase(BaseModel):
     cost_price: Optional[Decimal] = None
     selling_price: Optional[Decimal] = None
     msrp: Optional[Decimal] = None
+    tracking: str = "none"
     min_stock_level: int = 0
     max_stock_level: int = 1000
     reorder_point: int = 10
@@ -105,6 +164,7 @@ class ProductUpdate(BaseModel):
     cost_price: Optional[Decimal] = None
     selling_price: Optional[Decimal] = None
     msrp: Optional[Decimal] = None
+    tracking: Optional[str] = None
     min_stock_level: Optional[int] = None
     max_stock_level: Optional[int] = None
     reorder_point: Optional[int] = None
@@ -129,15 +189,54 @@ class ProductResponse(ProductBase):
 class StockMovementBase(BaseModel):
     product_id: int
     warehouse_id: int
+    source_location_id: Optional[int] = None
+    dest_location_id: Optional[int] = None
+    lot_id: Optional[int] = None
     movement_type: StockMovementType
     quantity: int
     unit_cost: Optional[Decimal] = None
     reference_number: Optional[str] = None
     reference_type: Optional[str] = None
     reference_id: Optional[int] = None
+    rule_id: Optional[int] = None
     reason: Optional[str] = None
     notes: Optional[str] = None
     serial_numbers: Optional[List[str]] = None
+
+# Lot and Serial Number Schemas
+class LotSerialNumberBase(BaseModel):
+    name: str
+    product_id: int
+    expiration_date: Optional[datetime] = None
+    removal_date: Optional[datetime] = None
+
+class LotSerialNumberCreate(LotSerialNumberBase):
+    pass
+
+class LotSerialNumberResponse(LotSerialNumberBase):
+    id: int
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Landed Cost Schemas
+class LandedCostBase(BaseModel):
+    name: str
+    cost_amount: Decimal
+    split_method: str
+    receipt_reference: Optional[str] = None
+    notes: Optional[str] = None
+
+class LandedCostCreate(LandedCostBase):
+    pass
+
+class LandedCostResponse(LandedCostBase):
+    id: int
+    date: datetime
+    
+    class Config:
+        from_attributes = True
 
 class StockMovementCreate(StockMovementBase):
     pass

@@ -16,10 +16,13 @@ Base = declarative_base()
 
 class ProductionStatus(str, Enum):
     """Production status enumeration"""
+    DRAFT = "draft"
     PLANNED = "planned"
+    CONFIRMED = "confirmed"
     IN_PROGRESS = "in_progress"
+    TO_CLOSE = "to_close"
+    DONE = "done"
     ON_HOLD = "on_hold"
-    COMPLETED = "completed"
     CANCELLED = "cancelled"
 
 
@@ -48,6 +51,53 @@ class InventoryType(str, Enum):
     FINISHED_GOOD = "finished_good"
     COMPONENT = "component"
     SUPPLY = "supply"
+
+class MPSStatus(str, Enum):
+    DRAFT = "draft"
+    CONFIRMED = "confirmed"
+
+class MasterProductionSchedule(Base):
+    """Master Production Schedule (MPS) for long term planning"""
+    __tablename__ = "mrp_mps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    
+    # Timing
+    period = Column(String(20), default="month") # day, week, month
+    date_start = Column(DateTime(timezone=True), nullable=False)
+    date_stop = Column(DateTime(timezone=True), nullable=False)
+    
+    # Quantities
+    forecasted_demand = Column(Integer, default=0)
+    forecasted_inventory = Column(Integer, default=0)
+    replenish_quantity = Column(Integer, default=0) # Master schedule target
+    
+    status = Column(String(30), default=MPSStatus.DRAFT.value)
+    
+    # Relationships
+    product = relationship("Product")
+
+class SubcontractingOrder(Base):
+    """Odoo Subcontracting Parity"""
+    __tablename__ = "subcontracting_orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), unique=True, nullable=False)
+    subcontractor_id = Column(Integer, nullable=False) # Refers to a generic partner/vendor id
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    bom_id = Column(Integer, ForeignKey("bills_of_material.id"), nullable=False)
+    
+    quantity = Column(Integer, nullable=False)
+    
+    # Link back to inventory movements for RM sent / FG received
+    purchase_order_id = Column(Integer, nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    product = relationship("Product")
+    bom = relationship("BillOfMaterial")
 
 
 class ProductionOrder(Base):
@@ -194,7 +244,6 @@ class WorkCenter(Base):
     
     # Relationships
     operations = relationship("ProductionOperation", back_populates="work_center")
-    routings = relationship("Routing", back_populates="work_center")
 
 
 class Routing(Base):
@@ -317,6 +366,22 @@ class BillOfMaterial(Base):
     # Relationships
     product = relationship("Product", foreign_keys=[product_id])
     items = relationship("BOMItem", back_populates="bom", cascade="all, delete-orphan")
+    byproducts = relationship("BOMByproduct", back_populates="bom", cascade="all, delete-orphan")
+
+class BOMByproduct(Base):
+    """Handles multiple outputs from a single BOM"""
+    __tablename__ = "bom_byproducts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    bom_id = Column(Integer, ForeignKey("bills_of_material.id"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    
+    quantity = Column(Numeric(10, 4), nullable=False)
+    unit_of_measure = Column(String(20), default="pcs")
+    cost_share = Column(Float, default=0.0) # Percentage of cost to allocate to this byproduct
+    
+    bom = relationship("BillOfMaterial", back_populates="byproducts")
+    product = relationship("Product")
 
 
 class BOMItem(Base):

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { api, authApi } from '@/lib/api'
+import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
+import { toast } from 'react-hot-toast'
 
 interface User {
   id: string
@@ -16,8 +18,10 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithPasskey: (email: string) => Promise<void>
   logout: () => void
   register: (data: RegisterData) => Promise<void>
+  registerPasskey: (partnerId: number) => Promise<void>
   updateProfile: (data: Partial<User>) => Promise<void>
 }
 
@@ -115,11 +119,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Set token in API client
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
     }
-    
+
     if (userData) {
       setUser(userData)
     }
-    
+
     setIsLoading(false)
   }, [userData])
 
@@ -137,6 +141,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await loginMutation.mutateAsync({ email, password })
   }
 
+  const loginWithPasskey = async (email: string) => {
+    try {
+      // 1. Get options from server
+      const options = await authApi.getPasskeyLoginOptions(email)
+
+      // 2. Start browser authentication
+      const authResponse = await startAuthentication(options.data)
+
+      // 3. Verify on server
+      const verification = await authApi.verifyPasskeyLogin(authResponse)
+
+      if (verification.data.verified) {
+        setUser(verification.data.user)
+        // Backend sets cookie, no localStorage token needed but we clear it to be clean
+        localStorage.removeItem('token')
+        delete api.defaults.headers.common['Authorization']
+
+        queryClient.invalidateQueries({ queryKey: ['auth'] })
+        toast.success('Logged in with Passkey!')
+      }
+    } catch (error: any) {
+      console.error('Passkey login failed:', error)
+      toast.error(error.message || 'Passkey login failed')
+      throw error
+    }
+  }
+
   const logout = () => {
     setUser(null)
     localStorage.removeItem('token')
@@ -146,6 +177,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (data: RegisterData) => {
     await registerMutation.mutateAsync(data)
+  }
+
+  const registerPasskey = async (partnerId: number) => {
+    try {
+      // 1. Get options from server
+      const options = await authApi.getPasskeyRegistrationOptions(partnerId)
+
+      // 2. Start browser registration
+      const regResponse = await startRegistration(options.data)
+
+      // 3. Verify on server
+      const verification = await authApi.verifyPasskeyRegistration(regResponse)
+
+      if (verification.data.verified) {
+        toast.success('Passkey registered successfully!')
+        queryClient.invalidateQueries({ queryKey: ['auth'] })
+      }
+    } catch (error: any) {
+      console.error('Passkey registration failed:', error)
+      toast.error(error.message || 'Passkey registration failed')
+      throw error
+    }
   }
 
   const updateProfile = async (data: Partial<User>) => {
@@ -159,8 +212,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     isLoading: isLoading || userLoading,
     login,
+    loginWithPasskey,
     logout,
     register,
+    registerPasskey,
     updateProfile,
   }
 
@@ -170,7 +225,3 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   )
 }
-
-
-
-

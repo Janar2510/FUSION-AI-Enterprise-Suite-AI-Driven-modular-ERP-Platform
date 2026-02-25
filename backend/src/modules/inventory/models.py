@@ -18,8 +18,26 @@ class StockMovementType(str, Enum):
     RETURN = "return"
     DAMAGE = "damage"
     LOSS = "loss"
+    PRODUCTION = "production"
+
+class LocationType(str, Enum):
+    SUPPLIER = "supplier"
+    VIEW = "view"
+    INTERNAL = "internal"
+    CUSTOMER = "customer"
+    INVENTORY = "inventory"
+    PRODUCTION = "production"
+    TRANSIT = "transit"
+
+class RuleAction(str, Enum):
+    PULL = "pull"
+    PUSH = "push"
+    PULL_PUSH = "pull_push"
+    BUY = "buy"
+    MANUFACTURE = "manufacture"
 
 class WarehouseLocation(Base):
+    """Corresponds to Odoo's stock.warehouse"""
     __tablename__ = "warehouse_locations"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -38,8 +56,52 @@ class WarehouseLocation(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
+    locations = relationship("StockLocation", back_populates="warehouse")
     products = relationship("Product", back_populates="warehouse")
     stock_movements = relationship("StockMovement", back_populates="warehouse")
+
+class StockLocation(Base):
+    """Corresponds to Odoo's stock.location - Hierarchical storage"""
+    __tablename__ = "stock_locations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    complete_name = Column(String, index=True) # E.g., WH/Stock/Shelf 1
+    location_type = Column(SQLEnum(LocationType), default=LocationType.INTERNAL)
+    
+    parent_id = Column(Integer, ForeignKey("stock_locations.id"))
+    warehouse_id = Column(Integer, ForeignKey("warehouse_locations.id"))
+    
+    is_scrap = Column(Boolean, default=False)
+    is_return = Column(Boolean, default=False)
+    barcode = Column(String, unique=True, index=True)
+    
+    # Capacity constraints
+    max_weight = Column(Float)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    warehouse = relationship("WarehouseLocation", back_populates="locations")
+    children = relationship("StockLocation", back_populates="parent")
+    parent = relationship("StockLocation", back_populates="children", remote_side=[id])
+
+class StockRule(Base):
+    """Corresponds to Odoo's stock.rule - Push/Pull engine"""
+    __tablename__ = "stock_rules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    action = Column(SQLEnum(RuleAction))
+    
+    source_location_id = Column(Integer, ForeignKey("stock_locations.id"))
+    destination_location_id = Column(Integer, ForeignKey("stock_locations.id"))
+    
+    # Lead times
+    delay = Column(Integer, default=0) # Days
+    
+    # Relationships
+    source_location = relationship("StockLocation", foreign_keys=[source_location_id])
+    destination_location = relationship("StockLocation", foreign_keys=[destination_location_id])
 
 class ProductCategory(Base):
     __tablename__ = "product_categories"
@@ -51,6 +113,9 @@ class ProductCategory(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    costing_method = Column(String, default="standard") # standard, fifo, avco
+    putaway_strategy_id = Column(Integer, ForeignKey("stock_locations.id"))
     
     # Relationships
     products = relationship("Product", back_populates="category")
@@ -80,7 +145,8 @@ class Product(Base):
     selling_price = Column(Numeric(10, 2))
     msrp = Column(Numeric(10, 2))  # Manufacturer's Suggested Retail Price
     
-    # Inventory
+    # Inventory Tracking
+    tracking = Column(String, default="none") # none, lot, serial
     current_stock = Column(Integer, default=0)
     min_stock_level = Column(Integer, default=0)
     max_stock_level = Column(Integer, default=1000)
@@ -104,13 +170,38 @@ class Product(Base):
     warehouse = relationship("WarehouseLocation", back_populates="products")
     stock_movements = relationship("StockMovement", back_populates="product")
     demand_forecasts = relationship("DemandForecast", back_populates="product")
+    lots = relationship("LotSerialNumber", back_populates="product")
+
+class LotSerialNumber(Base):
+    """Corresponds to Odoo's stock.lot for traceability"""
+    __tablename__ = "lot_serial_numbers"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True, unique=True) # The actual lot/serial string
+    product_id = Column(Integer, ForeignKey("products.id"))
+    
+    expiration_date = Column(DateTime(timezone=True))
+    removal_date = Column(DateTime(timezone=True)) # For FEFO
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    product = relationship("Product", back_populates="lots")
+    movements = relationship("StockMovement", back_populates="lot")
 
 class StockMovement(Base):
+    """Corresponds to Odoo's stock.move.line for granular tracking"""
     __tablename__ = "stock_movements"
     
     id = Column(Integer, primary_key=True, index=True)
     product_id = Column(Integer, ForeignKey("products.id"))
     warehouse_id = Column(Integer, ForeignKey("warehouse_locations.id"))
+    
+    # Specific Locations
+    source_location_id = Column(Integer, ForeignKey("stock_locations.id"))
+    dest_location_id = Column(Integer, ForeignKey("stock_locations.id"))
+    
+    # Traceability
+    lot_id = Column(Integer, ForeignKey("lot_serial_numbers.id"))
     
     # Movement Details
     movement_type = Column(SQLEnum(StockMovementType))
@@ -122,11 +213,12 @@ class StockMovement(Base):
     reference_number = Column(String)  # PO number, SO number, etc.
     reference_type = Column(String)  # "purchase_order", "sales_order", "transfer"
     reference_id = Column(Integer)  # ID of the referenced document
+    rule_id = Column(Integer, ForeignKey("stock_rules.id")) # Which routing rule caused this
     
     # Additional Details
     reason = Column(String)
     notes = Column(Text)
-    serial_numbers = Column(JSON)  # For serialized products
+    serial_numbers = Column(JSON)  # For serialized products (legacy fallback)
     
     # User and Timestamp
     created_by = Column(Integer)  # User ID
@@ -135,6 +227,26 @@ class StockMovement(Base):
     # Relationships
     product = relationship("Product", back_populates="stock_movements")
     warehouse = relationship("WarehouseLocation", back_populates="stock_movements")
+    source_location = relationship("StockLocation", foreign_keys=[source_location_id])
+    dest_location = relationship("StockLocation", foreign_keys=[dest_location_id])
+    lot = relationship("LotSerialNumber", back_populates="movements")
+    rule = relationship("StockRule")
+
+class LandedCost(Base):
+    """Corresponds to Odoo's stock.landed.cost"""
+    __tablename__ = "landed_costs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    date = Column(DateTime(timezone=True), server_default=func.now())
+    
+    cost_amount = Column(Numeric(10, 2))
+    split_method = Column(String) # equal, by_quantity, by_current_cost, by_weight, by_volume
+    
+    # Links to the inbound transfer
+    receipt_reference = Column(String)
+    
+    notes = Column(Text)
 
 class DemandForecast(Base):
     __tablename__ = "demand_forecasts"
@@ -194,6 +306,7 @@ class InventoryAlert(Base):
     product = relationship("Product")
 
 class InventoryTransaction(Base):
+    """High level aggregation of stock.movements"""
     __tablename__ = "inventory_transactions"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -221,6 +334,7 @@ class InventoryTransaction(Base):
     # Relationships
     product = relationship("Product")
     warehouse = relationship("WarehouseLocation")
+
 
 
 

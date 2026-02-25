@@ -35,7 +35,7 @@ model Partner {
   parentId            Int?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
-  PartnerToPartnerTag PartnerToPartnerTag[]
+  tags                PartnerToPartnerTag[]
   invoices            AccountMove[]         @relation("InvoicePartner")
   calendarEvents      CalendarAttendee[]
   crmLeads            CrmLead[]
@@ -49,8 +49,24 @@ model Partner {
   saleOrders          SaleOrder[]
   subscriptions       Subscription[]
   pickings            StockPicking[]
+  loyaltyCard         LoyaltyCard?
+  passkeys            UserPasskey[]
+  spreadsheets        Spreadsheet[]
+  vendorPricelists    VendorPricelist[]
 
   @@map("partners")
+}
+
+model UserPasskey {
+  id           Int      @id @default(autoincrement())
+  partnerId    Int
+  credentialId String   @unique
+  publicKey    String
+  counter      Int      @default(0)
+  createdAt    DateTime @default(now())
+  partner      Partner  @relation(fields: [partnerId], references: [id])
+
+  @@map("user_passkeys")
 }
 
 model PartnerTag {
@@ -239,9 +255,89 @@ model Product {
   qualityChecks   QualityCheck[]
   qualityPoints   QualityPoint[]
   mrpEcos         MrpEco[]
+  webCartItems    WebCartItem[]
+  orderpoints     StockWarehouseOrderpoint[]
+  vendorPricelists VendorPricelist[]
+  routes          StockRoute[]      @relation("ProductStockRoute")
 
   @@map("products")
 }
+
+model WebCart {
+  id          Int            @id @default(autoincrement())
+  sessionId   String         @unique
+  customerId  Int?
+  status      String         @default("active")
+  subtotal    Float          @default(0)
+  taxAmount   Float          @default(0)
+  discount    Float          @default(0)
+  totalAmount Float          @default(0)
+  items       WebCartItem[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@map("web_carts")
+}
+
+model WebCartItem {
+  id          Int      @id @default(autoincrement())
+  cartId      Int
+  productId   Int
+  productName String
+  productSku  String?
+  quantity    Float    @default(1)
+  unitPrice   Float    @default(0)
+  lineTotal   Float    @default(0)
+  cart        WebCart  @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("web_cart_items")
+}
+
+model WebOrder {
+  id           Int      @id @default(autoincrement())
+  orderNumber  String   @unique
+  saleOrderId  Int?
+  cartId       Int?
+  gatewayStatus String   @default("pending")
+  createdAt    DateTime @default(now())
+
+  @@map("web_orders")
+}
+
+model LoyaltyProgram {
+  id              Int             @id @default(autoincrement())
+  name            String
+  pointsPerDollar Float           @default(1)
+  active          Boolean         @default(true)
+  cards           LoyaltyCard[]
+  rewards         LoyaltyReward[]
+
+  @@map("loyalty_programs")
+}
+
+model LoyaltyCard {
+  id         Int            @id @default(autoincrement())
+  programId  Int
+  partnerId  Int            @unique
+  points     Float          @default(0)
+  program    LoyaltyProgram @relation(fields: [programId], references: [id])
+  partner    Partner        @relation(fields: [partnerId], references: [id])
+
+  @@map("loyalty_cards")
+}
+
+model LoyaltyReward {
+  id          Int            @id @default(autoincrement())
+  name        String
+  pointsCost  Float
+  rewardType  String         @default("discount")
+  programId   Int
+  program     LoyaltyProgram @relation(fields: [programId], references: [id])
+
+  @@map("loyalty_rewards")
+}
+
 
 model StockLocation {
   id               Int                @id @default(autoincrement())
@@ -262,6 +358,9 @@ model StockLocation {
   quants           StockQuant[]
   pickingTypesSrc  StockPickingType[] @relation("PickingTypeSourceLocation")
   pickingTypesDest StockPickingType[] @relation("PickingTypeDestLocation")
+  orderpoints      StockWarehouseOrderpoint[]
+  rulesSrc         StockRule[]        @relation("RuleSource")
+  rulesDest        StockRule[]        @relation("RuleDest")
 
   @@map("stock_locations")
 }
@@ -274,6 +373,7 @@ model StockWarehouse {
   locations    StockLocation[]
   pickings     StockPicking[]
   pickingTypes StockPickingType[]
+  orderpoints  StockWarehouseOrderpoint[]
 
   @@map("stock_warehouses")
 }
@@ -550,10 +650,31 @@ model HrEmployee {
   expenses         HrExpense[]
   leaveRequests    HrLeave[]
   payslips         HrPayslip[]
-  timesheets       HrTimesheet[]
+  skills           HrEmployeeSkill[]
   planningSlots    PlanningSlot[]
+  timesheets       HrTimesheet[]
 
   @@map("hr_employees")
+}
+
+model HrSkill {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  description String?
+  employees   HrEmployeeSkill[]
+
+  @@map("hr_skills")
+}
+
+model HrEmployeeSkill {
+  id         Int        @id @default(autoincrement())
+  employeeId Int
+  skillId    Int
+  level      String     @default("intermediate") // beginner, intermediate, expert
+  employee   HrEmployee @relation(fields: [employeeId], references: [id])
+  skill      HrSkill    @relation(fields: [skillId], references: [id])
+
+  @@map("hr_employee_skills")
 }
 
 model HrTimesheet {
@@ -733,8 +854,35 @@ model MrpBom {
   lines       MrpBomLine[]
   productions MrpProduction[]
   mrpEcos     MrpEco[]
+  routingId   Int?
+  routing     MrpRouting?     @relation(fields: [routingId], references: [id])
 
   @@map("mrp_boms")
+}
+
+model MrpRouting {
+  id        Int                   @id @default(autoincrement())
+  name      String
+  active    Boolean               @default(true)
+  operations MrpRoutingOperation[]
+  boms      MrpBom[]
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  @@map("mrp_routings")
+}
+
+model MrpRoutingOperation {
+  id           Int          @id @default(autoincrement())
+  name         String
+  sequence     Int          @default(10)
+  routingId    Int
+  workcenterId Int
+  duration     Float        @default(60)
+  routing      MrpRouting   @relation(fields: [routingId], references: [id], onDelete: Cascade)
+  workcenter   MrpWorkcenter @relation(fields: [workcenterId], references: [id])
+
+  @@map("mrp_routing_operations")
 }
 
 model MrpBomLine {
@@ -780,6 +928,7 @@ model MrpWorkorder {
   workcenterId   Int?
   production     MrpProduction @relation(fields: [productionId], references: [id], onDelete: Cascade)
   workcenter     MrpWorkcenter? @relation(fields: [workcenterId], references: [id])
+  qualityChecks  QualityCheck[]
 
   @@map("mrp_workorders")
 }
@@ -798,6 +947,8 @@ model MrpWorkcenter {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   workOrders       MrpWorkorder[]
+  routingOperations MrpRoutingOperation[]
+  qualityPoints    QualityPoint[]
 
   @@map("mrp_workcenters")
 }
@@ -1049,8 +1200,34 @@ model KnowledgeArticle {
   viewCount   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  workspaceId Int?
+  workspace   KnowledgeWorkspace? @relation(fields: [workspaceId], references: [id])
+  revisions   KnowledgeArticleRevision[]
 
   @@map("knowledge_articles")
+}
+
+model KnowledgeWorkspace {
+  id          Int                @id @default(autoincrement())
+  name        String
+  description String?
+  color       String?
+  articles    KnowledgeArticle[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@map("knowledge_workspaces")
+}
+
+model KnowledgeArticleRevision {
+  id        Int              @id @default(autoincrement())
+  articleId Int
+  content   String
+  reason    String?
+  createdAt DateTime         @default(now())
+  article   KnowledgeArticle @relation(fields: [articleId], references: [id])
+
+  @@map("knowledge_article_revisions")
 }
 
 model LunchSupplier {
@@ -1211,16 +1388,18 @@ model HrAppraisal {
 }
 
 model QualityPoint {
-  id        Int            @id @default(autoincrement())
-  name      String
-  testType  String         @default("passfail") // passfail, measure
-  productId Int?
-  teamId    String?
-  notes     String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  checks    QualityCheck[]
-  product   Product?       @relation(fields: [productId], references: [id])
+  id           Int            @id @default(autoincrement())
+  name         String
+  testType     String         @default("passfail")
+  productId    Int?
+  workcenterId Int?
+  teamId       String?
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  checks       QualityCheck[]
+  product      Product?       @relation(fields: [productId], references: [id])
+  workcenter   MrpWorkcenter? @relation(fields: [workcenterId], references: [id])
 
   @@map("quality_points")
 }
@@ -1228,7 +1407,7 @@ model QualityPoint {
 model QualityCheck {
   id           Int           @id @default(autoincrement())
   name         String
-  state        String        @default("none") // none, pass, fail
+  state        String        @default("none")
   testType     String        @default("passfail")
   measureValue Float?
   notes        String?
@@ -1236,12 +1415,14 @@ model QualityCheck {
   pointId      Int?
   productId    Int?
   productionId Int?
+  workorderId  Int?
   pickingId    Int?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   point        QualityPoint? @relation(fields: [pointId], references: [id])
   product      Product?      @relation(fields: [productId], references: [id])
   production   MrpProduction? @relation(fields: [productionId], references: [id])
+  workorder    MrpWorkorder?  @relation(fields: [workorderId], references: [id])
   picking      StockPicking? @relation(fields: [pickingId], references: [id])
 
   @@map("quality_checks")
@@ -1340,4 +1521,94 @@ model SystemConfig {
   updatedAt DateTime @updatedAt
 
   @@map("system_configs")
+}
+
+model Spreadsheet {
+  id        Int      @id @default(autoincrement())
+  name      String
+  data      String   @default("{}")
+  partnerId Int?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("spreadsheets")
+}
+
+model Workflow {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  model       String   // e.g. 'Partner', 'HrEmployee'
+  trigger     String   // 'ON_CREATE', 'ON_UPDATE', 'CRON'
+  condition   String?  // Neural Formula
+  action      String   // JSON string
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("workflows")
+}
+
+model StockWarehouseOrderpoint {
+  id              Int            @id @default(autoincrement())
+  name            String?
+  productId       Int
+  locationId      Int
+  warehouseId     Int?
+  productMinQty   Float          @default(0)
+  productMaxQty   Float          @default(0)
+  qtyMultiple     Float          @default(1)
+  active          Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  product         Product        @relation(fields: [productId], references: [id])
+  location        StockLocation  @relation(fields: [locationId], references: [id])
+  warehouse       StockWarehouse? @relation(fields: [warehouseId], references: [id])
+
+  @@map("stock_warehouse_orderpoints")
+}
+
+model StockRule {
+  id              Int            @id @default(autoincrement())
+  name            String
+  action          String         // buy, manufacture, pull, push, pull_push
+  routeId         Int
+  locationSrcId   Int?
+  locationDestId  Int
+  sequence        Int            @default(10)
+  active          Boolean        @default(true)
+  route           StockRoute     @relation(fields: [routeId], references: [id])
+  locationSrc     StockLocation? @relation("RuleSource", fields: [locationSrcId], references: [id])
+  locationDest    StockLocation  @relation("RuleDest", fields: [locationDestId], references: [id])
+
+  @@map("stock_rules")
+}
+
+model StockRoute {
+  id              Int            @id @default(autoincrement())
+  name            String
+  sequence        Int            @default(10)
+  active          Boolean        @default(true)
+  rules           StockRule[]
+  products        Product[]      @relation("ProductStockRoute")
+
+  @@map("stock_routes")
+}
+
+model VendorPricelist {
+  id              Int            @id @default(autoincrement())
+  partnerId       Int
+  productId       Int
+  productName     String?
+  productCode     String?
+  sequence        Int            @default(10)
+  minQty          Float          @default(0)
+  price           Float          @default(0)
+  delay           Int            @default(1)
+  currency        String         @default("USD")
+  partner         Partner        @relation(fields: [partnerId], references: [id])
+  product         Product        @relation(fields: [productId], references: [id])
+
+  @@map("vendor_pricelists")
 }

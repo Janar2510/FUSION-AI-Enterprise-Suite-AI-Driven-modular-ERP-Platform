@@ -13,24 +13,24 @@ async function main() {
 
     // ── Companies ─────────────────────────────────────────────
     const acmeCorp = await prisma.partner.create({
-        data: { name: 'Acme Corporation', email: 'info@acme.com', phone: '+1-555-0100', isCompany: true, isCustomer: true, website: 'https://acme.com', street: '123 Business Ave', city: 'San Francisco', state: 'CA', zip: '94102', country: 'US', PartnerToPartnerTag: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }, { partner_tags: { connect: { id: tagVIP.id } } }] } },
+        data: { name: 'Acme Corporation', email: 'info@acme.com', phone: '+1-555-0100', isCompany: true, isCustomer: true, website: 'https://acme.com', street: '123 Business Ave', city: 'San Francisco', state: 'CA', zip: '94102', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }, { partner_tags: { connect: { id: tagVIP.id } } }] } },
     });
     const globalTech = await prisma.partner.create({
-        data: { name: 'Global Tech Solutions', email: 'contact@globaltech.io', phone: '+1-555-0200', isCompany: true, isCustomer: true, isVendor: true, website: 'https://globaltech.io', street: '456 Innovation Blvd', city: 'New York', state: 'NY', zip: '10001', country: 'US', PartnerToPartnerTag: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }] } },
+        data: { name: 'Global Tech Solutions', email: 'contact@globaltech.io', phone: '+1-555-0200', isCompany: true, isCustomer: true, isVendor: true, website: 'https://globaltech.io', street: '456 Innovation Blvd', city: 'New York', state: 'NY', zip: '10001', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }] } },
     });
     const greenSupply = await prisma.partner.create({
-        data: { name: 'Green Supply Co', email: 'orders@greensupply.com', phone: '+1-555-0300', isCompany: true, isVendor: true, street: '789 Industrial Park', city: 'Chicago', state: 'IL', zip: '60601', country: 'US', PartnerToPartnerTag: { create: [{ partner_tags: { connect: { id: tagVendor.id } } }] } },
+        data: { name: 'Green Supply Co', email: 'orders@greensupply.com', phone: '+1-555-0300', isCompany: true, isVendor: true, street: '789 Industrial Park', city: 'Chicago', state: 'IL', zip: '60601', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagVendor.id } } }] } },
     });
     const euroDesign = await prisma.partner.create({
-        data: { name: 'Euro Design Studio', email: 'hello@eurodesign.eu', phone: '+49-30-12345', isCompany: true, isCustomer: true, website: 'https://eurodesign.eu', street: 'Friedrichstraße 42', city: 'Berlin', country: 'DE', PartnerToPartnerTag: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }] } },
+        data: { name: 'Euro Design Studio', email: 'hello@eurodesign.eu', phone: '+49-30-12345', isCompany: true, isCustomer: true, website: 'https://eurodesign.eu', street: 'Friedrichstraße 42', city: 'Berlin', country: 'DE', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }] } },
     });
     const techParts = await prisma.partner.create({
-        data: { name: 'TechParts International', email: 'sales@techparts.com', phone: '+44-20-55550400', isCompany: true, isVendor: true, country: 'GB', PartnerToPartnerTag: { create: [{ partner_tags: { connect: { id: tagVendor.id } } }] } },
+        data: { name: 'TechParts International', email: 'sales@techparts.com', phone: '+44-20-55550400', isCompany: true, isVendor: true, country: 'GB', tags: { create: [{ partner_tags: { connect: { id: tagVendor.id } } }] } },
     });
 
     // ── Individual Contacts ───────────────────────────────────
     const john = await prisma.partner.create({
-        data: { name: 'John Smith', email: 'john.smith@acme.com', phone: '+1-555-0101', mobile: '+1-555-0111', jobPosition: 'CEO', title: 'Mr', parentId: acmeCorp.id, isCustomer: true, PartnerToPartnerTag: { create: [{ partner_tags: { connect: { id: tagVIP.id } } }] } },
+        data: { name: 'John Smith', email: 'john.smith@acme.com', phone: '+1-555-0101', mobile: '+1-555-0111', jobPosition: 'CEO', title: 'Mr', parentId: acmeCorp.id, isCustomer: true, tags: { create: [{ partner_tags: { connect: { id: tagVIP.id } } }] } },
     });
     const sarah = await prisma.partner.create({
         data: { name: 'Sarah Johnson', email: 'sarah.j@globaltech.io', phone: '+1-555-0201', jobPosition: 'CTO', title: 'Ms', parentId: globalTech.id, isCustomer: true },
@@ -42,7 +42,7 @@ async function main() {
         data: { name: 'Emma Davis', email: 'emma@eurodesign.eu', phone: '+49-30-12346', jobPosition: 'Creative Director', parentId: euroDesign.id, isCustomer: true },
     });
     const alex = await prisma.partner.create({
-        data: { name: 'Alex Chen', email: 'alex.chen@example.com', phone: '+1-555-0500', jobPosition: 'Freelance Developer', isCustomer: true, PartnerToPartnerTag: { create: [{ partner_tags: { connect: { id: tagProspect.id } } }] } },
+        data: { name: 'Alex Chen', email: 'alex.chen@example.com', phone: '+1-555-0500', jobPosition: 'Freelance Developer', isCustomer: true, tags: { create: [{ partner_tags: { connect: { id: tagProspect.id } } }] } },
     });
 
     // ── Product Categories ────────────────────────────────────

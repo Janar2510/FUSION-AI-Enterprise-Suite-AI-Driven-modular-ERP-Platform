@@ -11,6 +11,7 @@ interface GlassCardProps {
   glow?: boolean
   hover?: boolean
   onClick?: () => void
+  style?: React.CSSProperties
 }
 
 export const GlassCard: React.FC<GlassCardProps> = ({
@@ -22,6 +23,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   glow = false,
   hover = true,
   onClick,
+  style,
 }) => {
   const blurClasses = {
     sm: 'backdrop-blur-sm',
@@ -30,25 +32,25 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   }
 
   const cardVariants = {
-    initial: { 
+    initial: {
       scale: 1,
       y: 0,
     },
-    hover: { 
+    hover: {
       scale: hover ? 1.02 : 1,
       y: hover ? -4 : 0,
     },
-    tap: { 
+    tap: {
       scale: 0.98,
     },
   }
 
   const glowVariants = {
-    initial: { 
+    initial: {
       boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
     },
-    hover: { 
-      boxShadow: glow 
+    hover: {
+      boxShadow: glow
         ? '0 12px 40px 0 rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.2)'
         : '0 12px 40px 0 rgba(31, 38, 135, 0.5)',
     },
@@ -79,6 +81,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
         className
       )}
       onClick={onClick}
+      style={style}
     >
       {animated && glow ? (
         <motion.div

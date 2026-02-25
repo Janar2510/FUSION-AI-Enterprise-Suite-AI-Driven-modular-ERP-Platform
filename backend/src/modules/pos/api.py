@@ -9,7 +9,8 @@ from .schemas import (
     Payment, PaymentCreate, PaymentUpdate,
     TaxRate, TaxRateCreate, TaxRateUpdate,
     Discount, DiscountCreate, DiscountUpdate,
-    POSDashboardStats, POSAnalytics
+    POSDashboardStats, POSAnalytics,
+    LoyaltyProgramBase, LoyaltyProgram, LoyaltyRewardBase, LoyaltyReward, LoyaltyCardBase, LoyaltyCard
 )
 
 router = APIRouter(prefix="/pos")
@@ -387,6 +388,40 @@ async def create_payment(payment_data: PaymentCreate):
         reference_number=payment_data.reference_number,
         payment_date="2024-01-01T00:00:00Z",
         notes=payment_data.notes
+    )
+
+# Loyalty Management
+@router.get("/loyalty-programs", response_model=List[LoyaltyProgram])
+async def get_loyalty_programs():
+    """Get active loyalty programs"""
+    return [
+        LoyaltyProgram(
+            id=1,
+            name="Gold Members",
+            points_per_dollar=1.5,
+            is_active=True,
+            created_at="2024-01-01T00:00:00Z"
+        )
+    ]
+
+@router.get("/loyalty-cards/{customer_id}", response_model=LoyaltyCard)
+async def get_customer_loyalty_card(customer_id: int):
+    """Get a customer's loyalty profile"""
+    return LoyaltyCard(
+        id=1,
+        program_id=1,
+        customer_id=customer_id,
+        points=1250.0
+    )
+
+@router.post("/loyalty-cards/{customer_id}/add-points", response_model=LoyaltyCard)
+async def add_loyalty_points(customer_id: int, points: float):
+    """Add points to a customer's loyalty card"""
+    return LoyaltyCard(
+        id=1,
+        program_id=1,
+        customer_id=customer_id,
+        points=1250.0 + points
     )
 
 

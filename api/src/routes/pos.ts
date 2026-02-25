@@ -61,3 +61,44 @@ posRoutes.post('/orders/:id/pay', asyncHandler(async (req, res) => {
     const order = await prisma.posOrder.update({ where: { id: parseInt(req.params.id) }, data: { state: 'paid', amountPaid: req.body.amount } });
     res.json(order);
 }));
+
+// Loyalty Programs
+posRoutes.get('/loyalty-programs', asyncHandler(async (_req, res) => {
+    const programs = await prisma.loyaltyProgram.findMany({ where: { active: true }, include: { rewards: true } });
+    res.json(programs);
+}));
+
+// Loyalty Cards
+posRoutes.get('/loyalty-cards/:customerId', asyncHandler(async (req, res) => {
+    const partnerId = parseInt(req.params.customerId);
+    const card = await prisma.loyaltyCard.findUnique({
+        where: { partnerId },
+        include: { program: true }
+    });
+    res.json(card);
+}));
+
+posRoutes.post('/loyalty-cards/:customerId/add-points', asyncHandler(async (req, res) => {
+    const partnerId = parseInt(req.params.customerId);
+    const points = parseFloat(req.query.points as string || '0');
+
+    let card = await prisma.loyaltyCard.findUnique({ where: { partnerId } });
+    if (!card) {
+        // Find first active program or create dummy
+        let program = await prisma.loyaltyProgram.findFirst({ where: { active: true } });
+        if (!program) {
+            program = await prisma.loyaltyProgram.create({ data: { name: 'Standard Loyalty', pointsPerDollar: 1 } });
+        }
+        card = await prisma.loyaltyCard.create({
+            data: { partnerId, programId: program.id, points: 0 }
+        });
+    }
+
+    const updated = await prisma.loyaltyCard.update({
+        where: { id: card.id },
+        data: { points: card.points + points }
+    });
+
+    res.json(updated);
+}));
+

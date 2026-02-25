@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { ReplenishmentService } from '../modules/inventory/replenishmentService';
+import { StockRoutingEngine } from '../modules/inventory/routingEngine';
+import { VendorIntelligenceService } from '../modules/inventory/vendorIntelligence';
 
 export const inventoryRoutes = Router();
 
@@ -141,6 +144,15 @@ inventoryRoutes.post('/pickings/:id/validate', asyncHandler(async (req, res) => 
         }
     });
 
+    // --- INTEGRATE ROUTING ENGINE ---
+    // Trigger downstream pickings if rules apply
+    await StockRoutingEngine.handlePickingValidation(id);
+
+    // AI Intelligence: Update vendor statistics if PO linked
+    if (picking.purchaseOrderId) {
+        await VendorIntelligenceService.updateVendorStats(picking.purchaseOrderId);
+    }
+
     res.json({ success: true, message: 'Stock picking validated successfully' });
 }));
 
@@ -162,4 +174,55 @@ inventoryRoutes.get('/quants', asyncHandler(async (req, res) => {
         prisma.stockQuant.count({ where }),
     ]);
     res.json(paginatedResponse(data, total, page, limit));
+}));
+
+// --- Replenishment Engine ---
+inventoryRoutes.post('/replenish/run', asyncHandler(async (req, res) => {
+    const result = await ReplenishmentService.runReplenishment();
+    res.json(result);
+}));
+
+// --- Orderpoints (Reordering Rules) ---
+inventoryRoutes.get('/orderpoints', asyncHandler(async (req, res) => {
+    const { skip, page, limit } = getPagination(req.query);
+    const [data, total] = await Promise.all([
+        prisma.stockWarehouseOrderpoint.findMany({
+            skip, take: limit,
+            include: { product: true, location: true, warehouse: true }
+        }),
+        prisma.stockWarehouseOrderpoint.count(),
+    ]);
+    res.json(paginatedResponse(data, total, page, limit));
+}));
+
+inventoryRoutes.post('/orderpoints', asyncHandler(async (req, res) => {
+    const orderpoint = await prisma.stockWarehouseOrderpoint.create({
+        data: req.body
+    });
+    res.json(orderpoint);
+}));
+
+inventoryRoutes.put('/orderpoints/:id', asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const orderpoint = await prisma.stockWarehouseOrderpoint.update({
+        where: { id: parseInt(id) },
+        data: req.body
+    });
+    res.json(orderpoint);
+}));
+
+inventoryRoutes.delete('/orderpoints/:id', asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    await prisma.stockWarehouseOrderpoint.delete({
+        where: { id: parseInt(id) }
+    });
+    res.json({ success: true });
+}));
+
+// --- Stock Rules & Routes ---
+inventoryRoutes.get('/routes', asyncHandler(async (req, res) => {
+    const routes = await prisma.stockRoute.findMany({
+        include: { rules: { include: { locationSrc: true, locationDest: true } } }
+    });
+    res.json(routes);
 }));

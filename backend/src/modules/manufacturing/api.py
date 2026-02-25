@@ -9,13 +9,16 @@ from typing import List, Optional
 from datetime import datetime
 
 from ...core.database import get_async_session
+from ...core.auth import get_current_user
 from .service import ManufacturingService
 from .schemas import (
     ProductionOrderCreate, ProductionOrderUpdate, ProductionOrderResponse,
     ProductCreate, ProductUpdate, ProductResponse,
     WorkCenterCreate, WorkCenterUpdate, WorkCenterResponse,
     QualityCheckCreate, QualityCheckResponse,
-    ManufacturingDashboardMetrics, ManufacturingAnalytics
+    ManufacturingDashboardMetrics, ManufacturingAnalytics,
+    MPSCreate, MPSResponse, SubcontractingOrderCreate,
+    SubcontractingOrderResponse
 )
 
 router = APIRouter(prefix="/manufacturing", tags=["Manufacturing"])
@@ -103,6 +106,35 @@ async def create_production_order(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create production order: {str(e)}"
         )
+
+# Master Production Schedule (MPS) Endpoints
+@router.post("/mps", response_model=MPSResponse, status_code=status.HTTP_201_CREATED)
+async def create_mps(
+    mps_data: MPSCreate,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_session)
+):
+    """Create a new Master Production Schedule (MPS)"""
+    try:
+        service = ManufacturingService(db)
+        return await service.create_mps(mps_data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Subcontracting Endpoints
+@router.post("/subcontracting-orders", response_model=SubcontractingOrderResponse, status_code=status.HTTP_201_CREATED)
+async def create_subcontracting_order(
+    order_data: SubcontractingOrderCreate,
+    current_user: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_session)
+):
+    """Create a new Subcontracting Order"""
+    try:
+        service = ManufacturingService(db)
+        return await service.create_subcontracting_order(order_data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 
 @router.get("/production-orders/{order_id}", response_model=dict)

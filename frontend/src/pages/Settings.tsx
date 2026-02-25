@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Users, Shield, Globe, Database, ToggleLeft, ToggleRight, ChevronRight, Save, Server } from 'lucide-react';
+import { Settings, Users, Shield, Globe, Database, ToggleLeft, ToggleRight, ChevronRight, Save, Server, Fingerprint } from 'lucide-react';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ModuleConfig { id: string; name: string; enabled: boolean; description: string; }
 
@@ -47,9 +48,10 @@ const mockUsers: UserEntry[] = [
     { id: 5, name: 'David Lee', email: 'david@fusionai.com', role: 'Manager', active: false },
 ];
 
-type Tab = 'general' | 'modules' | 'users' | 'technical';
+type Tab = 'general' | 'modules' | 'users' | 'security' | 'technical';
 
 const SettingsPage: React.FC = () => {
+    const { user, registerPasskey } = useAuth();
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<Tab>('general');
     const [modules, setModules] = useState<ModuleConfig[]>(defaultModules);
@@ -60,10 +62,10 @@ const SettingsPage: React.FC = () => {
         currency: 'USD', dateFormat: 'MM/DD/YYYY', notifications: true, darkMode: true,
     });
 
-    const { data: serverSettings, isLoading } = useQuery({
+    const { data: serverSettings } = useQuery({
         queryKey: ['settings'],
         queryFn: async () => {
-            const res = await axios.get('http://localhost:3001/api/settings');
+            const res = await axios.get('/api/settings');
             return res.data;
         }
     });
@@ -92,7 +94,7 @@ const SettingsPage: React.FC = () => {
 
     const saveMutation = useMutation({
         mutationFn: async (payload: Record<string, string>) => {
-            await axios.post('http://localhost:3001/api/settings', payload);
+            await axios.post('/api/settings', payload);
         },
         onSuccess: () => {
             toast.success('Settings saved successfully');
@@ -128,6 +130,7 @@ const SettingsPage: React.FC = () => {
         { id: 'general', label: 'General', icon: Settings },
         { id: 'modules', label: 'Modules', icon: Database },
         { id: 'users', label: 'Users & Roles', icon: Users },
+        { id: 'security', label: 'Security', icon: Shield },
         { id: 'technical', label: 'Technical', icon: Server },
     ];
 
@@ -138,6 +141,18 @@ const SettingsPage: React.FC = () => {
             User: 'bg-gray-500/20 text-gray-400',
         };
         return <span className={`px-2 py-1 rounded-full text-xs font-medium ${c[role] || c.User}`}>{role}</span>;
+    };
+
+    const handleRegisterPasskey = async () => {
+        if (!user) {
+            toast.error('You must be logged in to register a passkey');
+            return;
+        }
+        try {
+            await registerPasskey(parseInt(user.id));
+        } catch (err) {
+            // Error already handled in AuthContext with toast
+        }
     };
 
     return (
@@ -345,6 +360,40 @@ const SettingsPage: React.FC = () => {
                             </motion.div>
                         )}
 
+                        {activeTab === 'security' && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                <GlassCard className="p-6">
+                                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                                        <Shield className="w-5 h-5 text-blue-400" />Security & Authentication
+                                    </h2>
+                                    <p className="text-white/60 mb-6">Manage your account security and authentication methods.</p>
+
+                                    <div className="bg-white/5 rounded-xl p-6 border border-white/10">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                                    <Fingerprint className="w-7 h-7 text-blue-400" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-medium text-white">Passkey Authentication</h3>
+                                                    <p className="text-white/40 text-sm">Use biometrics or security keys to sign in securely.</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={handleRegisterPasskey}
+                                                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                                            >
+                                                Register New Passkey
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-white/30 italic">
+                                            Passkeys provide a faster and more secure way to sign in without using passwords.
+                                        </p>
+                                    </div>
+                                </GlassCard>
+                            </motion.div>
+                        )}
+
                         {activeTab === 'technical' && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                                 <GlassCard className="p-6">
@@ -358,7 +407,7 @@ const SettingsPage: React.FC = () => {
                                             ['Backend', 'Node.js + Express + Prisma'],
                                             ['Database', 'SQLite (dev) / PostgreSQL (prod)'],
                                             ['Frontend', 'React 18 + Vite + Tailwind'],
-                                            ['API Endpoint', 'http://localhost:3001'],
+                                            ['API Endpoint', '/api'],
                                             ['Modules Loaded', String(modules.filter(m => m.enabled).length)],
                                         ].map(([k, v]) => (
                                             <div key={k} className="flex justify-between py-2 border-b border-white/5">

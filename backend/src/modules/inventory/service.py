@@ -6,18 +6,150 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 
 from .models import (
-    Product, ProductCategory, WarehouseLocation, StockMovement, 
-    DemandForecast, InventoryAlert, InventoryTransaction,
-    ProductStatus, StockMovementType
+    Product, ProductCategory, WarehouseLocation, StockLocation, StockRule,
+    LotSerialNumber, LandedCost, StockMovement, DemandForecast, 
+    InventoryAlert, InventoryTransaction, ProductStatus, StockMovementType,
+    LocationType, RuleAction
 )
 from .schemas import (
     ProductCreate, ProductUpdate, StockMovementCreate,
-    DemandForecastCreate, InventoryAlertCreate, InventoryTransactionCreate
+    DemandForecastCreate, InventoryAlertCreate, InventoryTransactionCreate,
+    StockLocationCreate, StockRuleCreate, LotSerialNumberCreate, LandedCostCreate
 )
 
 class InventoryService:
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    # Dictionary serializers for new models
+    def _serialize_stock_location(self, location: StockLocation) -> Dict:
+        return {
+            "id": location.id,
+            "name": location.name,
+            "complete_name": location.complete_name,
+            "location_type": location.location_type.value if location.location_type else None,
+            "parent_id": location.parent_id,
+            "warehouse_id": location.warehouse_id,
+            "is_scrap": location.is_scrap,
+            "is_return": location.is_return,
+            "barcode": location.barcode,
+            "max_weight": float(location.max_weight) if location.max_weight else None,
+            "created_at": location.created_at.isoformat() if location.created_at else None
+        }
+
+    def _serialize_stock_rule(self, rule: StockRule) -> Dict:
+        return {
+            "id": rule.id,
+            "name": rule.name,
+            "action": rule.action.value if rule.action else None,
+            "source_location_id": rule.source_location_id,
+            "destination_location_id": rule.destination_location_id,
+            "delay": rule.delay
+        }
+
+    def _serialize_lot(self, lot: LotSerialNumber) -> Dict:
+        return {
+            "id": lot.id,
+            "name": lot.name,
+            "product_id": lot.product_id,
+            "expiration_date": lot.expiration_date.isoformat() if lot.expiration_date else None,
+            "removal_date": lot.removal_date.isoformat() if lot.removal_date else None,
+            "created_at": lot.created_at.isoformat() if lot.created_at else None
+        }
+
+    def _serialize_landed_cost(self, lc: LandedCost) -> Dict:
+        return {
+            "id": lc.id,
+            "name": lc.name,
+            "date": lc.date.isoformat() if lc.date else None,
+            "cost_amount": float(lc.cost_amount) if lc.cost_amount else None,
+            "split_method": lc.split_method,
+            "receipt_reference": lc.receipt_reference,
+            "notes": lc.notes
+        }
+
+    # Configuration Management (Locations, Rules)
+    async def create_stock_location(self, loc_data: StockLocationCreate) -> Dict:
+        try:
+            loc = StockLocation(
+                name=loc_data.name,
+                location_type=loc_data.location_type,
+                parent_id=loc_data.parent_id,
+                warehouse_id=loc_data.warehouse_id,
+                is_scrap=loc_data.is_scrap,
+                is_return=loc_data.is_return,
+                barcode=loc_data.barcode,
+                max_weight=loc_data.max_weight
+            )
+            # Basic full name generation
+            if loc_data.parent_id:
+                parent = await self.db.get(StockLocation, loc_data.parent_id)
+                loc.complete_name = f"{parent.complete_name}/{loc_data.name}" if parent else loc_data.name
+            else:
+                loc.complete_name = loc_data.name
+                
+            self.db.add(loc)
+            await self.db.commit()
+            await self.db.refresh(loc)
+            return self._serialize_stock_location(loc)
+        except Exception as e:
+            await self.db.rollback()
+            print(f"Error creating location: {e}")
+            raise
+
+    async def create_stock_rule(self, rule_data: StockRuleCreate) -> Dict:
+        try:
+            rule = StockRule(
+                name=rule_data.name,
+                action=rule_data.action,
+                source_location_id=rule_data.source_location_id,
+                destination_location_id=rule_data.destination_location_id,
+                delay=rule_data.delay
+            )
+            self.db.add(rule)
+            await self.db.commit()
+            await self.db.refresh(rule)
+            return self._serialize_stock_rule(rule)
+        except Exception as e:
+            await self.db.rollback()
+            print(f"Error creating rule: {e}")
+            raise
+
+    # Traceability Management
+    async def create_lot_serial(self, lot_data: LotSerialNumberCreate) -> Dict:
+        try:
+            lot = LotSerialNumber(
+                name=lot_data.name,
+                product_id=lot_data.product_id,
+                expiration_date=lot_data.expiration_date,
+                removal_date=lot_data.removal_date
+            )
+            self.db.add(lot)
+            await self.db.commit()
+            await self.db.refresh(lot)
+            return self._serialize_lot(lot)
+        except Exception as e:
+            await self.db.rollback()
+            print(f"Error creating lot: {e}")
+            raise
+
+    async def create_landed_cost(self, lc_data: LandedCostCreate) -> Dict:
+        try:
+            lc = LandedCost(
+                name=lc_data.name,
+                cost_amount=lc_data.cost_amount,
+                split_method=lc_data.split_method,
+                receipt_reference=lc_data.receipt_reference,
+                notes=lc_data.notes
+            )
+            self.db.add(lc)
+            await self.db.commit()
+            await self.db.refresh(lc)
+            return self._serialize_landed_cost(lc)
+        except Exception as e:
+            await self.db.rollback()
+            print(f"Error creating landed cost: {e}")
+            raise
     
     # Product Management
     async def create_product(self, product_data: ProductCreate, user_id: int) -> Dict:
@@ -38,6 +170,7 @@ class InventoryService:
                 cost_price=product_data.cost_price,
                 selling_price=product_data.selling_price,
                 msrp=product_data.msrp,
+                tracking=product_data.tracking,
                 min_stock_level=product_data.min_stock_level,
                 max_stock_level=product_data.max_stock_level,
                 reorder_point=product_data.reorder_point,
@@ -154,6 +287,9 @@ class InventoryService:
             movement = StockMovement(
                 product_id=movement_data.product_id,
                 warehouse_id=movement_data.warehouse_id,
+                source_location_id=movement_data.source_location_id,
+                dest_location_id=movement_data.dest_location_id,
+                lot_id=movement_data.lot_id,
                 movement_type=movement_data.movement_type,
                 quantity=movement_data.quantity,
                 unit_cost=movement_data.unit_cost,
@@ -161,6 +297,7 @@ class InventoryService:
                 reference_number=movement_data.reference_number,
                 reference_type=movement_data.reference_type,
                 reference_id=movement_data.reference_id,
+                rule_id=movement_data.rule_id,
                 reason=movement_data.reason,
                 notes=movement_data.notes,
                 serial_numbers=movement_data.serial_numbers,
@@ -454,6 +591,7 @@ class InventoryService:
             "cost_price": float(product.cost_price) if product.cost_price else None,
             "selling_price": float(product.selling_price) if product.selling_price else None,
             "msrp": float(product.msrp) if product.msrp else None,
+            "tracking": product.tracking,
             "current_stock": product.current_stock,
             "min_stock_level": product.min_stock_level,
             "max_stock_level": product.max_stock_level,
@@ -475,6 +613,9 @@ class InventoryService:
             "id": movement.id,
             "product_id": movement.product_id,
             "warehouse_id": movement.warehouse_id,
+            "source_location_id": movement.source_location_id,
+            "dest_location_id": movement.dest_location_id,
+            "lot_id": movement.lot_id,
             "movement_type": movement.movement_type.value if movement.movement_type else None,
             "quantity": movement.quantity,
             "unit_cost": float(movement.unit_cost) if movement.unit_cost else None,
@@ -482,6 +623,7 @@ class InventoryService:
             "reference_number": movement.reference_number,
             "reference_type": movement.reference_type,
             "reference_id": movement.reference_id,
+            "rule_id": movement.rule_id,
             "reason": movement.reason,
             "notes": movement.notes,
             "serial_numbers": movement.serial_numbers,
