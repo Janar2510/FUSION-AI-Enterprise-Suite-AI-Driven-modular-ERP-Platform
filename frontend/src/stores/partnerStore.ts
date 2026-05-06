@@ -18,7 +18,7 @@ import type {
 } from '@/lib/types/partner';
 
 export const usePartnerStore = create<PartnerStoreState>()(
-    subscribeWithSelector((set, get) => ({
+    subscribeWithSelector((set) => ({
         // ── Initial State ─────────────────────────────────
         partners: [],
         companies: [],

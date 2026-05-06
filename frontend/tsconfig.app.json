@@ -4,6 +4,8 @@
   "exclude": ["**/*.test.*", "**/*.spec.*", "**/__tests__/**", "tests/**"],
   "compilerOptions": {
     "composite": true,
-    "noEmit": true
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   }
 }

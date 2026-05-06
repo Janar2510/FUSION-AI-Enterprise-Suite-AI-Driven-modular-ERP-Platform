@@ -46,7 +46,7 @@ interface GlobalMetricsState {
 const API_BASE = '/dashboard';
 
 export const useGlobalMetricsStore = create<GlobalMetricsState>()(
-  subscribeWithSelector((set, get) => ({
+  subscribeWithSelector((set) => ({
     metrics: null,
     loading: false,
     error: null,
@@ -70,7 +70,7 @@ export const useGlobalMetricsStore = create<GlobalMetricsState>()(
       }
     },
 
-    fetchModuleMetrics: async (moduleName: string) => {
+    fetchModuleMetrics: async (_moduleName: string) => {
       set({ loading: true, error: null });
       try {
         // For now, we'll use the global metrics endpoint and filter on the frontend

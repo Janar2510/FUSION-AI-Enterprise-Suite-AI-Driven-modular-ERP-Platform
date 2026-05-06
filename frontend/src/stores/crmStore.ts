@@ -432,9 +432,8 @@ export const useCRMStore = create<CRMState>()(
         
         if (!response.ok) throw new Error('Failed to move deal');
         
-        const data = await response.json();
-        const updatedDeal = data.data;
-        
+        await response.json();
+
         set(state => ({
           deals: state.deals.map(deal =>
             deal.id === dealId ? { ...deal, stage_id: newStageId } : deal

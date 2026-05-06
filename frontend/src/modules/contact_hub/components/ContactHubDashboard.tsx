@@ -339,3 +339,4 @@ export const ContactHubDashboard: React.FC = () => {
     </div>
   );
 };
+export default ContactHubDashboard;

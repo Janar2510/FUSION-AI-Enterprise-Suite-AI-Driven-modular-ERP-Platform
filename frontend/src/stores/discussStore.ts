@@ -70,6 +70,7 @@ interface DiscussState {
   generateSummary: (channelId: number) => Promise<string>;
   getSuggestions: (message: string) => Promise<string[]>;
   analyzeSentiment: (message: string) => Promise<number>;
+  loadMessages: (channelId: number) => Promise<void>;
 }
 
 export const useDiscussStore = create<DiscussState>()(

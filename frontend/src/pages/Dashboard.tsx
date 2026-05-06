@@ -1,14 +1,15 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { 
-  BarChart3, 
-  Users, 
-  DollarSign, 
-  TrendingUp, 
+import {
+  BarChart3,
+  Users,
+  DollarSign,
+  TrendingUp,
   Activity,
   Calendar,
   Bell,
-  Settings
+  Settings,
+  type LucideIcon
 } from 'lucide-react'
 
 import { GlassCard } from '@/components/shared/GlassCard'
@@ -17,7 +18,7 @@ import { ModuleCard } from '@/components/shared/ModuleCard'
 import { MetricGrid } from '@/components/shared/MetricCard'
 
 const Dashboard: React.FC = () => {
-  const stats = [
+  const stats: Array<{ title: string; value: string; change: string; trend: 'up' | 'down' | 'neutral'; icon: LucideIcon; color: string }> = [
     {
       title: 'Total Revenue',
       value: '$125,430',
@@ -52,7 +53,7 @@ const Dashboard: React.FC = () => {
     },
   ]
 
-  const modules = [
+  const modules: Array<{ name: string; description: string; icon: LucideIcon; status: 'active' | 'inactive' | 'loading'; color: string }> = [
     {
       name: 'Accounting',
       description: 'Financial management and reporting',

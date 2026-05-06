@@ -4,7 +4,7 @@ import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useSubscriptionStore, Subscription } from '../stores/subscriptionStore';
 import { usePartnerStore } from '@/stores/partnerStore';
-import { CreditCard, DollarSign } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 
 const PLAN_BADGES: Record<string, string> = { enterprise: 'bg-violet-500/20 text-violet-400', pro: 'bg-blue-500/20 text-blue-400', starter: 'bg-gray-500/20 text-gray-400' };
 const STATE_BADGES: Record<string, { label: string; cls: string }> = {

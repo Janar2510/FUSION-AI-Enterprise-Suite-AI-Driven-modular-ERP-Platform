@@ -3,6 +3,7 @@ import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { MessageSquare, ThumbsUp, Share2, MousePointerClick, Facebook, Twitter, Linkedin, BarChart3 } from 'lucide-react';
+import { useSocialStore, SocialPost } from '../stores/socialStore';
 
 export const SocialMarketingModule: React.FC = () => {
     const {

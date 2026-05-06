@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Truck, Zap, RefreshCw, AlertTriangle, Box, Database, Network, Plus, Settings } from 'lucide-react';
+import { Truck, Zap, RefreshCw, AlertTriangle, Box, Database, Network } from 'lucide-react';
 import { useSupplyChainStore } from '../stores/supplyChainStore';
 import { OdooViewManager, ViewType } from '../../../components/views/OdooViewManager';
 import { HierarchyView } from '../../../components/views/HierarchyView';
@@ -8,7 +8,6 @@ import { GlassCard } from '../../../components/shared/GlassCard';
 import { GradientButton } from '../../../components/shared/GradientButton';
 import { OdooDataGrid, ColumnDef } from '../../../components/shared/OdooDataGrid';
 import { OrderpointModal } from './OrderpointModal';
-import { clsx } from 'clsx';
 
 const SupplyChainModule: React.FC = () => {
     const {
@@ -67,11 +66,11 @@ const SupplyChainModule: React.FC = () => {
                         </p>
                         <GradientButton
                             onClick={runReplenishment}
-                            isLoading={loading}
-                            icon={RefreshCw}
+                            loading={loading}
                             size="lg"
                             className="shadow-2xl shadow-primary-purple/20"
                         >
+                            <RefreshCw className="w-4 h-4 mr-2 inline-block" />
                             Execute Global Run
                         </GradientButton>
                     </div>
@@ -139,7 +138,7 @@ const SupplyChainModule: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleRowChange = async (index: number, updatedRow: any) => {
+    const handleRowChange = async (_index: number, updatedRow: any) => {
         await updateOrderpoint(updatedRow.id, updatedRow);
     };
 

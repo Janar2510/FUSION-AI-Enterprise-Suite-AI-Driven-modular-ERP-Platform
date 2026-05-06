@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { SignatureRequest, Signer, SignatureStatus } from '../types';
+import { SignatureRequest, SignatureStatus } from '../types';
 
 interface SignState {
   signatureRequests: SignatureRequest[];
@@ -24,7 +24,7 @@ interface SignState {
   clearSignatures: () => void;
 }
 
-export const useSignStore = create<SignState>((set, get) => ({
+export const useSignStore = create<SignState>((set) => ({
   signatureRequests: [
     // Sample data
     {
