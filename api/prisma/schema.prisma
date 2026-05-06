@@ -7,6 +7,233 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 1 — Canonical Domain Spine (ADR-0004)
+// These models are the platform-level shared entities. Every module references
+// them; no module duplicates them.
+// Migration: run `prisma migrate dev --name init_spine` after Phase 1 review.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Organization {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  status    OrgStatus @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  companies SpineCompany[]
+  users     SpineUser[]
+}
+
+enum OrgStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+model SpineCompany {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  name            String
+  legalName       String?
+  vatId           String?
+  currencyCode    String       @default("EUR")
+  countryCode     String       @default("EE")
+  fiscalYearStart Int          @default(1)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
+model SpineUser {
+  id             String     @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  email          String     @unique
+  passwordHash   String?
+  mfaEnabled     Boolean    @default(false)
+  status         UserStatus @default(ACTIVE)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  roles          SpineUserRole[]
+
+  @@index([organizationId])
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+model SpineRole {
+  id          String            @id @default(cuid())
+  key         String            @unique
+  name        String
+  permissions SpinePermission[]
+  users       SpineUserRole[]
+}
+
+model SpinePermission {
+  id          String      @id @default(cuid())
+  key         String      @unique
+  description String?
+  roles       SpineRole[]
+}
+
+model SpineUserRole {
+  userId String
+  roleId String
+  user   SpineUser @relation(fields: [userId], references: [id])
+  role   SpineRole @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model SpinePartnerAddress {
+  id        String @id @default(cuid())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id])
+  type      String
+  street1   String?
+  street2   String?
+  city      String?
+  state     String?
+  zip       String?
+  country   String?
+}
+
+model SpinePartnerContact {
+  id        String  @id @default(cuid())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id])
+  kind      String
+  value     String
+  isPrimary Boolean @default(false)
+}
+
+model Attachment {
+  id             String   @id @default(cuid())
+  organizationId String
+  ownerType      String
+  ownerId        String
+  filename       String
+  contentType    String
+  sizeBytes      Int
+  storageKey     String
+  checksumSha256 String
+  uploadedById   String
+  createdAt      DateTime @default(now())
+
+  @@index([ownerType, ownerId])
+  @@index([organizationId])
+}
+
+model SpineDocument {
+  id             String   @id @default(cuid())
+  organizationId String
+  partnerId      Int?
+  attachmentId   String   @unique
+  kind           String
+  status         String   @default("draft")
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId])
+}
+
+model Activity {
+  id             String    @id @default(cuid())
+  organizationId String
+  ownerType      String
+  ownerId        String
+  type           String
+  summary        String
+  body           String?
+  dueAt          DateTime?
+  doneAt         DateTime?
+  assignedToId   String?
+  createdById    String
+  createdAt      DateTime  @default(now())
+
+  @@index([ownerType, ownerId])
+  @@index([organizationId])
+}
+
+model ChatterMessage {
+  id             String   @id @default(cuid())
+  organizationId String
+  ownerType      String
+  ownerId        String
+  authorId       String?
+  body           String
+  isInternal     Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  @@index([ownerType, ownerId])
+  @@index([organizationId])
+}
+
+model TimelineEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  partnerId      Int?
+  ownerType      String
+  ownerId        String
+  eventKey       String
+  summary        String
+  payload        Json?
+  createdAt      DateTime @default(now())
+
+  @@index([partnerId])
+  @@index([ownerType, ownerId])
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorUserId    String?
+  action         String
+  entityType     String
+  entityId       String
+  before         Json?
+  after          Json?
+  ip             String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([organizationId, createdAt])
+}
+
+model OutboxEvent {
+  id             String    @id @default(cuid())
+  organizationId String
+  eventKey       String
+  payload        Json
+  publishedAt    DateTime?
+  attempts       Int       @default(0)
+  lastError      String?
+  createdAt      DateTime  @default(now())
+
+  @@index([publishedAt])
+  @@index([organizationId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 1 TODO: Upgrade existing Partner + Product to canonical spine format:
+//   - Change Int @id to String @id @default(cuid())
+//   - Add organizationId String + @index
+//   - Add companyId String?
+//   - Partner: add isEmployee, consentMarketing, consentUpdatedAt, tags String[]
+//   - Product: add type ProductType enum, unitOfMeasure, salesPrice/costPrice Decimal
+//   - Remove inline address/contact fields from Partner (move to SpinePartnerAddress/Contact)
+// This upgrade requires a data migration. Do it in Phase 1 migration: init_spine.
+// ─────────────────────────────────────────────────────────────────────────────
+
 model Partner {
   id                  Int                   @id @default(autoincrement())
   name                String
@@ -53,6 +280,9 @@ model Partner {
   passkeys            UserPasskey[]
   spreadsheets        Spreadsheet[]
   vendorPricelists    VendorPricelist[]
+  // Phase 1 spine back-relations (added without migration)
+  spineAddresses      SpinePartnerAddress[]
+  spineContacts       SpinePartnerContact[]
 
   @@map("partners")
 }
