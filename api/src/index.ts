@@ -10,6 +10,18 @@ import session from 'express-session';
 // Load environment variables
 dotenv.config();
 
+// ── Production secret guard ──────────────────────────────────
+if (process.env.NODE_ENV === 'production') {
+    const required = ['SESSION_SECRET', 'DATABASE_URL', 'JWT_SECRET'];
+    const missing = required.filter(
+        k => !process.env[k] || /change.?me|placeholder|dev-secret|ultra-secret/i.test(process.env[k]!)
+    );
+    if (missing.length) {
+        console.error('FATAL: missing/placeholder production secrets:', missing);
+        process.exit(1);
+    }
+}
+
 // Import routes
 import { authRoutes } from './routes/auth';
 import { partnerRoutes } from './routes/partners';
