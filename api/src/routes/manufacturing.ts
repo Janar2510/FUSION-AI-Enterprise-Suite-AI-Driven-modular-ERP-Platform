@@ -324,7 +324,8 @@ manufacturingRoutes.post('/ai/log-quality-data', asyncHandler(async (req, res) =
             where: { id: workcenterId },
             data: { active: false } // Auto-stop for inspection
         });
-        return res.json({ alert: 'Predictive maintenance triggered. Center halted for inspection.' });
+        res.json({ alert: 'Predictive maintenance triggered. Center halted for inspection.' });
+        return;
     }
 
     res.json({ status: 'logged' });

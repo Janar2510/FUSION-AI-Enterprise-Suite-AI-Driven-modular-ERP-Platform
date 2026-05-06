@@ -39,7 +39,8 @@ router.post('/', async (req: Request, res: Response) => {
         const settings = req.body; // Expects an object like { "crm.qualification_rule": "strict", ... }
 
         if (!settings || typeof settings !== 'object') {
-            return res.status(400).json({ error: 'Invalid settings payload' });
+            res.status(400).json({ error: 'Invalid settings payload' });
+            return;
         }
 
         const updates = Object.entries(settings).map(([key, value]) => {
