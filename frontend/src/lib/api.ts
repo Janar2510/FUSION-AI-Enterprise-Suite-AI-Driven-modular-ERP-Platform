@@ -262,7 +262,10 @@ export const accountingApi = {
   createMove: (data: Record<string, unknown>) =>
     api.post('/api/accounting/moves', data),
 
-  // Flow actions
+  updateMove: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/accounting/moves/${id}`, data),
+
+  // Flow actions (Phase 3 flows C/D)
   postMove: (id: number) =>
     api.post(`/api/accounting/moves/${id}/post`),
 
@@ -272,9 +275,12 @@ export const accountingApi = {
   reconcileMove: (id: number) =>
     api.post(`/api/accounting/moves/${id}/reconcile`),
 
-  // Journals
+  // Journals & Accounts
   listJournals: () =>
     api.get('/api/accounting/journals'),
+
+  listAccounts: (params?: Record<string, unknown>) =>
+    api.get('/api/accounting/accounts', { params }),
 }
 
 // ── Inventory ────────────────────────────────────────────────────────────────
@@ -305,59 +311,65 @@ export const inventoryApi = {
 export const purchasesApi = {
   // RFQs / POs
   list: (params?: Record<string, unknown>) =>
-    api.get('/api/purchase', { params }),
+    api.get('/api/purchases', { params }),
 
   get: (id: number) =>
-    api.get(`/api/purchase/${id}`),
+    api.get(`/api/purchases/${id}`),
 
   create: (data: Record<string, unknown>) =>
-    api.post('/api/purchase', data),
+    api.post('/api/purchases', data),
 
   update: (id: number, data: Record<string, unknown>) =>
-    api.patch(`/api/purchase/${id}`, data),
+    api.put(`/api/purchases/${id}`, data),
 
-  // Flow actions
+  // Flow actions (Phase 3 flow D)
   confirm: (id: number) =>
-    api.post(`/api/purchase/${id}/confirm`),
-
-  validateReceipt: (id: number) =>
-    api.post(`/api/purchase/${id}/validate-receipt`),
+    api.post(`/api/purchases/${id}/confirm`),
 
   createBill: (id: number) =>
-    api.post(`/api/purchase/${id}/bill`),
+    api.post(`/api/purchases/${id}/bill`),
+
+  postBill: (id: number) =>
+    api.post(`/api/purchases/${id}/post-bill`),
+
+  payBill: (id: number, data?: Record<string, unknown>) =>
+    api.post(`/api/purchases/${id}/pay-bill`, data),
 
   cancel: (id: number) =>
-    api.post(`/api/purchase/${id}/cancel`),
+    api.post(`/api/purchases/${id}/cancel`),
 }
 
 // ── Helpdesk ─────────────────────────────────────────────────────────────────
 export const helpdeskApi = {
   // Tickets
   list: (params?: Record<string, unknown>) =>
-    api.get('/api/helpdesk', { params }),
+    api.get('/api/helpdesk/tickets', { params }),
 
   get: (id: number) =>
-    api.get(`/api/helpdesk/${id}`),
+    api.get(`/api/helpdesk/tickets/${id}`),
 
   create: (data: Record<string, unknown>) =>
-    api.post('/api/helpdesk', data),
+    api.post('/api/helpdesk/tickets', data),
 
   update: (id: number, data: Record<string, unknown>) =>
-    api.patch(`/api/helpdesk/${id}`, data),
+    api.put(`/api/helpdesk/tickets/${id}`, data),
 
-  // Flow actions
+  moveStage: (id: number, stageId: number) =>
+    api.patch(`/api/helpdesk/tickets/${id}/stage`, { stageId }),
+
+  // Flow actions (Phase 3 flow E)
   createTask: (id: number) =>
-    api.post(`/api/helpdesk/${id}/create-task`),
+    api.post(`/api/helpdesk/tickets/${id}/create-task`),
 
   addTimesheet: (id: number, data: { taskId: number; hours: number; description?: string }) =>
-    api.post(`/api/helpdesk/${id}/timesheet`, data),
+    api.post(`/api/helpdesk/tickets/${id}/timesheet`, data),
 
-  resolve: (id: number) =>
-    api.post(`/api/helpdesk/${id}/resolve`),
-
-  // Stages
+  // Stages / pipeline
   stages: () =>
     api.get('/api/helpdesk/stages'),
+
+  pipeline: () =>
+    api.get('/api/helpdesk/pipeline'),
 }
 
 // ── Projects ─────────────────────────────────────────────────────────────────

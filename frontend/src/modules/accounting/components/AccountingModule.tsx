@@ -23,7 +23,8 @@ export const AccountingModule: React.FC = () => {
         fetchAccounts,
         createMove,
         updateMove,
-        postMove
+        postMove,
+        registerPayment,
     } = useAccountingStore();
 
     const { partners, fetchPartners } = usePartnerStore();
@@ -169,16 +170,21 @@ export const AccountingModule: React.FC = () => {
         if (!activeRecord) return;
         try {
             await postMove(activeRecord.id);
-            toast.success('Journal entry posted successfully!', { position: 'bottom-center' });
-            // Refresh to see updated state
-            const updated = moves.find(m => m.id === activeRecord.id);
-            if (updated) {
-                setActiveRecord(updated);
-                setFormData(updated);
-            }
+            toast.success('Entry posted successfully!', { position: 'bottom-center' });
             setCurrentView('list');
         } catch (error: any) {
             toast.error(error?.response?.data?.error || useAccountingStore.getState().error || 'Failed to post entry.', { position: 'bottom-center' });
+        }
+    };
+
+    const handleRegisterPayment = async () => {
+        if (!activeRecord) return;
+        try {
+            await registerPayment(activeRecord.id);
+            toast.success('Payment registered successfully!', { position: 'bottom-center' });
+            setCurrentView('list');
+        } catch (error: any) {
+            toast.error(error?.response?.data?.error || 'Failed to register payment.', { position: 'bottom-center' });
         }
     };
 
@@ -394,23 +400,47 @@ export const AccountingModule: React.FC = () => {
                         <div className="flex items-center justify-between w-full">
                             <div className="flex gap-2">
                                 {formData.state === 'draft' && activeRecord && (
-                                    <button onClick={handlePost} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-md shadow-lg">
+                                    <button
+                                        onClick={handlePost}
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-md shadow-lg"
+                                    >
                                         Post
                                     </button>
                                 )}
+                                {/* Register Payment: only for posted invoices/bills that are not yet paid */}
+                                {formData.state === 'posted' &&
+                                    ['out_invoice', 'in_invoice'].includes(formData.moveType || '') &&
+                                    activeRecord &&
+                                    activeRecord.paymentState !== 'paid' && (
+                                        <button
+                                            onClick={handleRegisterPayment}
+                                            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-md shadow-lg"
+                                        >
+                                            💳 Register Payment
+                                        </button>
+                                    )}
                             </div>
 
+                            {/* Progress chevrons */}
                             <div className="flex text-sm font-medium">
-                                {['draft', 'posted'].map((state, idx) => (
-                                    <div key={state} className="flex items-center relative">
-                                        <div className={`px - 4 py - 2 flex items - center pr - 6 uppercase
-                                          ${formData.state === state ? 'text-primary-purple font-bold' : 'text-white/40'}
-        `}>
-                                            {state}
+                                {['draft', 'posted', 'paid'].map((state, idx) => {
+                                    const isActive =
+                                        formData.state === state ||
+                                        (state === 'paid' && activeRecord?.paymentState === 'paid');
+                                    const isPast =
+                                        (state === 'draft' && formData.state !== 'draft') ||
+                                        (state === 'posted' && activeRecord?.paymentState === 'paid');
+                                    return (
+                                        <div key={state} className="flex items-center relative">
+                                            <div className={`px-4 py-2 flex items-center pr-6 uppercase
+                                                ${isActive ? 'text-primary-purple font-bold' : isPast ? 'text-white/80' : 'text-white/40'}
+                                            `}>
+                                                {state === 'paid' ? 'In Payment' : state}
+                                            </div>
+                                            {idx < 2 && <ChevronRight className="w-5 h-5 absolute -right-2 text-white/20 z-10" />}
                                         </div>
-                                        {idx < 1 && <ChevronRight className="w-5 h-5 absolute -right-2 text-white/20 z-10" />}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     }

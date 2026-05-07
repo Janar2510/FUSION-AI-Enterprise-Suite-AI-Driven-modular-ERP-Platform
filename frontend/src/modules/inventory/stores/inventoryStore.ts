@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import { inventoryApi } from '@/lib/api';
 
 const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
 
@@ -99,6 +100,7 @@ interface InventoryStore {
   fetchPickingTypes: () => Promise<void>;
   fetchAllPickings: (pickingTypeId?: number) => Promise<void>;
   createPicking: (data: Partial<StockPicking>) => Promise<StockPicking | undefined>;
+  markReady: (id: number) => Promise<void>;
   validatePicking: (id: number) => Promise<void>;
 
   fetchQuants: () => Promise<void>;
@@ -203,10 +205,22 @@ export const useInventoryStore = create<InventoryStore>((set, get) => ({
     }
   },
 
+  markReady: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      await inventoryApi.markReady(id);
+      await get().fetchAllPickings();
+      set({ loading: false });
+    } catch (err: any) {
+      console.error(err);
+      set({ error: err.message, loading: false });
+    }
+  },
+
   validatePicking: async (id) => {
     try {
       set({ loading: true, error: null });
-      await axios.post(`${API_BASE}/api/inventory/pickings/${id}/validate`);
+      await inventoryApi.validate(id);
       await get().fetchAllPickings();
       set({ loading: false });
     } catch (err: any) {

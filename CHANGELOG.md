@@ -5,6 +5,22 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Phase 4c: Sales + Accounting Flow Integration — 2026-05-07
+
+### Added
+- **Sales store migrated to typed `salesApi`** (`salesStore.ts`) — replaced all raw `axios` calls; `API_BASE` constant removed; `confirmOrder`/`cancelOrder` now re-throw on error for UI toast handling
+- **Accounting store migrated to typed `accountingApi`** (`accountingStore.ts`) — replaced all raw `axios` calls; `API_BASE` constant removed
+- **`registerPayment(id, data?)` action** added to `useAccountingStore` — calls `POST /api/accounting/moves/:id/pay` (Phase 3 Flow C)
+- **"💳 Register Payment" button** added to `AccountingModule.tsx` form view — appears only for `posted` invoices/bills where `paymentState !== 'paid'`; triggers `registerPayment` and returns to list
+- **3-step progress chevrons in AccountingModule** — status ribbon now shows `Draft → Posted → In Payment` with correct active/past state colouring
+
+### Fixed
+- **`purchasesApi` base path** in `api.ts` — corrected `/api/purchase` → `/api/purchases` across all CRUD + flow actions; `validateReceipt` removed (no such endpoint); added `postBill` and `payBill` methods
+- **`helpdeskApi` ticket paths** in `api.ts` — list/get/create/update now use `/api/helpdesk/tickets/*`; added `moveStage` and `pipeline` methods
+- **`accountingApi`** in `api.ts` — added `updateMove` and `listAccounts` methods that were missing from the typed SDK
+
+---
+
 ## [Unreleased] — Phase 4b: CRM Flow Integration — 2026-05-07
 
 ### Added

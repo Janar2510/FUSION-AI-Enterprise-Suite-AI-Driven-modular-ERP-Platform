@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { helpdeskApi } from '@/lib/api';
 
 export interface HelpdeskStage {
   id: number;
@@ -37,6 +35,8 @@ interface HelpdeskStore {
   createTicket: (data: Partial<HelpdeskTicket>) => Promise<HelpdeskTicket | undefined>;
   updateTicket: (id: number, data: Partial<HelpdeskTicket>) => Promise<void>;
   updateTicketStage: (id: number, stageId: number) => Promise<void>;
+  createTask: (ticketId: number) => Promise<{ taskId: number } | undefined>;
+  addTimesheet: (ticketId: number, data: { taskId: number; hours: number; description?: string }) => Promise<void>;
 }
 
 export const useHelpdeskStore = create<HelpdeskStore>((set, get) => ({
@@ -48,10 +48,9 @@ export const useHelpdeskStore = create<HelpdeskStore>((set, get) => ({
   fetchStages: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get(`${API_BASE}/api/helpdesk/stages`);
+      const res = await helpdeskApi.stages();
       set({ stages: res.data, loading: false });
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
   },
@@ -59,10 +58,9 @@ export const useHelpdeskStore = create<HelpdeskStore>((set, get) => ({
   fetchTickets: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get(`${API_BASE}/api/helpdesk/tickets?limit=500`);
+      const res = await helpdeskApi.list({ limit: 500 });
       set({ tickets: res.data.data, loading: false });
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
   },
@@ -70,12 +68,11 @@ export const useHelpdeskStore = create<HelpdeskStore>((set, get) => ({
   createTicket: async (data) => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.post(`${API_BASE}/api/helpdesk/tickets`, data);
+      const res = await helpdeskApi.create(data as Record<string, unknown>);
       await get().fetchTickets();
       set({ loading: false });
       return res.data;
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
   },
@@ -83,11 +80,10 @@ export const useHelpdeskStore = create<HelpdeskStore>((set, get) => ({
   updateTicket: async (id, data) => {
     try {
       set({ loading: true, error: null });
-      await axios.put(`${API_BASE}/api/helpdesk/tickets/${id}`, data);
+      await helpdeskApi.update(id, data as Record<string, unknown>);
       await get().fetchTickets();
       set({ loading: false });
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
   },
@@ -95,14 +91,35 @@ export const useHelpdeskStore = create<HelpdeskStore>((set, get) => ({
   updateTicketStage: async (id, stageId) => {
     try {
       set({ loading: true, error: null });
-      await axios.patch(`${API_BASE}/api/helpdesk/tickets/${id}/stage`, { stageId });
+      await helpdeskApi.moveStage(id, stageId);
       await get().fetchTickets();
       set({ loading: false });
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
-  }
+  },
+
+  createTask: async (ticketId) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await helpdeskApi.createTask(ticketId);
+      set({ loading: false });
+      return res.data;
+    } catch (err: any) {
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  addTimesheet: async (ticketId, data) => {
+    try {
+      set({ loading: true, error: null });
+      await helpdeskApi.addTimesheet(ticketId, data);
+      set({ loading: false });
+    } catch (err: any) {
+      set({ error: err.message, loading: false });
+      throw err;
+    }
+  },
 }));
 
 export default useHelpdeskStore;

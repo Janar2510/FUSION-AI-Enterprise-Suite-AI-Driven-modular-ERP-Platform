@@ -20,6 +20,9 @@ export const PurchasesModule: React.FC = () => {
         updateOrder,
         confirmOrder,
         cancelOrder,
+        createBill,
+        postBill,
+        payBill,
     } = usePurchasesStore();
 
     // UI state
@@ -189,29 +192,73 @@ export const PurchasesModule: React.FC = () => {
 
         return (
             <div className="animate-fade-in space-y-8 pb-12">
-                {/* Odoo Status Bar & Smart Buttons */}
-                <div className="flex border-b border-white/10 pb-4 justify-between items-center">
-                    <div className="flex space-x-3">
+                {/* Flow D — action buttons + 4-step progress bar */}
+                <div className="flex border-b border-white/10 pb-4 justify-between items-center flex-wrap gap-3">
+                    <div className="flex space-x-2 flex-wrap gap-y-2">
                         {formData.state === 'draft' && (
                             <button onClick={handleConfirm} className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm shadow-lg shadow-emerald-500/20">
                                 Confirm Order
                             </button>
                         )}
-                        {formData.state !== 'cancel' && (
+                        {formData.state === 'purchase' && (
+                            <button onClick={async () => {
+                                if (!activeOrder) return;
+                                try { await createBill(activeOrder.id); toast.success('Vendor bill created'); }
+                                catch { toast.error('Failed to create bill'); }
+                            }} className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm">
+                                Create Bill
+                            </button>
+                        )}
+                        {formData.state === 'bill_draft' && (
+                            <button onClick={async () => {
+                                if (!activeOrder) return;
+                                try { await postBill(activeOrder.id); toast.success('Bill posted'); }
+                                catch { toast.error('Failed to post bill'); }
+                            }} className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm">
+                                Post Bill
+                            </button>
+                        )}
+                        {formData.state === 'bill_posted' && (
+                            <button onClick={async () => {
+                                if (!activeOrder) return;
+                                try { await payBill(activeOrder.id); toast.success('Bill paid'); }
+                                catch { toast.error('Failed to register payment'); }
+                            }} className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm">
+                                Register Payment
+                            </button>
+                        )}
+                        {formData.state !== 'cancel' && formData.state !== 'done' && (
                             <button onClick={handleCancel} className="bg-white/5 hover:bg-white/10 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm border border-white/10">
                                 Cancel
                             </button>
                         )}
-                        <button onClick={handleSaveOrder} className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm ml-4">
-                            Save Progress
+                        <button onClick={handleSaveOrder} className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm">
+                            Save
                         </button>
                     </div>
 
-                    <div className="flex items-center space-x-2 bg-white/5 rounded-full px-4 py-2 border border-white/10">
-                        <span className={`h-2 w-2 rounded-full ${formData.state === 'purchase' ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]' : formData.state === 'cancel' ? 'bg-red-400' : 'bg-yellow-400'}`} />
-                        <span className="text-sm font-medium text-white tracking-wide uppercase">
-                            {formData.state === 'purchase' ? 'Confirmed Order' : formData.state === 'cancel' ? 'Cancelled' : 'Request for Quotation'}
-                        </span>
+                    {/* 4-step progress chevrons: RFQ → Confirmed → Billed → Paid */}
+                    <div className="flex text-sm font-medium">
+                        {([
+                            { key: 'draft', label: 'RFQ' },
+                            { key: 'purchase', label: 'Confirmed' },
+                            { key: 'bill_posted', label: 'Billed' },
+                            { key: 'done', label: 'Paid' },
+                        ] as const).map((step, idx, arr) => {
+                            const order = ['draft', 'purchase', 'bill_draft', 'bill_posted', 'done'];
+                            const currentIdx = order.indexOf(formData.state ?? 'draft');
+                            const stepIdx = order.indexOf(step.key);
+                            const active = formData.state === step.key || (step.key === 'bill_posted' && formData.state === 'bill_draft');
+                            const done = stepIdx < currentIdx;
+                            return (
+                                <div key={step.key} className="flex items-center">
+                                    <span className={`px-4 py-2 uppercase text-xs tracking-wider ${active ? 'text-emerald-400 font-bold' : done ? 'text-white/60' : 'text-white/30'}`}>
+                                        {step.label}
+                                    </span>
+                                    {idx < arr.length - 1 && <span className="text-white/20">›</span>}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 

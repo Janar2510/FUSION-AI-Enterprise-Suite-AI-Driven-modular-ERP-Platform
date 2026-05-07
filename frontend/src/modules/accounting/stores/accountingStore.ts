@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { accountingApi } from '@/lib/api';
 
 export interface AccountJournal {
   id: number;
@@ -66,7 +64,9 @@ interface AccountingStore {
   fetchMoves: (type?: string) => Promise<void>;
   createMove: (data: Partial<AccountMove>) => Promise<AccountMove | undefined>;
   updateMove: (id: number, data: Partial<AccountMove>) => Promise<void>;
+  // Phase 3 flow actions (Flows C / D)
   postMove: (id: number) => Promise<void>;
+  registerPayment: (id: number, data?: Record<string, unknown>) => Promise<void>;
 }
 
 export const useAccountingStore = create<AccountingStore>((set, get) => ({
@@ -79,7 +79,7 @@ export const useAccountingStore = create<AccountingStore>((set, get) => ({
   fetchJournals: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get(`${API_BASE}/api/accounting/journals`);
+      const res = await accountingApi.listJournals();
       set({ journals: res.data, loading: false });
     } catch (err: any) {
       console.error(err);
@@ -90,7 +90,7 @@ export const useAccountingStore = create<AccountingStore>((set, get) => ({
   fetchAccounts: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get(`${API_BASE}/api/accounting/accounts?limit=500`);
+      const res = await accountingApi.listAccounts({ limit: 500 });
       set({ accounts: res.data.data, loading: false });
     } catch (err: any) {
       console.error(err);
@@ -101,10 +101,7 @@ export const useAccountingStore = create<AccountingStore>((set, get) => ({
   fetchMoves: async (type?: string) => {
     try {
       set({ loading: true, error: null });
-      const url = type
-        ? `${API_BASE}/api/accounting/moves?limit=500&type=${type}`
-        : `${API_BASE}/api/accounting/moves?limit=500`;
-      const res = await axios.get(url);
+      const res = await accountingApi.listMoves(type ? { limit: 500, type } : { limit: 500 });
       set({ moves: res.data.data, loading: false });
     } catch (err: any) {
       console.error(err);
@@ -115,7 +112,7 @@ export const useAccountingStore = create<AccountingStore>((set, get) => ({
   createMove: async (data) => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.post(`${API_BASE}/api/accounting/moves`, data);
+      const res = await accountingApi.createMove(data as Record<string, unknown>);
       await get().fetchMoves(data.moveType);
       set({ loading: false });
       return res.data;
@@ -129,7 +126,7 @@ export const useAccountingStore = create<AccountingStore>((set, get) => ({
   updateMove: async (id, data) => {
     try {
       set({ loading: true, error: null });
-      await axios.put(`${API_BASE}/api/accounting/moves/${id}`, data);
+      await accountingApi.updateMove(id, data as Record<string, unknown>);
       await get().fetchMoves(data.moveType);
       set({ loading: false });
     } catch (err: any) {
@@ -142,7 +139,7 @@ export const useAccountingStore = create<AccountingStore>((set, get) => ({
   postMove: async (id) => {
     try {
       set({ loading: true, error: null });
-      await axios.post(`${API_BASE}/api/accounting/moves/${id}/post`);
+      await accountingApi.postMove(id);
       await get().fetchMoves();
       set({ loading: false });
     } catch (err: any) {
@@ -150,7 +147,20 @@ export const useAccountingStore = create<AccountingStore>((set, get) => ({
       set({ error: err.response?.data?.error || err.message, loading: false });
       throw err;
     }
-  }
+  },
+
+  registerPayment: async (id, data) => {
+    try {
+      set({ loading: true, error: null });
+      await accountingApi.payMove(id, data);
+      await get().fetchMoves();
+      set({ loading: false });
+    } catch (err: any) {
+      console.error(err);
+      set({ error: err.response?.data?.error || err.message, loading: false });
+      throw err;
+    }
+  },
 }));
 
 export default useAccountingStore;

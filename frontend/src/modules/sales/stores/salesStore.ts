@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { salesApi } from '@/lib/api';
 
 export interface SaleOrder {
   id: number;
@@ -37,9 +35,10 @@ interface SalesStore {
   fetchAllOrders: () => Promise<void>;
   createOrder: (data: Partial<SaleOrder>) => Promise<SaleOrder | undefined>;
   updateOrder: (id: number, data: Partial<SaleOrder>) => Promise<void>;
+  // Phase 3 flow actions (Flows B / C)
   confirmOrder: (id: number) => Promise<void>;
   cancelOrder: (id: number) => Promise<void>;
-  createInvoice: (id: number) => Promise<any>;
+  createInvoice: (id: number) => Promise<{ moveId: number } | undefined>;
 }
 
 export const useSalesStore = create<SalesStore>((set, get) => ({
@@ -50,7 +49,7 @@ export const useSalesStore = create<SalesStore>((set, get) => ({
   fetchAllOrders: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get(`${API_BASE}/api/sales?limit=500`);
+      const res = await salesApi.list({ limit: 500 });
       set({ orders: res.data.data, loading: false });
     } catch (err: any) {
       console.error(err);
@@ -61,7 +60,7 @@ export const useSalesStore = create<SalesStore>((set, get) => ({
   createOrder: async (data) => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.post(`${API_BASE}/api/sales`, data);
+      const res = await salesApi.create(data as Record<string, unknown>);
       await get().fetchAllOrders();
       set({ loading: false });
       return res.data;
@@ -74,7 +73,7 @@ export const useSalesStore = create<SalesStore>((set, get) => ({
   updateOrder: async (id, data) => {
     try {
       set({ loading: true, error: null });
-      await axios.put(`${API_BASE}/api/sales/${id}`, data);
+      await salesApi.update(id, data as Record<string, unknown>);
       await get().fetchAllOrders();
       set({ loading: false });
     } catch (err: any) {
@@ -86,37 +85,39 @@ export const useSalesStore = create<SalesStore>((set, get) => ({
   confirmOrder: async (id) => {
     try {
       set({ loading: true, error: null });
-      await axios.post(`${API_BASE}/api/sales/${id}/confirm`);
+      await salesApi.confirm(id);
       await get().fetchAllOrders();
       set({ loading: false });
     } catch (err: any) {
       console.error(err);
-      set({ error: err.message, loading: false });
+      set({ error: err.response?.data?.error || err.message, loading: false });
+      throw err;
     }
   },
 
   cancelOrder: async (id) => {
     try {
       set({ loading: true, error: null });
-      await axios.post(`${API_BASE}/api/sales/${id}/cancel`);
+      await salesApi.cancel(id);
       await get().fetchAllOrders();
       set({ loading: false });
     } catch (err: any) {
       console.error(err);
-      set({ error: err.message, loading: false });
+      set({ error: err.response?.data?.error || err.message, loading: false });
+      throw err;
     }
   },
 
   createInvoice: async (id) => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.post(`${API_BASE}/api/sales/${id}/invoice`);
+      const res = await salesApi.invoice(id);
       set({ loading: false });
       return res.data;
     } catch (err: any) {
       console.error(err);
-      set({ error: err.message, loading: false });
+      set({ error: err.response?.data?.error || err.message, loading: false });
       throw err;
     }
-  }
+  },
 }));

@@ -6,6 +6,7 @@ import { OdooKanbanBase } from '@/components/views/OdooKanbanBase';
 import { useHelpdeskStore, HelpdeskTicket } from '../stores/helpdeskStore';
 import { usePartnerStore } from '@/stores/partnerStore';
 import { Clock } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export const HelpdeskModule: React.FC = () => {
     const {
@@ -15,7 +16,9 @@ export const HelpdeskModule: React.FC = () => {
         fetchStages,
         createTicket,
         updateTicket,
-        updateTicketStage
+        updateTicketStage,
+        createTask,
+        addTimesheet,
     } = useHelpdeskStore();
 
     const { partners, fetchPartners } = usePartnerStore();
@@ -25,6 +28,9 @@ export const HelpdeskModule: React.FC = () => {
 
     const [activeRecord, setActiveRecord] = useState<HelpdeskTicket | null>(null);
     const [formData, setFormData] = useState<Partial<HelpdeskTicket>>({});
+    const [taskId, setTaskId] = useState<number | null>(null);
+    const [timesheetHours, setTimesheetHours] = useState('');
+    const [showTimesheetRow, setShowTimesheetRow] = useState(false);
 
     useEffect(() => {
         fetchTickets();
@@ -125,8 +131,71 @@ export const HelpdeskModule: React.FC = () => {
     const renderForm = () => (
         <OdooFormBase
             statusRibbon={
-                <div className="flex items-center justify-between w-full">
-                    <div className="flex gap-2"></div>
+                <div className="flex items-center justify-between w-full flex-wrap gap-2">
+                    <div className="flex gap-2 flex-wrap">
+                        {activeRecord && !taskId && (
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const result = await createTask(activeRecord.id);
+                                        if (result?.taskId) {
+                                            setTaskId(result.taskId);
+                                            toast.success('Task created');
+                                        }
+                                    } catch {
+                                        toast.error('Failed to create task');
+                                    }
+                                }}
+                                className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-md transition-colors"
+                            >
+                                Create Task
+                            </button>
+                        )}
+                        {activeRecord && taskId && !showTimesheetRow && (
+                            <button
+                                onClick={() => setShowTimesheetRow(true)}
+                                className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md transition-colors"
+                            >
+                                Log Time
+                            </button>
+                        )}
+                        {showTimesheetRow && taskId && activeRecord && (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    min="0.25"
+                                    step="0.25"
+                                    placeholder="Hours"
+                                    value={timesheetHours}
+                                    onChange={(e) => setTimesheetHours(e.target.value)}
+                                    className="w-24 bg-white/5 border border-white/20 rounded-md px-2 py-1.5 text-white text-sm outline-none focus:border-indigo-400"
+                                />
+                                <button
+                                    onClick={async () => {
+                                        const hours = parseFloat(timesheetHours);
+                                        if (!hours || hours <= 0) { toast.error('Enter valid hours'); return; }
+                                        try {
+                                            await addTimesheet(activeRecord.id, { taskId: taskId!, hours });
+                                            toast.success(`${hours}h logged`);
+                                            setShowTimesheetRow(false);
+                                            setTimesheetHours('');
+                                        } catch {
+                                            toast.error('Failed to log time');
+                                        }
+                                    }}
+                                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md transition-colors"
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    onClick={() => { setShowTimesheetRow(false); setTimesheetHours(''); }}
+                                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm rounded-md transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <div className="flex text-sm font-medium">
                         {stages.map((stage) => (
                             <button

@@ -111,14 +111,23 @@ Mirrors `CLAUDE_CODE_BUILD_PLAN.md`. Tick items as completed.
 - [x] `crmApi` paths corrected to match actual route structure (`/api/crm/leads/*`)
 - [x] `salesApi` base path corrected from `/api/sale` to `/api/sales`
 
-## Phase 4c — Next: Sales + Accounting Flow UI
+## Phase 4c — Sales + Accounting Flow Integration ✅ COMPLETE
 
-- [ ] `salesStore.ts` migrated to `salesApi`; `confirmOrder`, `invoiceOrder` actions added
-- [ ] Sales order form: **Confirm** / **Create Invoice** / **Cancel** flow buttons
-- [ ] `accountingStore.ts` wired to `accountingApi`; `postMove`, `registerPayment` actions added
-- [ ] Accounting move form: **Post** / **Register Payment** flow buttons
-- [ ] Wire Flow B (StockPicking ready→validate) via inventory store
-- [ ] Wire Flow D (PO confirm → receipt validate → vendor bill) via purchases + accounting stores
+- [x] `salesStore.ts` migrated to `salesApi`; `confirmOrder`/`cancelOrder`/`createInvoice` re-throw on error for UI toasts
+- [x] Sales order form: **Confirm Order** / **Create Invoice** / **Cancel** flow buttons (already in SalesModule.tsx; now backed by typed SDK)
+- [x] `accountingStore.ts` migrated to `accountingApi`; `registerPayment(id)` action added (calls `POST /api/accounting/moves/:id/pay`)
+- [x] Accounting move form: **Post** button + **💳 Register Payment** button (visible for posted invoices/bills where `paymentState !== 'paid'`); 3-step `Draft → Posted → In Payment` progress chevrons
+- [x] `purchasesApi` paths fixed: `/api/purchase` → `/api/purchases`; `validateReceipt` removed; `postBill`/`payBill` added
+- [x] `helpdeskApi` ticket paths fixed: list/get/create/update now use `/api/helpdesk/tickets/*`; `moveStage` + `pipeline` added
+- [x] `accountingApi` completed: `updateMove` + `listAccounts` added
+
+## Phase 4d — Inventory + Purchases + Helpdesk Flow UI ✅ COMPLETE
+
+- [x] `inventoryStore` wired to `inventoryApi`; `markReady(id)` / `validatePicking(id)` actions added
+- [x] Inventory picking form: **Mark Ready** / **Validate** flow buttons (Flow B)
+- [x] Purchases store wired to `purchasesApi`; `confirmPO`, `createBill`, `postBill`, `payBill` actions added
+- [x] PO form: **Confirm** / **Create Bill** / **Post Bill** / **Pay Bill** flow buttons (Flow D)
+- [x] Wire Flow E (Helpdesk: createTask / addTimesheet) to HelpdeskModule form
 
 ---
 

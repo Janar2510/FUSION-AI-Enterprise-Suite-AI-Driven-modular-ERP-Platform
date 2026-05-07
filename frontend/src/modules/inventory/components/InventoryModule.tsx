@@ -23,6 +23,7 @@ export const InventoryModule: React.FC = () => {
         createProduct,
         updateProduct,
         createPicking,
+        markReady,
         validatePicking,
         forecastDemand,
         optimizeReorders,
@@ -288,7 +289,13 @@ export const InventoryModule: React.FC = () => {
                 statusRibbon={
                     <div className="flex items-center justify-between w-full">
                         <div className="flex gap-2">
-                            {pickingFormData.state !== 'done' && activePicking && (
+                            {activePicking && pickingFormData.state === 'confirmed' && (
+                                <button onClick={async () => {
+                                    try { await markReady(activePicking.id); toast.success('Picking marked as Ready'); setCurrentView('list'); }
+                                    catch (e: any) { toast.error(e.message || 'Failed to mark ready'); }
+                                }} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-md shadow-lg transition-colors">Mark Ready</button>
+                            )}
+                            {activePicking && ['assigned', 'ready'].includes(pickingFormData.state ?? '') && (
                                 <button onClick={async () => {
                                     try { await validatePicking(activePicking.id); toast.success('Picking Validated'); setCurrentView('list'); }
                                     catch (e: any) { toast.error(e.message || 'Validation failed'); }

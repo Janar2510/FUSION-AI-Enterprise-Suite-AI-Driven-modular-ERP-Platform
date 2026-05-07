@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import api from '@/lib/api';
+import { purchasesApi, partnersApi, productsApi } from '@/lib/api';
 
 export interface Product {
     id: number;
@@ -50,7 +50,6 @@ interface PurchasesState {
     isLoading: boolean;
     error: string | null;
 
-    // Actions
     fetchOrders: () => Promise<void>;
     fetchPartners: () => Promise<void>;
     fetchProducts: () => Promise<void>;
@@ -58,6 +57,9 @@ interface PurchasesState {
     updateOrder: (id: number, data: Partial<PurchaseOrder>) => Promise<PurchaseOrder>;
     confirmOrder: (id: number) => Promise<PurchaseOrder>;
     cancelOrder: (id: number) => Promise<PurchaseOrder>;
+    createBill: (id: number) => Promise<void>;
+    postBill: (id: number) => Promise<void>;
+    payBill: (id: number) => Promise<void>;
 }
 
 export const usePurchasesStore = create<PurchasesState>((set, get) => ({
@@ -70,7 +72,7 @@ export const usePurchasesStore = create<PurchasesState>((set, get) => ({
     fetchOrders: async () => {
         set({ isLoading: true, error: null });
         try {
-            const response = await api.get('/purchases');
+            const response = await purchasesApi.list();
             set({ orders: response.data.data, isLoading: false });
         } catch (error: any) {
             set({ error: error.message, isLoading: false });
@@ -79,7 +81,7 @@ export const usePurchasesStore = create<PurchasesState>((set, get) => ({
 
     fetchPartners: async () => {
         try {
-            const response = await api.get('/partners?isVendor=true');
+            const response = await partnersApi.list({ isVendor: true });
             set({ partners: response.data.data });
         } catch (error: any) {
             console.error('Failed to fetch partners:', error);
@@ -88,7 +90,7 @@ export const usePurchasesStore = create<PurchasesState>((set, get) => ({
 
     fetchProducts: async () => {
         try {
-            const response = await api.get('/products');
+            const response = await productsApi.list();
             set({ products: response.data.data });
         } catch (error: any) {
             console.error('Failed to fetch products:', error);
@@ -98,7 +100,7 @@ export const usePurchasesStore = create<PurchasesState>((set, get) => ({
     createOrder: async (data) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await api.post('/purchases', data);
+            const response = await purchasesApi.create(data as Record<string, unknown>);
             await get().fetchOrders();
             set({ isLoading: false });
             return response.data;
@@ -111,7 +113,7 @@ export const usePurchasesStore = create<PurchasesState>((set, get) => ({
     updateOrder: async (id, data) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await api.put(`/purchases/${id}`, data);
+            const response = await purchasesApi.update(id, data as Record<string, unknown>);
             await get().fetchOrders();
             set({ isLoading: false });
             return response.data;
@@ -124,7 +126,7 @@ export const usePurchasesStore = create<PurchasesState>((set, get) => ({
     confirmOrder: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await api.post(`/purchases/${id}/confirm`);
+            const response = await purchasesApi.confirm(id);
             await get().fetchOrders();
             set({ isLoading: false });
             return response.data;
@@ -137,10 +139,46 @@ export const usePurchasesStore = create<PurchasesState>((set, get) => ({
     cancelOrder: async (id) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await api.post(`/purchases/${id}/cancel`);
+            const response = await purchasesApi.cancel(id);
             await get().fetchOrders();
             set({ isLoading: false });
             return response.data;
+        } catch (error: any) {
+            set({ error: error.message, isLoading: false });
+            throw error;
+        }
+    },
+
+    createBill: async (id) => {
+        set({ isLoading: true, error: null });
+        try {
+            await purchasesApi.createBill(id);
+            await get().fetchOrders();
+            set({ isLoading: false });
+        } catch (error: any) {
+            set({ error: error.message, isLoading: false });
+            throw error;
+        }
+    },
+
+    postBill: async (id) => {
+        set({ isLoading: true, error: null });
+        try {
+            await purchasesApi.postBill(id);
+            await get().fetchOrders();
+            set({ isLoading: false });
+        } catch (error: any) {
+            set({ error: error.message, isLoading: false });
+            throw error;
+        }
+    },
+
+    payBill: async (id) => {
+        set({ isLoading: true, error: null });
+        try {
+            await purchasesApi.payBill(id);
+            await get().fetchOrders();
+            set({ isLoading: false });
         } catch (error: any) {
             set({ error: error.message, isLoading: false });
             throw error;
