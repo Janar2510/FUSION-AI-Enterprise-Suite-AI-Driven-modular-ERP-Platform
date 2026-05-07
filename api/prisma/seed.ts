@@ -37,8 +37,13 @@ async function main() {
             email: 'admin@fusionai.com',
             passwordHash: '$2b$12$placeholder_hash_not_real',
             status: 'ACTIVE',
-            roles: { create: [{ roleId: adminRole.id }] },
+            // roles are in SpineUserRole junction — create after user is created
         },
+    });
+
+    // Assign admin role to admin user via junction table
+    await prisma.spineUserRole.create({
+        data: { userId: adminUser.id, roleId: adminRole.id },
     });
 
     console.log(`  ✓ Organization: ${org.id} | Company: ${company.id} | Admin: ${adminUser.id}`);

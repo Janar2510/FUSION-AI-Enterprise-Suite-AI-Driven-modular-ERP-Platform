@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { confirmSaleOrder, createSaleInvoice } from '../core/flow.service';
+import { requireAuth } from '../core/auth';
 
 export const saleRoutes = Router();
+saleRoutes.use(requireAuth);
 
 saleRoutes.get('/', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
@@ -118,9 +121,9 @@ saleRoutes.put('/:id', asyncHandler(async (req, res) => {
     res.json(order);
 }));
 
-// Confirm sale order
+// Confirm sale order – Flow B: also auto-creates delivery picking
 saleRoutes.post('/:id/confirm', asyncHandler(async (req, res) => {
-    const order = await prisma.saleOrder.update({ where: { id: parseInt(req.params.id) }, data: { state: 'sale' } });
+    const order = await confirmSaleOrder(parseInt(req.params.id), req.body.idempotencyKey);
     res.json(order);
 }));
 
@@ -130,8 +133,14 @@ saleRoutes.post('/:id/cancel', asyncHandler(async (req, res) => {
     res.json(order);
 }));
 
-// Create Invoice from Sale Order
+// Create Invoice from Sale Order – Flow C (idempotent via idempotencyKey)
 saleRoutes.post('/:id/invoice', asyncHandler(async (req, res) => {
+    const order = await createSaleInvoice(parseInt(req.params.id), req.body.idempotencyKey);
+    res.status(201).json(order);
+}));
+
+// Legacy invoice creation (kept for backward compat – same endpoint, new logic above)
+saleRoutes.post('/:id/invoice-legacy', asyncHandler(async (req, res) => {
     const orderId = parseInt(req.params.id);
     const order = await prisma.saleOrder.findUnique({
         where: { id: orderId },

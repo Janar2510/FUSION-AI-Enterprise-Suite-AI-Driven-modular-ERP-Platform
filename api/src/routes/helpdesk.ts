@@ -1,8 +1,12 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { createTaskFromTicket, addTimesheetToTask } from '../core/flow.service';
+import { AppError } from '../core/errors';
+import { requireAuth } from '../core/auth';
 
 export const helpdeskRoutes = Router();
+helpdeskRoutes.use(requireAuth);
 
 helpdeskRoutes.get('/stages', asyncHandler(async (_req, res) => {
     const stages = await prisma.helpdeskStage.findMany({ orderBy: { sequence: 'asc' }, include: { _count: { select: { tickets: true } } } });
@@ -42,6 +46,35 @@ helpdeskRoutes.patch('/tickets/:id/stage', asyncHandler(async (req, res) => {
 helpdeskRoutes.delete('/tickets/:id', asyncHandler(async (req, res) => {
     await prisma.helpdeskTicket.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
     res.json({ success: true });
+}));
+
+// Flow E – Create a project task from a ticket
+helpdeskRoutes.post('/tickets/:id/create-task', asyncHandler(async (req, res) => {
+    const { projectId, name, saleOrderLineId } = req.body;
+    if (!projectId) throw AppError.validation('projectId is required');
+    const task = await createTaskFromTicket(parseInt(req.params.id), { projectId, name, saleOrderLineId });
+    res.status(201).json(task);
+}));
+
+// Flow E – Add timesheet to a ticket's linked task
+helpdeskRoutes.post('/tickets/:id/timesheet', asyncHandler(async (req, res) => {
+    const ticket = await prisma.helpdeskTicket.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!ticket) throw AppError.notFound('Helpdesk Ticket');
+    if (!ticket.projectTaskId) throw AppError.conflict('Ticket has no linked project task. Call /create-task first.');
+
+    const { name, unitAmount, date, isBillable, saleOrderLineId, employeeId } = req.body;
+    if (!employeeId) throw AppError.validation('employeeId is required');
+    if (!unitAmount || unitAmount <= 0) throw AppError.validation('unitAmount must be greater than 0');
+
+    const ts = await addTimesheetToTask(ticket.projectTaskId, {
+        name: name || `Work on #${ticket.id}: ${ticket.name}`,
+        unitAmount,
+        date: date ? new Date(date) : undefined,
+        isBillable: isBillable ?? false,
+        saleOrderLineId,
+        employeeId,
+    });
+    res.status(201).json(ts);
 }));
 
 // Pipeline view (kanban)

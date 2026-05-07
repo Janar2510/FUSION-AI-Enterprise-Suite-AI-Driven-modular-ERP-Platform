@@ -1,8 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-// The URL comes from environment or defaults to relative path in production
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { crmApi } from '@/lib/api';
 
 export interface CrmLead {
   id: number;
@@ -38,13 +35,18 @@ interface CRMStore {
   loading: boolean;
   error: string | null;
 
-  // Actions
+  // CRUD actions
   fetchPipeline: () => Promise<void>;
   fetchAllLeads: () => Promise<void>;
   createLead: (data: Partial<CrmLead>) => Promise<CrmLead | undefined>;
   updateLead: (id: number, data: Partial<CrmLead>) => Promise<void>;
   moveLeadStage: (leadId: number, newStageId: number) => Promise<void>;
   deleteLead: (id: number) => Promise<void>;
+
+  // Phase 3 flow actions (Flow A: Lead → Won → Quotation)
+  qualifyLead: (id: number) => Promise<void>;
+  markWon: (id: number) => Promise<void>;
+  newQuotation: (id: number) => Promise<{ saleOrderId: number } | undefined>;
 }
 
 export const useCRMStore = create<CRMStore>((set, get) => ({
@@ -56,10 +58,9 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
   fetchPipeline: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get(`${API_BASE}/api/crm/pipeline`);
+      const res = await crmApi.pipeline();
       set({ pipelineStages: res.data, loading: false });
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
   },
@@ -67,10 +68,9 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
   fetchAllLeads: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get(`${API_BASE}/api/crm/leads?limit=1000`);
+      const res = await crmApi.list({ limit: 1000 });
       set({ allLeads: res.data.data, loading: false });
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
   },
@@ -78,17 +78,15 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
   createLead: async (data) => {
     try {
       set({ loading: true, error: null });
-      // Needs default stage if not provided
       if (!data.stageId && get().pipelineStages.length > 0) {
-        data.stageId = get().pipelineStages[0].id; // Put in first stage by default
+        data.stageId = get().pipelineStages[0].id;
       }
-      const res = await axios.post(`${API_BASE}/api/crm/leads`, data);
+      const res = await crmApi.create(data as Record<string, unknown>);
       await get().fetchAllLeads();
       await get().fetchPipeline();
       set({ loading: false });
       return res.data;
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
   },
@@ -96,59 +94,91 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
   updateLead: async (id, data) => {
     try {
       set({ loading: true, error: null });
-      await axios.put(`${API_BASE}/api/crm/leads/${id}`, data);
+      await crmApi.update(id, data as Record<string, unknown>);
       await get().fetchAllLeads();
       await get().fetchPipeline();
       set({ loading: false });
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
   },
 
   moveLeadStage: async (leadId, newStageId) => {
-    try {
-      // Optimistic update for snappy UI
-      const stages = [...get().pipelineStages];
-      let movedLead: CrmLead | undefined;
+    // Optimistic update for snappy UI
+    const stages = [...get().pipelineStages];
+    let movedLead: CrmLead | undefined;
 
-      stages.forEach(stage => {
-        const index = stage.leads.findIndex(l => l.id === leadId);
-        if (index > -1) {
-          movedLead = stage.leads[index];
-          stage.leads.splice(index, 1);
-        }
-      });
-
-      if (movedLead) {
-        movedLead.stageId = newStageId;
-        const targetStage = stages.find(s => s.id === newStageId);
-        if (targetStage) targetStage.leads.unshift(movedLead);
+    stages.forEach(stage => {
+      const index = stage.leads.findIndex(l => l.id === leadId);
+      if (index > -1) {
+        movedLead = stage.leads[index];
+        stage.leads.splice(index, 1);
       }
+    });
 
-      set({ pipelineStages: stages });
+    if (movedLead) {
+      movedLead.stageId = newStageId;
+      const targetStage = stages.find(s => s.id === newStageId);
+      if (targetStage) targetStage.leads.unshift(movedLead);
+    }
 
-      // Actual DB update
-      await axios.patch(`${API_BASE}/api/crm/leads/${leadId}/stage`, { stageId: newStageId });
-      // Re-sync just to be sure
-      // await get().fetchPipeline();
+    set({ pipelineStages: stages });
+
+    try {
+      await crmApi.moveStage(leadId, newStageId);
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message });
-      await get().fetchPipeline(); // Rollback if failed
+      await get().fetchPipeline(); // Rollback on failure
     }
   },
 
   deleteLead: async (id) => {
     try {
       set({ loading: true, error: null });
-      await axios.delete(`${API_BASE}/api/crm/leads/${id}`);
+      await crmApi.delete(id);
       await get().fetchAllLeads();
       await get().fetchPipeline();
       set({ loading: false });
     } catch (err: any) {
-      console.error(err);
       set({ error: err.message, loading: false });
     }
-  }
+  },
+
+  // ── Phase 3 Flow A actions ────────────────────────────────────────────────
+
+  qualifyLead: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      await crmApi.qualify(id);
+      await get().fetchAllLeads();
+      await get().fetchPipeline();
+      set({ loading: false });
+    } catch (err: any) {
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  markWon: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      await crmApi.markWon(id);
+      await get().fetchAllLeads();
+      await get().fetchPipeline();
+      set({ loading: false });
+    } catch (err: any) {
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  newQuotation: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await crmApi.newQuotation(id);
+      await get().fetchAllLeads();
+      set({ loading: false });
+      return res.data;
+    } catch (err: any) {
+      set({ error: err.message, loading: false });
+    }
+  },
 }));

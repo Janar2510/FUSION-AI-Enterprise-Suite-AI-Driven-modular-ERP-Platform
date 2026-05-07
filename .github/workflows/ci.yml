@@ -1,0 +1,132 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ── API: lint + typecheck + prisma validate + tests ──────────────────────
+  api:
+    name: API
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fusion
+          POSTGRES_PASSWORD: fusion
+          POSTGRES_DB: fusion_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://fusion:fusion@localhost:5432/fusion_test
+      JWT_SECRET: ci-secret-at-least-32-characters-long
+      JWT_REFRESH_SECRET: ci-refresh-secret-32-characters-minimum
+      NODE_ENV: test
+
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run lint
+
+      - name: Prisma validate schema
+        run: npx prisma validate
+
+      - name: Prisma generate client
+        run: npx prisma generate
+
+      - name: Run migrations
+        run: npx prisma migrate deploy
+
+      - name: Unit + integration tests
+        run: npm test -- --coverage --coverageDirectory coverage --coverageReporters json-summary
+
+      - name: Coverage gate (≥70%)
+        run: |
+          COVERAGE=$(node -e "
+            const s = require('./coverage/coverage-summary.json');
+            const pct = s.total.lines.pct;
+            console.log(pct);
+          ")
+          echo "Line coverage: $COVERAGE%"
+          node -e "if ($COVERAGE < 70) { console.error('Coverage below 70%'); process.exit(1); }"
+
+      - name: Build
+        run: npm run build
+
+  # ── Frontend: lint + typecheck + build ───────────────────────────────────
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: ''
+
+  # ── Final gate ───────────────────────────────────────────────────────────
+  all-green:
+    name: All checks passed
+    needs: [api, frontend]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          if [[ "${{ needs.api.result }}" != "success" || "${{ needs.frontend.result }}" != "success" ]]; then
+            echo "One or more jobs failed"
+            exit 1
+          fi
+          echo "All CI jobs passed"

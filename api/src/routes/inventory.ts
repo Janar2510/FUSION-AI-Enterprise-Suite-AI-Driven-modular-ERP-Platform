@@ -4,8 +4,11 @@ import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { ReplenishmentService } from '../modules/inventory/replenishmentService';
 import { StockRoutingEngine } from '../modules/inventory/routingEngine';
 import { VendorIntelligenceService } from '../modules/inventory/vendorIntelligence';
+import { AppError } from '../core/errors';
+import { requireAuth } from '../core/auth';
 
 export const inventoryRoutes = Router();
+inventoryRoutes.use(requireAuth);
 
 // --- Stock Picking Types (Operations Dashboard) ---
 inventoryRoutes.get('/picking-types', asyncHandler(async (req, res) => {
@@ -76,6 +79,22 @@ inventoryRoutes.post('/pickings', asyncHandler(async (req, res) => {
         include: { moves: true }
     });
     res.status(201).json(picking);
+}));
+
+// Flow B – Mark picking ready (DRAFT → assigned)
+inventoryRoutes.post('/pickings/:id/ready', asyncHandler(async (req, res) => {
+    const id = parseInt(req.params.id);
+    const picking = await prisma.stockPicking.findUnique({ where: { id } });
+    if (!picking) throw AppError.notFound('Stock Picking');
+    if (!['draft', 'waiting', 'confirmed'].includes(picking.state)) {
+        throw AppError.conflict(`Picking cannot transition from '${picking.state}' to ready`);
+    }
+    const updated = await prisma.stockPicking.update({
+        where: { id },
+        data: { state: 'assigned' },
+        include: { moves: true, pickingType: true },
+    });
+    res.json(updated);
 }));
 
 // --- Validate (Process) Picking ---
@@ -151,6 +170,14 @@ inventoryRoutes.post('/pickings/:id/validate', asyncHandler(async (req, res) => 
     // AI Intelligence: Update vendor statistics if PO linked
     if (picking.purchaseOrderId) {
         await VendorIntelligenceService.updateVendorStats(picking.purchaseOrderId);
+    }
+
+    // Flow B – mark linked sale order as delivered
+    if ((picking as any).saleOrderId) {
+        await prisma.saleOrder.update({
+            where: { id: (picking as any).saleOrderId },
+            data: { state: 'done' },
+        });
     }
 
     res.json({ success: true, message: 'Stock picking validated successfully' });

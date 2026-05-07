@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { requireAuth } from '../core/auth';
 
 export const productRoutes = Router();
+productRoutes.use(requireAuth);
 
 productRoutes.get('/', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);

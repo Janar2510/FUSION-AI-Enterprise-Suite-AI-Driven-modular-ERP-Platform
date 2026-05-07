@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -21,6 +21,11 @@ if (process.env.NODE_ENV === 'production') {
         process.exit(1);
     }
 }
+
+// ── Phase 2 imports ──────────────────────────────────────────
+import { requestIdMiddleware, errorHandler } from './core/errors';
+import { globalLimiter, authLimiter, apiLimiter } from './middleware/rateLimiter';
+import { authCredentialsRoutes } from './routes/auth-credentials';
 
 // Import routes
 import { authRoutes } from './routes/auth';
@@ -66,7 +71,25 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // ── Middleware ───────────────────────────────────────────────
-app.use(helmet());
+app.use(requestIdMiddleware);
+app.use(globalLimiter);
+const isDev = process.env.NODE_ENV !== 'production';
+app.use(helmet({
+    contentSecurityPolicy: isDev
+        ? false  // Disabled in dev — no browser CSP friction during local development
+        : {
+            directives: {
+                defaultSrc: ["'self'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                scriptSrc: ["'self'"],
+                imgSrc: ["'self'", 'data:', 'https:'],
+                connectSrc: ["'self'"],
+                frameSrc: ["'none'"],
+                objectSrc: ["'none'"],
+            },
+        },
+    crossOriginEmbedderPolicy: false,
+}));
 app.use(compression());
 app.use(cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
@@ -88,6 +111,17 @@ app.use(session({
 }));
 app.use(morgan('dev'));
 
+// ── Root info handler (dev convenience) ─────────────────────
+app.get('/', (_req: Request, res: Response) => {
+    res.json({
+        name: 'FusionAI Enterprise Suite API',
+        version: '1.0.0',
+        status: 'running',
+        docs: '/api/health',
+        note: 'All endpoints are prefixed with /api — e.g. /api/auth/login, /api/partners',
+    });
+});
+
 // ── Health Check ────────────────────────────────────────────
 app.get('/api/health', (_req: Request, res: Response) => {
     res.json({
@@ -106,7 +140,12 @@ app.get('/api/health', (_req: Request, res: Response) => {
 });
 
 // ── API Routes ──────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
+// Auth — credential routes with strict rate limiting
+app.use('/api/auth', authLimiter, authCredentialsRoutes);
+// WebAuthn passkey routes
+app.use('/api/auth', authLimiter, authRoutes);
+// All other API routes with standard rate limiting
+app.use('/api', apiLimiter);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/crm', crmRoutes);
 app.use('/api/sales', saleRoutes);
@@ -146,18 +185,14 @@ app.use('/api/spreadsheet', spreadsheetRoutes);
 app.use('/api/automation', automationRoutes);
 
 // ── 404 Handler ─────────────────────────────────────────────
-app.use((_req: Request, res: Response) => {
-    res.status(404).json({ error: 'Not Found', message: 'The requested endpoint does not exist' });
-});
-
-// ── Error Handler ───────────────────────────────────────────
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({
-        error: 'Internal Server Error',
-        message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
+app.use((req: Request, res: Response) => {
+    res.status(404).json({
+        error: { code: 'NOT_FOUND', message: 'The requested endpoint does not exist', requestId: (req as any).id ?? '' },
     });
 });
+
+// ── Centralized Error Handler ───────────────────────────────
+app.use(errorHandler);
 
 // ── Start Server ────────────────────────────────────────────
 app.listen(PORT, () => {

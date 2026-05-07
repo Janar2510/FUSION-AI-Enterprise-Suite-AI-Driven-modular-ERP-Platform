@@ -2,8 +2,12 @@ import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { Prisma } from '@prisma/client';
+import { postInvoice, registerPayment } from '../core/flow.service';
+import { AppError } from '../core/errors';
+import { requireAuth } from '../core/auth';
 
 export const accountingRoutes = Router();
+accountingRoutes.use(requireAuth);
 
 // ==========================================
 // Chart of Accounts (`account.account`)
@@ -195,7 +199,7 @@ accountingRoutes.post('/moves/:id/post', asyncHandler(async (req: Request, res: 
     }
 
     if (move.state === 'posted') {
-        res.status(400).json({ error: 'Journal Entry is already posted' });
+        res.status(409).json({ error: 'Journal Entry is already posted' });
         return;
     }
 
@@ -218,22 +222,45 @@ accountingRoutes.post('/moves/:id/post', asyncHandler(async (req: Request, res: 
         return;
     }
 
-    // 3. Post the entry
-    const postedMove = await prisma.accountMove.update({
-        where: { id: moveId },
-        data: { state: 'posted' },
-        include: { partner: true, lines: true, journal: true }
-    });
-
+    // 3. Post the entry – delegate to service (immutability guard + postedAt)
+    const postedMove = await postInvoice(moveId);
     res.json(postedMove);
 }));
 
-// Register payment (simplified for now)
+// Flow C – Register payment against a posted invoice (idempotent)
 accountingRoutes.post('/moves/:id/pay', asyncHandler(async (req: Request, res: Response) => {
-    const inv = await prisma.accountMove.update({
+    const { amount, journalId, memo, idempotencyKey } = req.body;
+    if (!amount || amount <= 0) {
+        throw AppError.validation('Payment amount must be greater than 0');
+    }
+    const payment = await registerPayment(parseInt(req.params.id), { amount, journalId, memo, idempotencyKey });
+    res.status(201).json(payment);
+}));
+
+// Flow C – Reconcile (mark fully paid manually)
+accountingRoutes.post('/moves/:id/reconcile', asyncHandler(async (req: Request, res: Response) => {
+    const move = await prisma.accountMove.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!move) throw AppError.notFound('Invoice');
+    if (move.state !== 'posted') throw AppError.conflict('Only posted invoices can be reconciled');
+
+    const updated = await prisma.accountMove.update({
         where: { id: parseInt(req.params.id) },
-        data: { paymentState: 'paid', amountResidual: 0 },
-        include: { partner: true, lines: true, journal: true }
+        data: { amountResidual: 0, paymentState: 'paid' },
+        include: { partner: true, journal: true, payments: true },
     });
-    res.json(inv);
+    res.json(updated);
+}));
+
+// GET payments list
+accountingRoutes.get('/payments', asyncHandler(async (req: Request, res: Response) => {
+    const { skip, page, limit } = getPagination(req.query);
+    const [data, total] = await Promise.all([
+        prisma.accountPayment.findMany({
+            skip, take: limit,
+            orderBy: { createdAt: 'desc' },
+            include: { partner: true, journal: true, move: true },
+        }),
+        prisma.accountPayment.count(),
+    ]);
+    res.json(paginatedResponse(data, total, page, limit));
 }));

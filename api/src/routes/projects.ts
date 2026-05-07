@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { requireAuth } from '../core/auth';
 
 export const projectRoutes = Router();
+projectRoutes.use(requireAuth);
 
 // Stages
 projectRoutes.get('/stages', asyncHandler(async (_req, res) => {

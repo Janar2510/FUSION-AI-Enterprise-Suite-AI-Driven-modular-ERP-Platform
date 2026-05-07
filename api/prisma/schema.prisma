@@ -15,14 +15,15 @@ datasource db {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Organization {
-  id        String    @id @default(cuid())
+  id        String       @id @default(cuid())
   name      String
-  slug      String    @unique
-  status    OrgStatus @default(ACTIVE)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  slug      String       @unique
+  status    OrgStatus    @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   companies SpineCompany[]
   users     SpineUser[]
+  roles     SpineRole[]  @relation("OrgRoles")
 }
 
 enum OrgStatus {
@@ -48,16 +49,19 @@ model SpineCompany {
 }
 
 model SpineUser {
-  id             String     @id @default(cuid())
+  id             String          @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  email          String     @unique
+  companyId      String?
+  name           String          @default("")
+  email          String          @unique
   passwordHash   String?
-  mfaEnabled     Boolean    @default(false)
-  status         UserStatus @default(ACTIVE)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-  roles          SpineUserRole[]
+  active         Boolean         @default(true)
+  mfaEnabled     Boolean         @default(false)
+  status         UserStatus      @default(ACTIVE)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  userRoles      SpineUserRole[]
 
   @@index([organizationId])
 }
@@ -69,27 +73,39 @@ enum UserStatus {
 }
 
 model SpineRole {
-  id          String            @id @default(cuid())
-  key         String            @unique
-  name        String
-  permissions SpinePermission[]
-  users       SpineUserRole[]
+  id              String               @id @default(cuid())
+  key             String               @unique
+  name            String
+  organizationId  String?
+  description     String?
+  organization    Organization?        @relation("OrgRoles", fields: [organizationId], references: [id])
+  userRoles       SpineUserRole[]
+  rolePermissions SpineRolePermission[]
 }
 
 model SpinePermission {
-  id          String      @id @default(cuid())
-  key         String      @unique
-  description String?
-  roles       SpineRole[]
+  id              String               @id @default(cuid())
+  key             String               @unique
+  description     String?
+  rolePermissions SpineRolePermission[]
 }
 
 model SpineUserRole {
   userId String
   roleId String
-  user   SpineUser @relation(fields: [userId], references: [id])
-  role   SpineRole @relation(fields: [roleId], references: [id])
+  user   SpineUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   SpineRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@id([userId, roleId])
+}
+
+model SpineRolePermission {
+  roleId       String
+  permissionId String
+  role         SpineRole       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   SpinePermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
 }
 
 model SpinePartnerAddress {
@@ -280,6 +296,7 @@ model Partner {
   vendorPricelists    VendorPricelist[]
   spineAddresses      SpinePartnerAddress[]
   spineContacts       SpinePartnerContact[]
+  payments            AccountPayment[]      @relation("PaymentPartner")
 
   @@index([organizationId])
   @@map("partners")
@@ -346,6 +363,7 @@ model CrmLead {
   description     String?
   lostReason      String?
   color           Int         @default(0)
+  organizationId  String?
   stageId         Int
   partnerId       String?
   dateDeadline    DateTime?
@@ -357,68 +375,80 @@ model CrmLead {
   saleOrders      SaleOrder[]
   tags            CrmTag[]    @relation("CrmLeadToCrmTag")
 
+  @@index([organizationId])
   @@map("crm_leads")
 }
 
 model SaleOrder {
-  id            Int             @id @default(autoincrement())
-  name          String          @unique
-  state         String          @default("draft")
-  dateOrder     DateTime        @default(now())
-  validityDate  DateTime?
-  note          String?
-  amountUntaxed Float           @default(0)
-  amountTax     Float           @default(0)
-  amountTotal   Float           @default(0)
-  partnerId     String
-  crmLeadId     Int?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  invoices      AccountMove[]   @relation("SaleInvoices")
-  lines         SaleOrderLine[]
-  crmLead       CrmLead?        @relation(fields: [crmLeadId], references: [id])
-  partner       Partner         @relation(fields: [partnerId], references: [id])
-  pickings      StockPicking[]
+  id              Int             @id @default(autoincrement())
+  name            String          @unique
+  state           String          @default("draft")
+  dateOrder       DateTime        @default(now())
+  validityDate    DateTime?
+  note            String?
+  amountUntaxed   Float           @default(0)
+  amountTax       Float           @default(0)
+  amountTotal     Float           @default(0)
+  organizationId  String?
+  partnerId       String
+  crmLeadId       Int?
+  idempotencyKey  String?         @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  invoices        AccountMove[]   @relation("SaleInvoices")
+  lines           SaleOrderLine[]
+  crmLead         CrmLead?        @relation(fields: [crmLeadId], references: [id])
+  partner         Partner         @relation(fields: [partnerId], references: [id])
+  pickings        StockPicking[]
 
+  @@index([organizationId])
   @@map("sale_orders")
 }
 
 model SaleOrderLine {
-  id            Int       @id @default(autoincrement())
-  sequence      Int       @default(10)
+  id            Int            @id @default(autoincrement())
+  sequence      Int            @default(10)
   name          String
-  productQty    Float     @default(1)
-  priceUnit     Float     @default(0)
-  discount      Float     @default(0)
-  priceSubtotal Float     @default(0)
-  priceTotal    Float     @default(0)
+  productQty    Float          @default(1)
+  priceUnit     Float          @default(0)
+  discount      Float          @default(0)
+  priceSubtotal Float          @default(0)
+  priceTotal    Float          @default(0)
+  isBillable    Boolean        @default(false)
+  qtyDelivered  Float          @default(0)
+  qtyInvoiced   Float          @default(0)
   orderId       Int
   productId     String?
-  product       Product?  @relation(fields: [productId], references: [id])
-  order         SaleOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       Product?       @relation(fields: [productId], references: [id])
+  order         SaleOrder      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  timesheets    HrTimesheet[]  @relation("TimesheetSaleOrderLine")
 
   @@map("sale_order_lines")
 }
 
 model PurchaseOrder {
-  id            Int                 @id @default(autoincrement())
-  name          String              @unique
-  state         String              @default("draft")
-  partnerRef    String?
-  dateOrder     DateTime            @default(now())
-  dateApprove   DateTime?
-  datePlanned   DateTime?
-  note          String?
-  amountUntaxed Float               @default(0)
-  amountTax     Float               @default(0)
-  amountTotal   Float               @default(0)
-  partnerId     String
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  lines         PurchaseOrderLine[]
-  partner       Partner             @relation(fields: [partnerId], references: [id])
-  pickings      StockPicking[]
+  id             Int                 @id @default(autoincrement())
+  name           String              @unique
+  state          String              @default("draft")
+  partnerRef     String?
+  dateOrder      DateTime            @default(now())
+  dateApprove    DateTime?
+  datePlanned    DateTime?
+  note           String?
+  amountUntaxed  Float               @default(0)
+  amountTax      Float               @default(0)
+  amountTotal    Float               @default(0)
+  organizationId String?
+  partnerId      String
+  idempotencyKey String?             @unique
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  lines          PurchaseOrderLine[]
+  partner        Partner             @relation(fields: [partnerId], references: [id])
+  pickings       StockPicking[]
+  vendorBills    AccountMove[]       @relation("PurchaseBills")
 
+  @@index([organizationId])
   @@map("purchase_orders")
 }
 
@@ -713,42 +743,74 @@ model AccountAccount {
 }
 
 model AccountJournal {
-  id               Int             @id @default(autoincrement())
+  id               Int              @id @default(autoincrement())
   name             String
-  code             String          @unique
+  code             String           @unique
   type             String
-  active           Boolean         @default(true)
+  active           Boolean          @default(true)
   defaultAccountId Int?
-  defaultAccount   AccountAccount? @relation("JournalDefaultAccount", fields: [defaultAccountId], references: [id])
+  defaultAccount   AccountAccount?  @relation("JournalDefaultAccount", fields: [defaultAccountId], references: [id])
   moves            AccountMove[]
+  payments         AccountPayment[]
 
   @@map("account_journals")
 }
 
 model AccountMove {
-  id             Int               @id @default(autoincrement())
-  name           String            @unique
-  moveType       String
-  state          String            @default("draft")
-  date           DateTime          @default(now())
-  dueDate        DateTime?
-  ref            String?
-  amountUntaxed  Float             @default(0)
-  amountTax      Float             @default(0)
-  amountTotal    Float             @default(0)
-  amountResidual Float             @default(0)
-  paymentState   String            @default("not_paid")
+  id              Int               @id @default(autoincrement())
+  name            String            @unique
+  moveType        String
+  state           String            @default("draft")
+  date            DateTime          @default(now())
+  dueDate         DateTime?
+  ref             String?
+  amountUntaxed   Float             @default(0)
+  amountTax       Float             @default(0)
+  amountTotal     Float             @default(0)
+  amountResidual  Float             @default(0)
+  paymentState    String            @default("not_paid")
+  organizationId  String?
+  journalId       Int
+  partnerId       String?
+  saleOrderId     Int?
+  purchaseOrderId Int?
+  idempotencyKey  String?           @unique
+  postedAt        DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  lines           AccountMoveLine[]
+  payments        AccountPayment[]
+  saleOrder       SaleOrder?        @relation("SaleInvoices", fields: [saleOrderId], references: [id])
+  purchaseOrder   PurchaseOrder?    @relation("PurchaseBills", fields: [purchaseOrderId], references: [id])
+  partner         Partner?          @relation("InvoicePartner", fields: [partnerId], references: [id])
+  journal         AccountJournal    @relation(fields: [journalId], references: [id])
+
+  @@index([organizationId])
+  @@map("account_moves")
+}
+
+model AccountPayment {
+  id             Int            @id @default(autoincrement())
+  name           String         @unique
+  moveType       String         // out_invoice|in_invoice
+  paymentType    String         @default("inbound")  // inbound|outbound
+  partnerType    String         @default("customer")  // customer|supplier
+  state          String         @default("draft")  // draft|posted|cancelled
+  date           DateTime       @default(now())
+  amount         Float          @default(0)
+  currency       String         @default("EUR")
+  memo           String?
   journalId      Int
   partnerId      String?
-  saleOrderId    Int?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  lines          AccountMoveLine[]
-  saleOrder      SaleOrder?        @relation("SaleInvoices", fields: [saleOrderId], references: [id])
-  partner        Partner?          @relation("InvoicePartner", fields: [partnerId], references: [id])
-  journal        AccountJournal    @relation(fields: [journalId], references: [id])
+  moveId         Int?
+  idempotencyKey String?        @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  journal        AccountJournal @relation(fields: [journalId], references: [id])
+  partner        Partner?       @relation("PaymentPartner", fields: [partnerId], references: [id])
+  move           AccountMove?   @relation(fields: [moveId], references: [id])
 
-  @@map("account_moves")
+  @@map("account_payments")
 }
 
 model AccountMoveLine {
@@ -915,16 +977,20 @@ model HrEmployeeSkill {
 }
 
 model HrTimesheet {
-  id         Int             @id @default(autoincrement())
-  date       DateTime        @default(now())
-  name       String
-  unitAmount Float           @default(0)
-  employeeId Int
-  taskId     Int?
-  projectId  Int?
-  project    ProjectProject? @relation(fields: [projectId], references: [id])
-  task       ProjectTask?    @relation(fields: [taskId], references: [id])
-  employee   HrEmployee      @relation(fields: [employeeId], references: [id])
+  id               Int              @id @default(autoincrement())
+  date             DateTime         @default(now())
+  name             String
+  unitAmount       Float            @default(0)
+  isBillable       Boolean          @default(false)
+  billedAmount     Float            @default(0)
+  employeeId       Int
+  taskId           Int?
+  projectId        Int?
+  saleOrderLineId  Int?
+  project          ProjectProject?  @relation(fields: [projectId], references: [id])
+  task             ProjectTask?     @relation(fields: [taskId], references: [id])
+  employee         HrEmployee       @relation(fields: [employeeId], references: [id])
+  saleOrderLine    SaleOrderLine?   @relation("TimesheetSaleOrderLine", fields: [saleOrderLineId], references: [id])
 
   @@map("hr_timesheets")
 }
@@ -994,26 +1060,28 @@ model ProjectProject {
 }
 
 model ProjectTask {
-  id           Int            @id @default(autoincrement())
-  name         String
-  description  String?
-  priority     Int            @default(0)
-  sequence     Int            @default(10)
-  color        Int            @default(0)
-  active       Boolean        @default(true)
-  dateDeadline DateTime?
-  dateEnd      DateTime?
-  kanbanState  String         @default("normal")
-  stageId      Int
-  projectId    Int
-  parentId     Int?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  timesheets   HrTimesheet[]
-  parent       ProjectTask?   @relation("TaskHierarchy", fields: [parentId], references: [id])
-  subtasks     ProjectTask[]  @relation("TaskHierarchy")
-  project      ProjectProject @relation(fields: [projectId], references: [id])
-  stage        ProjectStage   @relation(fields: [stageId], references: [id])
+  id              Int            @id @default(autoincrement())
+  name            String
+  description     String?
+  priority        Int            @default(0)
+  sequence        Int            @default(10)
+  color           Int            @default(0)
+  active          Boolean        @default(true)
+  dateDeadline    DateTime?
+  dateEnd         DateTime?
+  kanbanState     String         @default("normal")
+  stageId         Int
+  projectId       Int
+  parentId        Int?
+  saleOrderLineId Int?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  timesheets      HrTimesheet[]
+  parent          ProjectTask?   @relation("TaskHierarchy", fields: [parentId], references: [id])
+  subtasks        ProjectTask[]  @relation("TaskHierarchy")
+  project         ProjectProject @relation(fields: [projectId], references: [id])
+  stage           ProjectStage   @relation(fields: [stageId], references: [id])
+  helpdeskTicket  HelpdeskTicket? @relation("TicketTask")
 
   @@map("project_tasks")
 }
@@ -1029,20 +1097,24 @@ model HelpdeskStage {
 }
 
 model HelpdeskTicket {
-  id           Int           @id @default(autoincrement())
-  name         String
-  description  String?
-  priority     Int           @default(0)
-  kanbanState  String        @default("normal")
-  active       Boolean       @default(true)
-  stageId      Int
-  partnerId    String?
-  dateDeadline DateTime?
-  dateClosed   DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  partner      Partner?      @relation(fields: [partnerId], references: [id])
-  stage        HelpdeskStage @relation(fields: [stageId], references: [id])
+  id              Int           @id @default(autoincrement())
+  name            String
+  description     String?
+  priority        Int           @default(0)
+  kanbanState     String        @default("normal")
+  active          Boolean       @default(true)
+  stageId         Int
+  partnerId       String?
+  projectId       Int?
+  projectTaskId   Int?          @unique
+  saleOrderId     Int?
+  dateDeadline    DateTime?
+  dateClosed      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  partner         Partner?      @relation(fields: [partnerId], references: [id])
+  stage           HelpdeskStage @relation(fields: [stageId], references: [id])
+  projectTask     ProjectTask?  @relation("TicketTask", fields: [projectTaskId], references: [id])
 
   @@map("helpdesk_tickets")
 }
@@ -1849,3 +1921,4 @@ model VendorPricelist {
 
   @@map("vendor_pricelists")
 }
+

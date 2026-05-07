@@ -5,6 +5,89 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Phase 4b: CRM Flow Integration — 2026-05-07
+
+### Added
+- **CRM store migrated to typed `crmApi`** (`crmStore.ts`) — replaced all raw `axios` calls with the domain SDK from `api.ts`; `API_BASE` constant removed
+- **Flow A actions in CRM store** — `qualifyLead(id)`, `markWon(id)`, `newQuotation(id)` added to `useCRMStore`, triggering Phase 3 backend endpoints
+- **CRM form action buttons** — Lead detail form now shows context-aware Phase 3 flow buttons:
+  - **✓ Qualify** — converts a Lead → Opportunity (shown only for `type !== 'opportunity'`)
+  - **🏆 Mark Won** — calls `POST /api/crm/leads/:id/mark-won` (shown for active records)
+  - **✗ Mark Lost** — marks lead inactive (shown for active records)
+  - **📋 New Quotation** — calls `POST /api/crm/leads/:id/new-quotation` and navigates to the new Sale Order (shown only for Won leads in final pipeline stage)
+- **`crmApi` paths corrected** in `api.ts` — paths now match actual CRM routes (`/api/crm/leads/*`); added `moveStage`, `delete`, `pipeline` methods
+- **`salesApi` paths corrected** in `api.ts` — corrected base path from `/api/sale` to `/api/sales`
+
+---
+
+## [Unreleased] — Phase 4a: API Security + Typed Frontend SDK + CI Pipeline — 2026-05-07
+
+### Added
+- **Auth middleware on all 9 core domain routes** — `requireAuth` wired via `router.use()` on `partners`, `products`, `crm`, `sales`, `accounting`, `inventory`, `purchases`, `helpdesk`, `projects`; all domain endpoints now require a valid JWT
+- **Typed frontend domain SDK** (`frontend/src/lib/api.ts`) — 8 fully typed API modules replacing generic `modulesApi` calls:
+  - `partnersApi` — list, get, profile, create, update, archive
+  - `productsApi` — list, get, create, update, archive
+  - `crmApi` — CRUD + qualify, markWon, markLost, newQuotation, stages
+  - `salesApi` — CRUD + confirm, deliver, invoice, cancel
+  - `accountingApi` — moves CRUD + postMove, payMove, reconcileMove, journals
+  - `inventoryApi` — pickings list/get + markReady, validate, locations, moves
+  - `purchasesApi` — CRUD + confirm, validateReceipt, createBill, cancel
+  - `helpdeskApi` — CRUD + createTask, addTimesheet, resolve, stages
+  - `projectsApi` — CRUD + listTasks, createTask, updateTask, addTimesheet, stages
+- **GitHub Actions CI pipeline** (`.github/workflows/ci.yml`):
+  - `api` job: typecheck → prisma:validate → prisma:generate → migrate:deploy → test (with coverage ≥70% gate) → build
+  - `frontend` job: lint → typecheck → build
+  - `all-green` gate job: both jobs must pass; blocks merges to `main`/`develop`
+  - Postgres 16 service container for integration test isolation
+  - `concurrency` group with cancel-in-progress for fast feedback on stacked PRs
+
+---
+
+## [Unreleased] — Phase 3: End-to-End Business Flows — 2026-05-07 ✅ ALL TESTS PASSING
+
+### Added
+- **`api/src/core/flow.service.ts`** — Central service layer for all 5 business flows; state-machine logic isolated from routes; Prisma transactions, idempotency guards, and immutability guards
+- **Flow A** — Lead → Qualify (`POST /api/crm/leads/:id/qualify`) → Mark Won (`POST /api/crm/leads/:id/mark-won`) → Create Quotation (`POST /api/crm/leads/:id/new-quotation`) → Confirm Sale Order (auto-creates delivery picking)
+- **Flow B** — Picking state machine: `POST /api/inventory/pickings/:id/ready` (draft→assigned), `POST /api/inventory/pickings/:id/validate` (assigned→done, marks SO delivered)
+- **Flow C** — Invoice lifecycle: `POST /api/sale/:id/invoice` (creates draft), `POST /api/accounting/moves/:id/post` (immutability guard), `POST /api/accounting/moves/:id/pay` (idempotent payment), `POST /api/accounting/moves/:id/reconcile`; `GET /api/accounting/payments`
+- **Flow D** — Purchase cycle: `POST /api/purchase/:id/confirm` (RFQ→PO + creates receipt picking), `POST /api/purchase/:id/bill` (vendor bill), `POST /api/purchase/:id/post-bill`, `POST /api/purchase/:id/pay-bill`
+- **Flow E** — Helpdesk→Billable: `POST /api/helpdesk/tickets/:id/create-task` (ticket→project task), `POST /api/helpdesk/tickets/:id/timesheet` (billable timesheet, increments `qtyDelivered` on SaleOrderLine)
+- **`AccountPayment` model** — new Prisma model with idempotency key, journal/partner/move FK, payment type/state
+- **Schema additions** — `idempotencyKey`, `organizationId` on SaleOrder/PurchaseOrder/AccountMove/CrmLead; `isBillable`, `qtyDelivered`, `qtyInvoiced` on SaleOrderLine; `isBillable`, `billedAmount`, `saleOrderLineId` on HrTimesheet; `projectId`, `projectTaskId`, `saleOrderId` on HelpdeskTicket; `saleOrderLineId` on ProjectTask; `purchaseOrderId`, `postedAt` on AccountMove
+- **Migration** — `api/prisma/migrations/20260507155357_phase2_auth_rbac/` + Phase 3 migration SQL deployed via `prisma migrate deploy`
+- **`api/src/__tests__/flows.integration.test.ts`** — 25 integration tests covering all 5 flows: state transitions, idempotency, 404/409/422 error scenarios
+
+### Changed
+- `uuid` import replaced with Node.js built-in `crypto.randomUUID()` in `core/errors/index.ts` (eliminates ESM/CJS incompatibility in Jest)
+- `POST /api/accounting/moves/:id/post` — returns 409 (was 400) when journal entry is already posted
+- Jest config — added `transformIgnorePatterns` to handle ESM node_modules
+
+---
+
+## [Unreleased] — Phase 2: Auth, Security & RBAC — 2026-05-07 ✅ VERIFIED
+
+### Fixed (2026-05-07 post-verification)
+- **`pg_hba.conf`** — Changed Postgres.app TCP auth from `trust` (requires macOS GUI dialog) to `md5` (password-based) for `127.0.0.1/32` and `::1/128` host entries; required for Prisma connections from subprocesses/agents
+- **`api/.env`** — Added missing `REFRESH_SECRET` environment variable used by refresh-token signing
+- **Auth endpoints verified**: `POST /api/auth/register` → 200, `POST /api/auth/login` → 200 + JWT, `GET /api/auth/me` → 200 user object, unauthenticated `/me` → 401, duplicate register → 409, wrong password → 401
+
+## [Unreleased] — Phase 2: Auth, Security & RBAC — 2026-05-07
+
+### Added
+- **`core/auth/index.ts`** — argon2id password hashing (`hashPassword`/`verifyPassword`), JWT access tokens (15 min, HS256), JWT refresh tokens (30 days), `requireAuth` middleware, `optionalAuth` middleware, `requirePermission(key)` middleware, `requireRole(role)` middleware, `loadUserPermissions()` loader
+- **`core/errors/index.ts`** — Standard error envelope `{ error: { code, message, fields?, requestId } }`, `AppError` class with factory methods (`notFound`, `unauthorized`, `forbidden`, `conflict`, `validation`, `tenantMismatch`), `errorHandler` Express middleware (handles ZodError, AppError, Prisma P2002), `requestIdMiddleware` (UUID per request)
+- **`core/validation/index.ts`** — `validate(schema)` middleware, `validateQuery(schema)` middleware, `parseBody(req, schema)` inline helper, reusable schemas: `PaginationSchema`, `IdParamSchema`, `EmailSchema`, `PasswordSchema`
+- **`routes/auth-credentials.ts`** — `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/logout`, `POST /api/auth/refresh`, `GET /api/auth/me`; httpOnly cookie for refresh token rotation; constant-time password verification path
+- **`middleware/rateLimiter.ts`** — `globalLimiter` (300 req/15 min), `authLimiter` (20 req/15 min), `apiLimiter` (100 req/1 min)
+- **Partners POST/PUT** — now validated with `CreatePartnerSchema` / `UpdatePartnerSchema` (Zod)
+- **Tag flattening** — `flattenTags()` helper ensures `tags` arrays return clean `{ id, name }` objects instead of raw join-table rows
+
+### Changed
+- `index.ts` — wired `requestIdMiddleware`, `globalLimiter`, `authLimiter`, `apiLimiter`, tightened Helmet CSP, replaced generic error handler with centralized `errorHandler`
+- `package.json` — added `argon2`, `jsonwebtoken`, `zod`, `express-rate-limit`, `uuid` + type packages
+
+---
+
 ## [Unreleased] — Phase 1: Canonical Data Spine — 2026-05-06
 
 ### Added

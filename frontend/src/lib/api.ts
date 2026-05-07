@@ -62,83 +62,334 @@ api.interceptors.response.use(
   }
 )
 
-// API endpoints
+// API endpoints — all paths are relative to VITE_API_URL base (proxied through Vite → localhost:3001)
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post('/auth/login', { email, password }),
+    api.post('/api/auth/login', { email, password }),
 
   register: (data: any) =>
-    api.post('/auth/register', data),
+    api.post('/api/auth/register', data),
 
   logout: () =>
-    api.post('/auth/logout'),
+    api.post('/api/auth/logout'),
 
   me: () =>
-    api.get('/auth/me'),
+    api.get('/api/auth/me'),
 
   updateProfile: (data: any) =>
-    api.patch('/auth/profile', data),
+    api.patch('/api/auth/profile', data),
 
   refreshToken: () =>
-    api.post('/auth/refresh'),
+    api.post('/api/auth/refresh'),
 
-  // Passkey / WebAuthn
+  // Passkey / WebAuthn (Phase 2 optional — not yet implemented)
   getPasskeyRegistrationOptions: (partnerId: number) =>
-    api.post('/auth/register-options', { partnerId }),
+    api.post('/api/auth/register-options', { partnerId }),
 
   verifyPasskeyRegistration: (response: any) =>
-    api.post('/auth/register-verify', response),
+    api.post('/api/auth/register-verify', response),
 
   getPasskeyLoginOptions: (email: string) =>
-    api.post('/auth/login-options', { email }),
+    api.post('/api/auth/login-options', { email }),
 
   verifyPasskeyLogin: (response: any) =>
-    api.post('/auth/login-verify', response),
+    api.post('/api/auth/login-verify', response),
 }
 
+// ── Generic module API (legacy, kept for backwards compat) ──────────────────
 export const modulesApi = {
   getModules: () =>
-    api.get('/modules'),
+    api.get('/api/modules'),
 
   getModule: (moduleName: string) =>
-    api.get(`/modules/${moduleName}`),
+    api.get(`/api/modules/${moduleName}`),
 
   getModuleData: (moduleName: string, params?: any) =>
-    api.get(`/modules/${moduleName}/data`, { params }),
+    api.get(`/api/modules/${moduleName}/data`, { params }),
 
   createModuleData: (moduleName: string, data: any) =>
-    api.post(`/modules/${moduleName}/data`, data),
+    api.post(`/api/modules/${moduleName}/data`, data),
 
   updateModuleData: (moduleName: string, id: string, data: any) =>
-    api.patch(`/modules/${moduleName}/data/${id}`, data),
+    api.patch(`/api/modules/${moduleName}/data/${id}`, data),
 
   deleteModuleData: (moduleName: string, id: string) =>
-    api.delete(`/modules/${moduleName}/data/${id}`),
+    api.delete(`/api/modules/${moduleName}/data/${id}`),
 }
 
+// ── AI ───────────────────────────────────────────────────────────────────────
 export const aiApi = {
   chat: (message: string, context?: any) =>
-    api.post('/ai/chat', { message, context }),
+    api.post('/api/ai/chat', { message, context }),
 
   getAgents: () =>
-    api.get('/ai/agents'),
+    api.get('/api/ai/agents'),
 
   getAgentStatus: (agentName?: string) =>
-    api.get(`/ai/agents/status${agentName ? `?agent=${agentName}` : ''}`),
+    api.get(`/api/ai/agents/status${agentName ? `?agent=${agentName}` : ''}`),
 
   getAgentCapabilities: (agentName?: string) =>
-    api.get(`/ai/agents/capabilities${agentName ? `?agent=${agentName}` : ''}`),
+    api.get(`/api/ai/agents/capabilities${agentName ? `?agent=${agentName}` : ''}`),
 }
 
+// ── Dashboard ────────────────────────────────────────────────────────────────
 export const dashboardApi = {
   getStats: () =>
-    api.get('/dashboard/stats'),
+    api.get('/api/dashboard/stats'),
 
   getRecentActivity: () =>
-    api.get('/dashboard/activity'),
+    api.get('/api/dashboard/activity'),
 
   getNotifications: () =>
-    api.get('/dashboard/notifications'),
+    api.get('/api/dashboard/notifications'),
+}
+
+// ── Partners ─────────────────────────────────────────────────────────────────
+export const partnersApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/partners', { params }),
+
+  get: (id: string) =>
+    api.get(`/api/partners/${id}`),
+
+  profile: (id: string) =>
+    api.get(`/api/partners/${id}/profile`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/partners', data),
+
+  update: (id: string, data: Record<string, unknown>) =>
+    api.patch(`/api/partners/${id}`, data),
+
+  archive: (id: string) =>
+    api.delete(`/api/partners/${id}`),
+}
+
+// ── Products ─────────────────────────────────────────────────────────────────
+export const productsApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/products', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/products/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/products', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.patch(`/api/products/${id}`, data),
+
+  archive: (id: number) =>
+    api.delete(`/api/products/${id}`),
+}
+
+// ── CRM ──────────────────────────────────────────────────────────────────────
+export const crmApi = {
+  // Leads / Opportunities
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/crm/leads', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/crm/leads/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/crm/leads', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/crm/leads/${id}`, data),
+
+  moveStage: (id: number, stageId: number) =>
+    api.patch(`/api/crm/leads/${id}/stage`, { stageId }),
+
+  delete: (id: number) =>
+    api.delete(`/api/crm/leads/${id}`),
+
+  pipeline: () =>
+    api.get('/api/crm/pipeline'),
+
+  // Flow actions (Phase 3 flows A)
+  qualify: (id: number) =>
+    api.post(`/api/crm/leads/${id}/qualify`),
+
+  markWon: (id: number) =>
+    api.post(`/api/crm/leads/${id}/mark-won`),
+
+  newQuotation: (id: number) =>
+    api.post(`/api/crm/leads/${id}/new-quotation`),
+
+  convert: (id: number) =>
+    api.post(`/api/crm/leads/${id}/convert`),
+
+  // Stages
+  stages: () =>
+    api.get('/api/crm/stages'),
+}
+
+// ── Sales ────────────────────────────────────────────────────────────────────
+export const salesApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/sales', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/sales/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/sales', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/sales/${id}`, data),
+
+  // Flow actions (Phase 3 flows B/C)
+  confirm: (id: number) =>
+    api.post(`/api/sales/${id}/confirm`),
+
+  invoice: (id: number) =>
+    api.post(`/api/sales/${id}/invoice`),
+
+  cancel: (id: number) =>
+    api.post(`/api/sales/${id}/cancel`),
+}
+
+// ── Accounting ───────────────────────────────────────────────────────────────
+export const accountingApi = {
+  // Journal moves
+  listMoves: (params?: Record<string, unknown>) =>
+    api.get('/api/accounting/moves', { params }),
+
+  getMove: (id: number) =>
+    api.get(`/api/accounting/moves/${id}`),
+
+  createMove: (data: Record<string, unknown>) =>
+    api.post('/api/accounting/moves', data),
+
+  // Flow actions
+  postMove: (id: number) =>
+    api.post(`/api/accounting/moves/${id}/post`),
+
+  payMove: (id: number, data?: Record<string, unknown>) =>
+    api.post(`/api/accounting/moves/${id}/pay`, data),
+
+  reconcileMove: (id: number) =>
+    api.post(`/api/accounting/moves/${id}/reconcile`),
+
+  // Journals
+  listJournals: () =>
+    api.get('/api/accounting/journals'),
+}
+
+// ── Inventory ────────────────────────────────────────────────────────────────
+export const inventoryApi = {
+  // Pickings
+  listPickings: (params?: Record<string, unknown>) =>
+    api.get('/api/inventory/pickings', { params }),
+
+  getPicking: (id: number) =>
+    api.get(`/api/inventory/pickings/${id}`),
+
+  // Flow actions
+  markReady: (id: number) =>
+    api.post(`/api/inventory/pickings/${id}/ready`),
+
+  validate: (id: number) =>
+    api.post(`/api/inventory/pickings/${id}/validate`),
+
+  // Stock
+  listLocations: () =>
+    api.get('/api/inventory/locations'),
+
+  listMoves: (params?: Record<string, unknown>) =>
+    api.get('/api/inventory/moves', { params }),
+}
+
+// ── Purchases ────────────────────────────────────────────────────────────────
+export const purchasesApi = {
+  // RFQs / POs
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/purchase', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/purchase/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/purchase', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.patch(`/api/purchase/${id}`, data),
+
+  // Flow actions
+  confirm: (id: number) =>
+    api.post(`/api/purchase/${id}/confirm`),
+
+  validateReceipt: (id: number) =>
+    api.post(`/api/purchase/${id}/validate-receipt`),
+
+  createBill: (id: number) =>
+    api.post(`/api/purchase/${id}/bill`),
+
+  cancel: (id: number) =>
+    api.post(`/api/purchase/${id}/cancel`),
+}
+
+// ── Helpdesk ─────────────────────────────────────────────────────────────────
+export const helpdeskApi = {
+  // Tickets
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/helpdesk', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/helpdesk/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/helpdesk', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.patch(`/api/helpdesk/${id}`, data),
+
+  // Flow actions
+  createTask: (id: number) =>
+    api.post(`/api/helpdesk/${id}/create-task`),
+
+  addTimesheet: (id: number, data: { taskId: number; hours: number; description?: string }) =>
+    api.post(`/api/helpdesk/${id}/timesheet`, data),
+
+  resolve: (id: number) =>
+    api.post(`/api/helpdesk/${id}/resolve`),
+
+  // Stages
+  stages: () =>
+    api.get('/api/helpdesk/stages'),
+}
+
+// ── Projects ─────────────────────────────────────────────────────────────────
+export const projectsApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/projects', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/projects/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/projects', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.patch(`/api/projects/${id}`, data),
+
+  // Tasks
+  listTasks: (projectId: number, params?: Record<string, unknown>) =>
+    api.get(`/api/projects/${projectId}/tasks`, { params }),
+
+  createTask: (projectId: number, data: Record<string, unknown>) =>
+    api.post(`/api/projects/${projectId}/tasks`, data),
+
+  updateTask: (taskId: number, data: Record<string, unknown>) =>
+    api.patch(`/api/projects/tasks/${taskId}`, data),
+
+  // Timesheets
+  addTimesheet: (taskId: number, data: { hours: number; description?: string }) =>
+    api.post(`/api/projects/tasks/${taskId}/timesheets`, data),
+
+  stages: () =>
+    api.get('/api/projects/stages'),
 }
 
 export default api

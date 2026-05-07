@@ -2,8 +2,12 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { Prisma } from '@prisma/client';
+import { confirmPurchaseOrder, createVendorBill, postInvoice, registerPayment } from '../core/flow.service';
+import { AppError } from '../core/errors';
+import { requireAuth } from '../core/auth';
 
 export const purchaseRoutes = Router();
+purchaseRoutes.use(requireAuth);
 
 // Helper to calculate totals for a purchase order based on its lines
 const calculateTotals = (lines: any[]) => {
@@ -148,16 +152,9 @@ purchaseRoutes.put('/:id', asyncHandler(async (req, res) => {
     res.json(order);
 }));
 
-// POST confirm purchase order
+// POST confirm purchase order – Flow D: also creates incoming receipt picking
 purchaseRoutes.post('/:id/confirm', asyncHandler(async (req, res) => {
-    const orderId = parseInt(req.params.id);
-
-    // In a full implementation, we would create a StockPicking here.
-    const order = await prisma.purchaseOrder.update({
-        where: { id: orderId },
-        data: { state: 'purchase', dateApprove: new Date() }
-    });
-
+    const order = await confirmPurchaseOrder(parseInt(req.params.id));
     res.json(order);
 }));
 
@@ -168,4 +165,27 @@ purchaseRoutes.post('/:id/cancel', asyncHandler(async (req, res) => {
         data: { state: 'cancel' }
     });
     res.json(order);
+}));
+
+// Flow D – Create vendor bill from confirmed PO (idempotent)
+purchaseRoutes.post('/:id/bill', asyncHandler(async (req, res) => {
+    const bill = await createVendorBill(parseInt(req.params.id), req.body.idempotencyKey);
+    res.status(201).json(bill);
+}));
+
+// Flow D – Post (confirm) a vendor bill
+purchaseRoutes.post('/:id/post-bill', asyncHandler(async (req, res) => {
+    const { billId } = req.body;
+    if (!billId) throw AppError.validation('billId is required');
+    const posted = await postInvoice(parseInt(billId));
+    res.json(posted);
+}));
+
+// Flow D – Register vendor payment
+purchaseRoutes.post('/:id/pay-bill', asyncHandler(async (req, res) => {
+    const { billId, amount, journalId, memo, idempotencyKey } = req.body;
+    if (!billId) throw AppError.validation('billId is required');
+    if (!amount || amount <= 0) throw AppError.validation('amount must be greater than 0');
+    const payment = await registerPayment(parseInt(billId), { amount, journalId, memo, idempotencyKey });
+    res.status(201).json(payment);
 }));

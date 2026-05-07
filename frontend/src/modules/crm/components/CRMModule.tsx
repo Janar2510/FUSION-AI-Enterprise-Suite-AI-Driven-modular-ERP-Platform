@@ -25,7 +25,10 @@ export const CRMModule: React.FC = () => {
         fetchAllLeads,
         createLead,
         updateLead,
-        moveLeadStage
+        moveLeadStage,
+        qualifyLead,
+        markWon,
+        newQuotation,
     } = useCRMStore();
     const { orders, fetchAllOrders } = useSalesStore();
 
@@ -303,19 +306,58 @@ export const CRMModule: React.FC = () => {
                                         </div>
                                     </div>
                                 )}
-                                <div className="flex gap-2 mb-2">
-                                    <button
-                                        className="px-4 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30 rounded-md text-sm font-medium transition-colors"
-                                        onClick={() => setFormData({ ...formData, stageId: pipelineStages[pipelineStages.length - 1]?.id, active: true })}
-                                    >
-                                        Mark Won
-                                    </button>
-                                    <button
-                                        className="px-4 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-md text-sm font-medium transition-colors"
-                                        onClick={() => setFormData({ ...formData, active: false })}
-                                    >
-                                        Mark Lost
-                                    </button>
+                                <div className="flex gap-2 mb-2 flex-wrap">
+                                    {/* Qualify: only shown for leads (not yet opportunities) */}
+                                    {activeRecord && formData.type !== 'opportunity' && (
+                                        <button
+                                            className="px-4 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30 rounded-md text-sm font-medium transition-colors"
+                                            onClick={async () => {
+                                                await qualifyLead(activeRecord.id);
+                                                setFormData(f => ({ ...f, type: 'opportunity' }));
+                                            }}
+                                        >
+                                            ✓ Qualify
+                                        </button>
+                                    )}
+                                    {/* Mark Won: only for active leads */}
+                                    {formData.active !== false && (
+                                        <button
+                                            className="px-4 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30 rounded-md text-sm font-medium transition-colors"
+                                            onClick={async () => {
+                                                if (activeRecord) {
+                                                    await markWon(activeRecord.id);
+                                                    setFormData(f => ({ ...f, stageId: pipelineStages[pipelineStages.length - 1]?.id, active: true }));
+                                                } else {
+                                                    setFormData(f => ({ ...f, stageId: pipelineStages[pipelineStages.length - 1]?.id, active: true }));
+                                                }
+                                            }}
+                                        >
+                                            🏆 Mark Won
+                                        </button>
+                                    )}
+                                    {/* Mark Lost: only for active leads */}
+                                    {formData.active !== false && (
+                                        <button
+                                            className="px-4 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-md text-sm font-medium transition-colors"
+                                            onClick={() => setFormData(f => ({ ...f, active: false }))}
+                                        >
+                                            ✗ Mark Lost
+                                        </button>
+                                    )}
+                                    {/* New Quotation: shown for Won leads */}
+                                    {activeRecord && pipelineStages.findIndex(s => s.id === formData.stageId) === pipelineStages.length - 1 && formData.active !== false && (
+                                        <button
+                                            className="px-4 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 rounded-md text-sm font-medium transition-colors"
+                                            onClick={async () => {
+                                                const result = await newQuotation(activeRecord.id);
+                                                if (result?.saleOrderId) {
+                                                    navigate(`/module/sales/${result.saleOrderId}`);
+                                                }
+                                            }}
+                                        >
+                                            📋 New Quotation
+                                        </button>
+                                    )}
                                 </div>
                                 <input
                                     type="text"

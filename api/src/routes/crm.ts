@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { qualifyLead, markWon, createQuotationFromLead } from '../core/flow.service';
+import { requireAuth } from '../core/auth';
 
 export const crmRoutes = Router();
+crmRoutes.use(requireAuth);
 
 // ── Stages ──────────────────────────────────────────────────
 crmRoutes.get('/stages', asyncHandler(async (_req, res) => {
@@ -49,10 +52,29 @@ crmRoutes.patch('/leads/:id/stage', asyncHandler(async (req, res) => {
     res.json(lead);
 }));
 
-// Convert lead to opportunity
+// Convert lead to opportunity (basic – keeps existing behaviour)
 crmRoutes.post('/leads/:id/convert', asyncHandler(async (req, res) => {
     const lead = await prisma.crmLead.update({ where: { id: parseInt(req.params.id) }, data: { type: 'opportunity' } });
     res.json(lead);
+}));
+
+// Flow A – qualify a lead (raises probability, sets type=opportunity)
+crmRoutes.post('/leads/:id/qualify', asyncHandler(async (req, res) => {
+    const lead = await qualifyLead(parseInt(req.params.id));
+    res.json(lead);
+}));
+
+// Flow A – mark opportunity as won
+crmRoutes.post('/leads/:id/mark-won', asyncHandler(async (req, res) => {
+    const lead = await markWon(parseInt(req.params.id));
+    res.json(lead);
+}));
+
+// Flow A – create a draft quotation (SaleOrder) from a lead/opportunity
+crmRoutes.post('/leads/:id/new-quotation', asyncHandler(async (req, res) => {
+    const { lines, idempotencyKey } = req.body;
+    const order = await createQuotationFromLead(parseInt(req.params.id), { lines, idempotencyKey });
+    res.status(201).json(order);
 }));
 
 crmRoutes.delete('/leads/:id', asyncHandler(async (req, res) => {

@@ -1,6 +1,34 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { validate } from '../core/validation';
+import { requireAuth } from '../core/auth';
+
+// ── Validation schemas ────────────────────────────────────────────────────────
+
+const CreatePartnerSchema = z.object({
+    name: z.string().min(1, 'Name is required').max(200).trim(),
+    email: z.string().email('Invalid email').optional().nullable(),
+    phone: z.string().max(50).optional().nullable(),
+    mobile: z.string().max(50).optional().nullable(),
+    website: z.string().url('Invalid URL').optional().nullable(),
+    isCompany: z.boolean().optional().default(false),
+    isCustomer: z.boolean().optional().default(true),
+    isVendor: z.boolean().optional().default(false),
+    isEmployee: z.boolean().optional().default(false),
+    street: z.string().max(200).optional().nullable(),
+    city: z.string().max(100).optional().nullable(),
+    state: z.string().max(100).optional().nullable(),
+    zip: z.string().max(20).optional().nullable(),
+    country: z.string().max(2).optional().nullable(),
+    parentId: z.string().optional().nullable(),
+    organizationId: z.string().optional(),
+    companyId: z.string().optional().nullable(),
+    notes: z.string().max(5000).optional().nullable(),
+});
+
+const UpdatePartnerSchema = CreatePartnerSchema.partial();
 
 /** Flatten the PartnerToPartnerTag join rows into plain tag objects */
 function flattenTags(raw: any[]): any[] {
@@ -14,6 +42,7 @@ const PARTNER_INCLUDE = {
 } as const;
 
 export const partnerRoutes = Router();
+partnerRoutes.use(requireAuth);
 
 // ── List partners ────────────────────────────────────────────
 partnerRoutes.get('/', asyncHandler(async (req, res) => {
@@ -39,12 +68,13 @@ partnerRoutes.get('/', asyncHandler(async (req, res) => {
             skip,
             take: limit,
             orderBy: { name: 'asc' },
-            include: { parent: true, tags: true },
+            include: PARTNER_INCLUDE,
         }),
         prisma.partner.count({ where }),
     ]);
 
-    res.json(paginatedResponse(data, total, page, limit));
+    const mapped = data.map((p: any) => ({ ...p, tags: flattenTags(p.tags) }));
+    res.json(paginatedResponse(mapped, total, page, limit));
 }));
 
 // ── GET /partners/:id/profile  — 360° aggregated view ───────
@@ -56,7 +86,7 @@ partnerRoutes.get('/:id/profile', asyncHandler(async (req, res) => {
         include: {
             parent: true,
             children: { where: { active: true }, take: 20 },
-            tags: true,
+            tags: { include: { partner_tags: true } },
         },
     });
 
@@ -152,7 +182,7 @@ partnerRoutes.get('/:id/profile', asyncHandler(async (req, res) => {
     const openTickets = (helpdesk as any[]).filter((t: any) => t.stage !== 'done' && t.stage !== 'closed').length;
 
     res.json({
-        partner,
+        partner: { ...(partner as any), tags: flattenTags((partner as any).tags) },
         addresses,
         contacts,
         summary: {
@@ -179,26 +209,39 @@ partnerRoutes.get('/:id/profile', asyncHandler(async (req, res) => {
 partnerRoutes.get('/:id', asyncHandler(async (req, res) => {
     const partner = await prisma.partner.findFirst({
         where: { id: req.params.id },
-        include: { parent: true, children: true, tags: true },
+        include: {
+            parent: true,
+            children: { include: { tags: { include: { partner_tags: true } } } },
+            tags: { include: { partner_tags: true } },
+        },
     });
     if (!partner) {
         res.status(404).json({ error: 'Partner not found' });
         return;
     }
-    res.json(partner);
+    res.json({
+        ...partner,
+        tags: flattenTags((partner as any).tags),
+        children: ((partner as any).children ?? []).map((c: any) => ({
+            ...c,
+            tags: flattenTags(c.tags),
+        })),
+    });
 }));
 
 // ── Create partner ───────────────────────────────────────────
-partnerRoutes.post('/', asyncHandler(async (req, res) => {
-    const partner = await prisma.partner.create({ data: req.body });
+partnerRoutes.post('/', validate(CreatePartnerSchema), asyncHandler(async (req, res) => {
+    const data = req.body as z.infer<typeof CreatePartnerSchema>;
+    const partner = await prisma.partner.create({ data: data as any });
     res.status(201).json(partner);
 }));
 
 // ── Update partner ───────────────────────────────────────────
-partnerRoutes.put('/:id', asyncHandler(async (req, res) => {
+partnerRoutes.put('/:id', validate(UpdatePartnerSchema), asyncHandler(async (req, res) => {
+    const data = req.body as z.infer<typeof UpdatePartnerSchema>;
     const partner = await prisma.partner.update({
         where: { id: req.params.id },
-        data: req.body,
+        data: data as any,
     });
     res.json(partner);
 }));
