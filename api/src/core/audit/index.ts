@@ -28,7 +28,11 @@ export type AuditAction =
   | 'EXPORT'
   | 'IMPORT'
   | 'LOGIN'
-  | 'LOGOUT';
+  | 'LOGOUT'
+  | 'ai_action.approve'
+  | 'ai_action.reject'
+  | 'ai_action.apply'
+  | 'ai_action.rollback';
 
 export interface AuditOptions {
   organizationId: string;

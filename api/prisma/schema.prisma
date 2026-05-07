@@ -62,6 +62,8 @@ model SpineUser {
   updatedAt      DateTime        @updatedAt
   organization   Organization    @relation(fields: [organizationId], references: [id])
   userRoles      SpineUserRole[]
+  aiActions      AiAction[]      @relation("TriggeredBy")
+  approvedActions AiAction[]     @relation("ApprovedBy")
 
   @@index([organizationId])
 }
@@ -1920,5 +1922,43 @@ model VendorPricelist {
   product         Product        @relation(fields: [productId], references: [id])
 
   @@map("vendor_pricelists")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 5 — AI Layer (ADR-0006: no AI auto-write to finance/legal)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AiAction {
+  id            String          @id @default(cuid())
+  agentKey      String
+  triggeredById String?
+  triggeredBy   SpineUser?      @relation("TriggeredBy", fields: [triggeredById], references: [id])
+  entityType    String
+  entityId      String
+  tool          String
+  input         Json
+  output        Json
+  confidence    Float           @default(0)
+  status        AiActionStatus  @default(PENDING)
+  approvedById  String?
+  approvedBy    SpineUser?      @relation("ApprovedBy", fields: [approvedById], references: [id])
+  approvedAt    DateTime?
+  appliedAt     DateTime?
+  rolledBackAt  DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([entityType, entityId])
+  @@index([agentKey, status])
+  @@index([triggeredById])
+  @@map("ai_actions")
+}
+
+enum AiActionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  APPLIED
+  ROLLED_BACK
 }
 

@@ -372,6 +372,33 @@ export const helpdeskApi = {
     api.get('/api/helpdesk/pipeline'),
 }
 
+// ── AI Actions (Phase 5) ──────────────────────────────────────────────────────
+export const aiActionsApi = {
+  run: (agentKey: string, entityType: string, entityId: string, input?: Record<string, unknown>) =>
+    api.post('/api/ai/run', { agentKey, entityType, entityId, input }),
+
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/ai/actions', { params }),
+
+  get: (id: string) =>
+    api.get(`/api/ai/actions/${id}`),
+
+  approve: (id: string) =>
+    api.post(`/api/ai/actions/${id}/approve`),
+
+  reject: (id: string) =>
+    api.post(`/api/ai/actions/${id}/reject`),
+
+  apply: (id: string) =>
+    api.post(`/api/ai/actions/${id}/apply`),
+
+  rollback: (id: string) =>
+    api.post(`/api/ai/actions/${id}/rollback`),
+
+  pending: (entityType?: string, entityId?: string) =>
+    api.get('/api/ai/pending', { params: { entityType, entityId } }),
+}
+
 // ── Projects ─────────────────────────────────────────────────────────────────
 export const projectsApi = {
   list: (params?: Record<string, unknown>) =>

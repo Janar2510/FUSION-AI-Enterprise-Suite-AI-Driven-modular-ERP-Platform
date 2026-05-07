@@ -153,17 +153,20 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 
 ## Phase 5 — AI Layer
 
-- [ ] `AiAction` table: agentKey, userId, entityType, entityId, tool, input, output, confidence, approvedById, approvedAt, appliedAt, rolledBackAt
-- [ ] Approval workflow primitive (no AI auto-post to finance/legal)
+- [x] `AiAction` table: agentKey, userId, entityType, entityId, tool, input, output, confidence, approvedById, approvedAt, appliedAt, rolledBackAt
+- [x] Approval workflow primitive (no AI auto-post to finance/legal) — approve/reject/apply/rollback endpoints
+- [x] Helpdesk triage agent (category + priority + suggested reply) — `core/ai/agents/helpdeskTriage.ts`
+- [x] Customer summary agent (cached, regenerated on timeline event) — `core/ai/agents/customerSummary.ts`
+- [x] `@anthropic-ai/sdk` installed; `core/ai/index.ts` agent runner + registry
+- [x] `POST /api/ai/run`, `GET /api/ai/actions`, approve/reject/apply/rollback endpoints
+- [x] `aiActionsApi` typed SDK in `frontend/src/lib/api.ts`
 - [ ] Document intelligence agent (OCR + classification + extraction, ≥0.85 confidence gate)
 - [ ] Partner deduplication agent
-- [ ] Customer summary agent (cached, regenerated on timeline event)
 - [ ] Next-best-action agent
 - [ ] Lead scoring agent (nightly batch)
 - [ ] Quote drafter agent (status DRAFT only, user sends)
 - [ ] Invoice anomaly detector (flag-only, never auto-edit)
 - [ ] Stock reorder recommender (user confirms)
-- [ ] Helpdesk triage agent (category + priority + suggested reply)
 - [ ] RAG enforces permission filters (test included)
 - [ ] Evals golden set per agent; CI runs on prompt/agent changes
 

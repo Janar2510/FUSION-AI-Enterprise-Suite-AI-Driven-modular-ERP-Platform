@@ -184,6 +184,10 @@ app.use('/api/skills', skillsRoutes);
 app.use('/api/spreadsheet', spreadsheetRoutes);
 app.use('/api/automation', automationRoutes);
 
+// ── Phase 5 — AI Layer ───────────────────────────────────────
+import aiActionsRouter from './routes/ai-actions';
+app.use('/api/ai', apiLimiter, aiActionsRouter);
+
 // ── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
     res.status(404).json({

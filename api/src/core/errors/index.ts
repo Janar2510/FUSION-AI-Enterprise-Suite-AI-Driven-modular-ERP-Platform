@@ -74,6 +74,10 @@ export class AppError extends Error {
         return new AppError('VALIDATION_ERROR', msg, 422, fields);
     }
 
+    static badRequest(msg: string): AppError {
+        return new AppError('BAD_REQUEST', msg, 400);
+    }
+
     static tenantMismatch(): AppError {
         return new AppError('TENANT_MISMATCH', 'Cross-tenant access denied', 403);
     }
