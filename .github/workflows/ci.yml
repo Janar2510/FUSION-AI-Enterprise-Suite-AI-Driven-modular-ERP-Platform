@@ -14,6 +14,41 @@ env:
   NODE_VERSION: '20'
 
 jobs:
+  # ── Commit message lint ───────────────────────────────────────────────────
+  commitlint:
+    name: Commit lint
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: npm install -g @commitlint/cli @commitlint/config-conventional
+      - name: Lint commits
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+  # ── Security scan ─────────────────────────────────────────────────────────
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+      - run: npm ci
+      - name: npm audit (high+)
+        run: npm audit --audit-level=high --production
+        continue-on-error: true  # warn but don't block until baseline is clean
+
   # ── API: lint + typecheck + prisma validate + tests ──────────────────────
   api:
     name: API
@@ -119,14 +154,14 @@ jobs:
   # ── Final gate ───────────────────────────────────────────────────────────
   all-green:
     name: All checks passed
-    needs: [api, frontend]
+    needs: [api, frontend, security]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check results
         run: |
           if [[ "${{ needs.api.result }}" != "success" || "${{ needs.frontend.result }}" != "success" ]]; then
-            echo "One or more jobs failed"
+            echo "One or more required jobs failed"
             exit 1
           fi
-          echo "All CI jobs passed"
+          echo "All CI jobs passed ✓"
