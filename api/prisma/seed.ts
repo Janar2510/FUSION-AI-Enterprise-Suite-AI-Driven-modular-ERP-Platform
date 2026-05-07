@@ -1,9 +1,47 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
     console.log('🌱 Seeding FusionAI database...');
+
+    // ── Canonical Spine: Organization, Company, Admin User ───
+    const org = await prisma.organization.create({
+        data: {
+            name: 'FusionAI Demo Org',
+            slug: 'fusionai-demo',
+            status: 'ACTIVE',
+        },
+    });
+
+    const company = await prisma.spineCompany.create({
+        data: {
+            organizationId: org.id,
+            name: 'FusionAI Enterprises OÜ',
+            legalName: 'FusionAI Enterprises OÜ',
+            vatId: 'EE123456789',
+            currencyCode: 'EUR',
+            countryCode: 'EE',
+            fiscalYearStart: 1,
+        },
+    });
+
+    const adminRole = await prisma.spineRole.create({
+        data: { key: 'admin', name: 'Administrator' },
+    });
+
+    const adminUser = await prisma.spineUser.create({
+        data: {
+            organizationId: org.id,
+            email: 'admin@fusionai.com',
+            passwordHash: '$2b$12$placeholder_hash_not_real',
+            status: 'ACTIVE',
+            roles: { create: [{ roleId: adminRole.id }] },
+        },
+    });
+
+    console.log(`  ✓ Organization: ${org.id} | Company: ${company.id} | Admin: ${adminUser.id}`);
 
     // ── Partner Tags ──────────────────────────────────────────
     const tagCustomer = await prisma.partnerTag.create({ data: { name: 'Customer', color: 1 } });
@@ -13,36 +51,36 @@ async function main() {
 
     // ── Companies ─────────────────────────────────────────────
     const acmeCorp = await prisma.partner.create({
-        data: { name: 'Acme Corporation', email: 'info@acme.com', phone: '+1-555-0100', isCompany: true, isCustomer: true, website: 'https://acme.com', street: '123 Business Ave', city: 'San Francisco', state: 'CA', zip: '94102', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }, { partner_tags: { connect: { id: tagVIP.id } } }] } },
+        data: { organizationId: org.id, companyId: company.id, name: 'Acme Corporation', email: 'info@acme.com', phone: '+1-555-0100', isCompany: true, isCustomer: true, website: 'https://acme.com', street: '123 Business Ave', city: 'San Francisco', state: 'CA', zip: '94102', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }, { partner_tags: { connect: { id: tagVIP.id } } }] } },
     });
     const globalTech = await prisma.partner.create({
-        data: { name: 'Global Tech Solutions', email: 'contact@globaltech.io', phone: '+1-555-0200', isCompany: true, isCustomer: true, isVendor: true, website: 'https://globaltech.io', street: '456 Innovation Blvd', city: 'New York', state: 'NY', zip: '10001', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }] } },
+        data: { organizationId: org.id, companyId: company.id, name: 'Global Tech Solutions', email: 'contact@globaltech.io', phone: '+1-555-0200', isCompany: true, isCustomer: true, isVendor: true, website: 'https://globaltech.io', street: '456 Innovation Blvd', city: 'New York', state: 'NY', zip: '10001', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }] } },
     });
     const greenSupply = await prisma.partner.create({
-        data: { name: 'Green Supply Co', email: 'orders@greensupply.com', phone: '+1-555-0300', isCompany: true, isVendor: true, street: '789 Industrial Park', city: 'Chicago', state: 'IL', zip: '60601', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagVendor.id } } }] } },
+        data: { organizationId: org.id, companyId: company.id, name: 'Green Supply Co', email: 'orders@greensupply.com', phone: '+1-555-0300', isCompany: true, isVendor: true, street: '789 Industrial Park', city: 'Chicago', state: 'IL', zip: '60601', country: 'US', tags: { create: [{ partner_tags: { connect: { id: tagVendor.id } } }] } },
     });
     const euroDesign = await prisma.partner.create({
-        data: { name: 'Euro Design Studio', email: 'hello@eurodesign.eu', phone: '+49-30-12345', isCompany: true, isCustomer: true, website: 'https://eurodesign.eu', street: 'Friedrichstraße 42', city: 'Berlin', country: 'DE', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }] } },
+        data: { organizationId: org.id, companyId: company.id, name: 'Euro Design Studio', email: 'hello@eurodesign.eu', phone: '+49-30-12345', isCompany: true, isCustomer: true, website: 'https://eurodesign.eu', street: 'Friedrichstraße 42', city: 'Berlin', country: 'DE', tags: { create: [{ partner_tags: { connect: { id: tagCustomer.id } } }] } },
     });
     const techParts = await prisma.partner.create({
-        data: { name: 'TechParts International', email: 'sales@techparts.com', phone: '+44-20-55550400', isCompany: true, isVendor: true, country: 'GB', tags: { create: [{ partner_tags: { connect: { id: tagVendor.id } } }] } },
+        data: { organizationId: org.id, companyId: company.id, name: 'TechParts International', email: 'sales@techparts.com', phone: '+44-20-55550400', isCompany: true, isVendor: true, country: 'GB', tags: { create: [{ partner_tags: { connect: { id: tagVendor.id } } }] } },
     });
 
     // ── Individual Contacts ───────────────────────────────────
     const john = await prisma.partner.create({
-        data: { name: 'John Smith', email: 'john.smith@acme.com', phone: '+1-555-0101', mobile: '+1-555-0111', jobPosition: 'CEO', title: 'Mr', parentId: acmeCorp.id, isCustomer: true, tags: { create: [{ partner_tags: { connect: { id: tagVIP.id } } }] } },
+        data: { organizationId: org.id, name: 'John Smith', email: 'john.smith@acme.com', phone: '+1-555-0101', mobile: '+1-555-0111', jobPosition: 'CEO', title: 'Mr', parentId: acmeCorp.id, isCustomer: true, tags: { create: [{ partner_tags: { connect: { id: tagVIP.id } } }] } },
     });
     const sarah = await prisma.partner.create({
-        data: { name: 'Sarah Johnson', email: 'sarah.j@globaltech.io', phone: '+1-555-0201', jobPosition: 'CTO', title: 'Ms', parentId: globalTech.id, isCustomer: true },
+        data: { organizationId: org.id, name: 'Sarah Johnson', email: 'sarah.j@globaltech.io', phone: '+1-555-0201', jobPosition: 'CTO', title: 'Ms', parentId: globalTech.id, isCustomer: true },
     });
     const mike = await prisma.partner.create({
-        data: { name: 'Mike Williams', email: 'mike@greensupply.com', phone: '+1-555-0301', jobPosition: 'Sales Manager', parentId: greenSupply.id, isVendor: true },
+        data: { organizationId: org.id, name: 'Mike Williams', email: 'mike@greensupply.com', phone: '+1-555-0301', jobPosition: 'Sales Manager', parentId: greenSupply.id, isVendor: true },
     });
     const emma = await prisma.partner.create({
-        data: { name: 'Emma Davis', email: 'emma@eurodesign.eu', phone: '+49-30-12346', jobPosition: 'Creative Director', parentId: euroDesign.id, isCustomer: true },
+        data: { organizationId: org.id, name: 'Emma Davis', email: 'emma@eurodesign.eu', phone: '+49-30-12346', jobPosition: 'Creative Director', parentId: euroDesign.id, isCustomer: true },
     });
     const alex = await prisma.partner.create({
-        data: { name: 'Alex Chen', email: 'alex.chen@example.com', phone: '+1-555-0500', jobPosition: 'Freelance Developer', isCustomer: true, tags: { create: [{ partner_tags: { connect: { id: tagProspect.id } } }] } },
+        data: { organizationId: org.id, name: 'Alex Chen', email: 'alex.chen@example.com', phone: '+1-555-0500', jobPosition: 'Freelance Developer', isCustomer: true, tags: { create: [{ partner_tags: { connect: { id: tagProspect.id } } }] } },
     });
 
     // ── Product Categories ────────────────────────────────────
@@ -52,12 +90,12 @@ async function main() {
     const catRawMaterials = await prisma.productCategory.create({ data: { name: 'Raw Materials' } });
 
     // ── Products ──────────────────────────────────────────────
-    const laptop = await prisma.product.create({ data: { name: 'Business Laptop Pro 15', internalRef: 'HW-LAP-001', type: 'product', salePrice: 1299.99, costPrice: 850, categoryId: catHardware.id, qtyOnHand: 45, qtyForecasted: 60, description: 'High-performance business laptop with 15" display' } });
-    const monitor = await prisma.product.create({ data: { name: '4K Ultra Monitor 27"', internalRef: 'HW-MON-001', type: 'product', salePrice: 549.99, costPrice: 320, categoryId: catHardware.id, qtyOnHand: 120, qtyForecasted: 100, description: '27-inch 4K monitor for professional use' } });
-    const keyboard = await prisma.product.create({ data: { name: 'Mechanical Keyboard RGB', internalRef: 'HW-KEY-001', type: 'product', salePrice: 129.99, costPrice: 65, categoryId: catHardware.id, qtyOnHand: 200, qtyForecasted: 180 } });
-    const erPLicense = await prisma.product.create({ data: { name: 'FusionAI ERP License (Annual)', internalRef: 'SW-ERP-001', type: 'service', salePrice: 4999.99, costPrice: 0, categoryId: catSoftware.id, description: 'Annual subscription to FusionAI Enterprise Suite' } });
-    const consulting = await prisma.product.create({ data: { name: 'Technical Consulting (per hour)', internalRef: 'SRV-CON-001', type: 'service', salePrice: 150, costPrice: 80, categoryId: catServices.id } });
-    const steelPlate = await prisma.product.create({ data: { name: 'Steel Plate 1m x 2m', internalRef: 'RM-STL-001', type: 'product', salePrice: 89.99, costPrice: 45, categoryId: catRawMaterials.id, qtyOnHand: 500 } });
+    const laptop = await prisma.product.create({ data: { organizationId: org.id, companyId: company.id, name: 'Business Laptop Pro 15', internalRef: 'HW-LAP-001', productType: 'STORABLE', salesPrice: 1299.99, costPrice: 850, categoryId: catHardware.id, qtyOnHand: 45, qtyForecasted: 60, description: 'High-performance business laptop with 15" display' } });
+    const monitor = await prisma.product.create({ data: { organizationId: org.id, companyId: company.id, name: '4K Ultra Monitor 27"', internalRef: 'HW-MON-001', productType: 'STORABLE', salesPrice: 549.99, costPrice: 320, categoryId: catHardware.id, qtyOnHand: 120, qtyForecasted: 100, description: '27-inch 4K monitor for professional use' } });
+    const keyboard = await prisma.product.create({ data: { organizationId: org.id, companyId: company.id, name: 'Mechanical Keyboard RGB', internalRef: 'HW-KEY-001', productType: 'STORABLE', salesPrice: 129.99, costPrice: 65, categoryId: catHardware.id, qtyOnHand: 200, qtyForecasted: 180 } });
+    const erPLicense = await prisma.product.create({ data: { organizationId: org.id, companyId: company.id, name: 'FusionAI ERP License (Annual)', internalRef: 'SW-ERP-001', productType: 'SERVICE', salesPrice: 4999.99, costPrice: 0, categoryId: catSoftware.id, description: 'Annual subscription to FusionAI Enterprise Suite' } });
+    const consulting = await prisma.product.create({ data: { organizationId: org.id, companyId: company.id, name: 'Technical Consulting (per hour)', internalRef: 'SRV-CON-001', productType: 'SERVICE', salesPrice: 150, costPrice: 80, categoryId: catServices.id } });
+    const steelPlate = await prisma.product.create({ data: { organizationId: org.id, companyId: company.id, name: 'Steel Plate 1m x 2m', internalRef: 'RM-STL-001', productType: 'CONSUMABLE', salesPrice: 89.99, costPrice: 45, categoryId: catRawMaterials.id, qtyOnHand: 500 } });
 
     // ── CRM Stages ────────────────────────────────────────────
     const stageNew = await prisma.crmStage.create({ data: { name: 'New', sequence: 1 } });
@@ -196,11 +234,11 @@ async function main() {
     const jobDesigner = await prisma.hrJob.create({ data: { name: 'UX Designer', expectedEmployees: 2 } });
 
     // ── HR Employees ──────────────────────────────────────────
-    await prisma.hrEmployee.create({ data: { name: 'Alice Martin', workEmail: 'alice@fusionai.com', employeeNumber: 'EMP001', departmentId: deptMgmt.id, jobId: jobCEO.id, gender: 'female' } });
-    await prisma.hrEmployee.create({ data: { name: 'Bob Taylor', workEmail: 'bob@fusionai.com', employeeNumber: 'EMP002', departmentId: deptEng.id, jobId: jobDev.id, gender: 'male' } });
-    await prisma.hrEmployee.create({ data: { name: 'Carol White', workEmail: 'carol@fusionai.com', employeeNumber: 'EMP003', departmentId: deptSales.id, jobId: jobSalesMgr.id, gender: 'female' } });
-    await prisma.hrEmployee.create({ data: { name: 'Daniel Brown', workEmail: 'daniel@fusionai.com', employeeNumber: 'EMP004', departmentId: deptEng.id, jobId: jobDev.id, gender: 'male' } });
-    await prisma.hrEmployee.create({ data: { name: 'Eva Fischer', workEmail: 'eva@fusionai.com', employeeNumber: 'EMP005', departmentId: deptHR.id, jobId: jobHRMgr.id, gender: 'female' } });
+    const empAlice   = await prisma.hrEmployee.create({ data: { name: 'Alice Martin',  workEmail: 'alice@fusionai.com',  employeeNumber: 'EMP001', departmentId: deptMgmt.id,  jobId: jobCEO.id,     gender: 'female' } });
+    const empBob     = await prisma.hrEmployee.create({ data: { name: 'Bob Taylor',    workEmail: 'bob@fusionai.com',    employeeNumber: 'EMP002', departmentId: deptEng.id,   jobId: jobDev.id,     gender: 'male' } });
+    const empCarol   = await prisma.hrEmployee.create({ data: { name: 'Carol White',   workEmail: 'carol@fusionai.com',  employeeNumber: 'EMP003', departmentId: deptSales.id, jobId: jobSalesMgr.id,gender: 'female' } });
+    const empDaniel  = await prisma.hrEmployee.create({ data: { name: 'Daniel Brown',  workEmail: 'daniel@fusionai.com', employeeNumber: 'EMP004', departmentId: deptEng.id,   jobId: jobDev.id,     gender: 'male' } });
+    const empEva     = await prisma.hrEmployee.create({ data: { name: 'Eva Fischer',   workEmail: 'eva@fusionai.com',    employeeNumber: 'EMP005', departmentId: deptHR.id,    jobId: jobHRMgr.id,   gender: 'female' } });
 
     // ── Project Stages ────────────────────────────────────────
     const pStageNew = await prisma.projectStage.create({ data: { name: 'New', sequence: 1 } });
@@ -272,14 +310,14 @@ async function main() {
     await prisma.knowledgeArticle.create({ data: { title: 'API Documentation', body: '# FusionAI API Reference\n\n## Authentication\nAll API requests require a Bearer token.\n\n## Endpoints\n- `GET /api/partners` — List all contacts\n- `POST /api/crm/leads` — Create a lead', isPublished: true, category: 'engineering' } });
 
     // ── Leaves (Time Off) ─────────────────────────────────────
-    await prisma.hrLeave.create({ data: { name: 'Summer Vacation', state: 'validate', leaveType: 'legal', dateFrom: new Date('2026-07-01'), dateTo: new Date('2026-07-14'), numberOfDays: 10, employeeId: 2 } });
-    await prisma.hrLeave.create({ data: { name: 'Sick Leave', state: 'confirm', leaveType: 'sick', dateFrom: new Date('2026-03-10'), dateTo: new Date('2026-03-12'), numberOfDays: 2, employeeId: 4 } });
-    await prisma.hrLeave.create({ data: { name: 'Family Event', state: 'draft', leaveType: 'compensatory', dateFrom: new Date('2026-04-20'), dateTo: new Date('2026-04-21'), numberOfDays: 1, employeeId: 3 } });
+    await prisma.hrLeave.create({ data: { name: 'Summer Vacation', state: 'validate', leaveType: 'legal', dateFrom: new Date('2026-07-01'), dateTo: new Date('2026-07-14'), numberOfDays: 10, employeeId: empBob.id } });
+    await prisma.hrLeave.create({ data: { name: 'Sick Leave', state: 'confirm', leaveType: 'sick', dateFrom: new Date('2026-03-10'), dateTo: new Date('2026-03-12'), numberOfDays: 2, employeeId: empDaniel.id } });
+    await prisma.hrLeave.create({ data: { name: 'Family Event', state: 'draft', leaveType: 'compensatory', dateFrom: new Date('2026-04-20'), dateTo: new Date('2026-04-21'), numberOfDays: 1, employeeId: empCarol.id } });
 
     // ── Expenses ──────────────────────────────────────────────
-    await prisma.hrExpense.create({ data: { name: 'Client Dinner — Acme Corp', state: 'approved', date: new Date('2026-02-15'), totalAmount: 245.50, quantity: 1, unitAmount: 245.50, paymentMode: 'own_account', employeeId: 3 } });
-    await prisma.hrExpense.create({ data: { name: 'Conference Registration — React Summit', state: 'draft', date: new Date('2026-03-01'), totalAmount: 599, quantity: 1, unitAmount: 599, paymentMode: 'company_account', employeeId: 2 } });
-    await prisma.hrExpense.create({ data: { name: 'Office Supplies', state: 'reported', date: new Date('2026-02-20'), totalAmount: 127.80, quantity: 1, unitAmount: 127.80, paymentMode: 'own_account', employeeId: 5 } });
+    await prisma.hrExpense.create({ data: { name: 'Client Dinner — Acme Corp', state: 'approved', date: new Date('2026-02-15'), totalAmount: 245.50, quantity: 1, unitAmount: 245.50, paymentMode: 'own_account', employeeId: empCarol.id } });
+    await prisma.hrExpense.create({ data: { name: 'Conference Registration — React Summit', state: 'draft', date: new Date('2026-03-01'), totalAmount: 599, quantity: 1, unitAmount: 599, paymentMode: 'company_account', employeeId: empBob.id } });
+    await prisma.hrExpense.create({ data: { name: 'Office Supplies', state: 'reported', date: new Date('2026-02-20'), totalAmount: 127.80, quantity: 1, unitAmount: 127.80, paymentMode: 'own_account', employeeId: empEva.id } });
 
     // ── Recruitment ───────────────────────────────────────────
     await prisma.hrApplicant.create({ data: { name: 'Senior React Developer', partnerName: 'James Wilson', email: 'james.w@email.com', phone: '+1-555-7001', stage: 'interview', salary: 120000, source: 'linkedin', jobId: jobDev.id, departmentId: deptEng.id } });
@@ -287,20 +325,20 @@ async function main() {
     await prisma.hrApplicant.create({ data: { name: 'Sales Account Executive', partnerName: 'David Kim', email: 'david.kim@gmail.com', stage: 'new', salary: 75000, source: 'referral', jobId: jobSalesMgr.id, departmentId: deptSales.id } });
 
     // ── Attendances ───────────────────────────────────────────
-    await prisma.hrAttendance.create({ data: { checkIn: new Date('2026-02-23T08:00:00'), checkOut: new Date('2026-02-23T17:30:00'), workedHours: 9.5, employeeId: 1 } });
-    await prisma.hrAttendance.create({ data: { checkIn: new Date('2026-02-23T08:15:00'), checkOut: new Date('2026-02-23T18:00:00'), workedHours: 9.75, employeeId: 2 } });
-    await prisma.hrAttendance.create({ data: { checkIn: new Date('2026-02-23T09:00:00'), checkOut: new Date('2026-02-23T17:00:00'), workedHours: 8, employeeId: 3 } });
-    await prisma.hrAttendance.create({ data: { checkIn: new Date('2026-02-23T08:30:00'), workedHours: 0, employeeId: 4 } }); // still checked in
+    await prisma.hrAttendance.create({ data: { checkIn: new Date('2026-02-23T08:00:00'), checkOut: new Date('2026-02-23T17:30:00'), workedHours: 9.5, employeeId: empAlice.id } });
+    await prisma.hrAttendance.create({ data: { checkIn: new Date('2026-02-23T08:15:00'), checkOut: new Date('2026-02-23T18:00:00'), workedHours: 9.75, employeeId: empBob.id } });
+    await prisma.hrAttendance.create({ data: { checkIn: new Date('2026-02-23T09:00:00'), checkOut: new Date('2026-02-23T17:00:00'), workedHours: 8, employeeId: empCarol.id } });
+    await prisma.hrAttendance.create({ data: { checkIn: new Date('2026-02-23T08:30:00'), workedHours: 0, employeeId: empDaniel.id } }); // still checked in
 
     // ── Payroll ───────────────────────────────────────────────
-    await prisma.hrPayslip.create({ data: { name: 'SLIP/2026/001', state: 'done', dateFrom: new Date('2026-01-01'), dateTo: new Date('2026-01-31'), basicWage: 8500, grossSalary: 8500, deductions: 2125, netSalary: 6375, employeeId: 1 } });
-    await prisma.hrPayslip.create({ data: { name: 'SLIP/2026/002', state: 'done', dateFrom: new Date('2026-01-01'), dateTo: new Date('2026-01-31'), basicWage: 7200, grossSalary: 7200, deductions: 1800, netSalary: 5400, employeeId: 2 } });
-    await prisma.hrPayslip.create({ data: { name: 'SLIP/2026/003', state: 'draft', dateFrom: new Date('2026-02-01'), dateTo: new Date('2026-02-28'), basicWage: 8500, grossSalary: 8500, deductions: 2125, netSalary: 6375, employeeId: 1 } });
+    await prisma.hrPayslip.create({ data: { name: 'SLIP/2026/001', state: 'done', dateFrom: new Date('2026-01-01'), dateTo: new Date('2026-01-31'), basicWage: 8500, grossSalary: 8500, deductions: 2125, netSalary: 6375, employeeId: empAlice.id } });
+    await prisma.hrPayslip.create({ data: { name: 'SLIP/2026/002', state: 'done', dateFrom: new Date('2026-01-01'), dateTo: new Date('2026-01-31'), basicWage: 7200, grossSalary: 7200, deductions: 1800, netSalary: 5400, employeeId: empBob.id } });
+    await prisma.hrPayslip.create({ data: { name: 'SLIP/2026/003', state: 'draft', dateFrom: new Date('2026-02-01'), dateTo: new Date('2026-02-28'), basicWage: 8500, grossSalary: 8500, deductions: 2125, netSalary: 6375, employeeId: empAlice.id } });
 
     // ── Appraisals ────────────────────────────────────────────
-    await prisma.hrAppraisal.create({ data: { state: 'done', overallRating: 5, managerFeedback: 'Exceptional leadership. Drove company to 30% revenue growth.', employeeFeedback: 'Great year, looking forward to scaling the team.', deadline: new Date('2026-01-15'), employeeId: 1 } });
-    await prisma.hrAppraisal.create({ data: { state: 'done', overallRating: 4, managerFeedback: 'Strong technical skills, excellent code quality. Room for growth in mentoring.', employeeFeedback: 'Enjoyed working on the ERP migration project.', deadline: new Date('2026-01-15'), employeeId: 2 } });
-    await prisma.hrAppraisal.create({ data: { state: 'pending', overallRating: 0, deadline: new Date('2026-03-01'), employeeId: 4 } });
+    await prisma.hrAppraisal.create({ data: { state: 'done', overallRating: 5, managerFeedback: 'Exceptional leadership. Drove company to 30% revenue growth.', employeeFeedback: 'Great year, looking forward to scaling the team.', deadline: new Date('2026-01-15'), employeeId: empAlice.id } });
+    await prisma.hrAppraisal.create({ data: { state: 'done', overallRating: 4, managerFeedback: 'Strong technical skills, excellent code quality. Room for growth in mentoring.', employeeFeedback: 'Enjoyed working on the ERP migration project.', deadline: new Date('2026-01-15'), employeeId: empBob.id } });
+    await prisma.hrAppraisal.create({ data: { state: 'pending', overallRating: 0, deadline: new Date('2026-03-01'), employeeId: empDaniel.id } });
 
     // ── Quality ───────────────────────────────────────────────
     const qpIncoming = await prisma.qualityPoint.create({ data: { name: 'Incoming Goods Inspection', testType: 'passfail', notes: 'Check packaging integrity and product count.' } });
@@ -324,11 +362,11 @@ async function main() {
     // ── Planning Slots ────────────────────────────────────────
     const nextWeek = new Date(now.getTime() + 86400000);
     const nextWeekEnd = new Date(now.getTime() + 5 * 86400000);
-    await prisma.planningSlot.create({ data: { role: 'Developer', hours: 32, startDate: nextWeek, endDate: nextWeekEnd, state: 'published', employeeId: 2, projectId: projERP.id } });
-    await prisma.planningSlot.create({ data: { role: 'Designer', hours: 24, startDate: nextWeek, endDate: nextWeekEnd, state: 'published', employeeId: 4, projectId: projWebsite.id } });
-    await prisma.planningSlot.create({ data: { role: 'QA Engineer', hours: 40, startDate: nextWeek, endDate: nextWeekEnd, state: 'draft', employeeId: 5, projectId: projERP.id } });
-    await prisma.planningSlot.create({ data: { role: 'Project Manager', hours: 16, startDate: nextWeek, endDate: nextWeekEnd, state: 'published', employeeId: 1, projectId: projWebsite.id } });
-    await prisma.planningSlot.create({ data: { role: 'Developer', hours: 28, startDate: nextWeek, endDate: nextWeekEnd, state: 'draft', employeeId: 3, projectId: projERP.id } });
+    await prisma.planningSlot.create({ data: { role: 'Developer',      hours: 32, startDate: nextWeek, endDate: nextWeekEnd, state: 'published', employeeId: empBob.id,    projectId: projERP.id } });
+    await prisma.planningSlot.create({ data: { role: 'Designer',       hours: 24, startDate: nextWeek, endDate: nextWeekEnd, state: 'published', employeeId: empDaniel.id, projectId: projWebsite.id } });
+    await prisma.planningSlot.create({ data: { role: 'QA Engineer',    hours: 40, startDate: nextWeek, endDate: nextWeekEnd, state: 'draft',     employeeId: empEva.id,    projectId: projERP.id } });
+    await prisma.planningSlot.create({ data: { role: 'Project Manager',hours: 16, startDate: nextWeek, endDate: nextWeekEnd, state: 'published', employeeId: empAlice.id,  projectId: projWebsite.id } });
+    await prisma.planningSlot.create({ data: { role: 'Developer',      hours: 28, startDate: nextWeek, endDate: nextWeekEnd, state: 'draft',     employeeId: empCarol.id,  projectId: projERP.id } });
 
     // ── Marketing Campaigns ───────────────────────────────────
     await prisma.marketingCampaign.create({ data: { name: 'Spring Product Launch', type: 'multi_channel', state: 'active', budget: 5000, spent: 3200, leads: 245, conversions: 34, startDate: new Date('2026-02-15'), description: 'Major launch campaign for new ERP features.' } });

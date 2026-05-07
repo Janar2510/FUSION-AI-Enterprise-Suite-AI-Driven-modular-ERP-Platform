@@ -93,8 +93,8 @@ model SpineUserRole {
 }
 
 model SpinePartnerAddress {
-  id        String @id @default(cuid())
-  partnerId Int
+  id        String  @id @default(cuid())
+  partnerId String
   partner   Partner @relation(fields: [partnerId], references: [id])
   type      String
   street1   String?
@@ -107,7 +107,7 @@ model SpinePartnerAddress {
 
 model SpinePartnerContact {
   id        String  @id @default(cuid())
-  partnerId Int
+  partnerId String
   partner   Partner @relation(fields: [partnerId], references: [id])
   kind      String
   value     String
@@ -134,7 +134,7 @@ model Attachment {
 model SpineDocument {
   id             String   @id @default(cuid())
   organizationId String
-  partnerId      Int?
+  partnerId      String?
   attachmentId   String   @unique
   kind           String
   status         String   @default("draft")
@@ -179,7 +179,7 @@ model ChatterMessage {
 model TimelineEvent {
   id             String   @id @default(cuid())
   organizationId String
-  partnerId      Int?
+  partnerId      String?
   ownerType      String
   ownerId        String
   eventKey       String
@@ -224,18 +224,13 @@ model OutboxEvent {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PHASE 1 TODO: Upgrade existing Partner + Product to canonical spine format:
-//   - Change Int @id to String @id @default(cuid())
-//   - Add organizationId String + @index
-//   - Add companyId String?
-//   - Partner: add isEmployee, consentMarketing, consentUpdatedAt, tags String[]
-//   - Product: add type ProductType enum, unitOfMeasure, salesPrice/costPrice Decimal
-//   - Remove inline address/contact fields from Partner (move to SpinePartnerAddress/Contact)
-// This upgrade requires a data migration. Do it in Phase 1 migration: init_spine.
+// Phase 1 complete: Partner upgraded to canonical spine (ADR-0004)
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Partner {
-  id                  Int                   @id @default(autoincrement())
+  id                  String                @id @default(cuid())
+  organizationId      String
+  companyId           String?
   name                String
   email               String?
   phone               String?
@@ -243,6 +238,11 @@ model Partner {
   website             String?
   vat                 String?
   isCompany           Boolean               @default(false)
+  isEmployee          Boolean               @default(false)
+  isCustomer          Boolean               @default(false)
+  isVendor            Boolean               @default(false)
+  consentMarketing    Boolean               @default(false)
+  consentUpdatedAt    DateTime?
   type                String                @default("contact")
   street              String?
   street2             String?
@@ -257,9 +257,7 @@ model Partner {
   lang                String?               @default("en")
   color               Int                   @default(0)
   active              Boolean               @default(true)
-  isCustomer          Boolean               @default(false)
-  isVendor            Boolean               @default(false)
-  parentId            Int?
+  parentId            String?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   tags                PartnerToPartnerTag[]
@@ -280,16 +278,16 @@ model Partner {
   passkeys            UserPasskey[]
   spreadsheets        Spreadsheet[]
   vendorPricelists    VendorPricelist[]
-  // Phase 1 spine back-relations (added without migration)
   spineAddresses      SpinePartnerAddress[]
   spineContacts       SpinePartnerContact[]
 
+  @@index([organizationId])
   @@map("partners")
 }
 
 model UserPasskey {
   id           Int      @id @default(autoincrement())
-  partnerId    Int
+  partnerId    String
   credentialId String   @unique
   publicKey    String
   counter      Int      @default(0)
@@ -349,7 +347,7 @@ model CrmLead {
   lostReason      String?
   color           Int         @default(0)
   stageId         Int
-  partnerId       Int?
+  partnerId       String?
   dateDeadline    DateTime?
   dateClosed      DateTime?
   createdAt       DateTime    @default(now())
@@ -372,7 +370,7 @@ model SaleOrder {
   amountUntaxed Float           @default(0)
   amountTax     Float           @default(0)
   amountTotal   Float           @default(0)
-  partnerId     Int
+  partnerId     String
   crmLeadId     Int?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -395,7 +393,7 @@ model SaleOrderLine {
   priceSubtotal Float     @default(0)
   priceTotal    Float     @default(0)
   orderId       Int
-  productId     Int?
+  productId     String?
   product       Product?  @relation(fields: [productId], references: [id])
   order         SaleOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -414,7 +412,7 @@ model PurchaseOrder {
   amountUntaxed Float               @default(0)
   amountTax     Float               @default(0)
   amountTotal   Float               @default(0)
-  partnerId     Int
+  partnerId     String
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
   lines         PurchaseOrderLine[]
@@ -435,7 +433,7 @@ model PurchaseOrderLine {
   priceSubtotal Float         @default(0)
   priceTotal    Float         @default(0)
   orderId       Int
-  productId     Int?
+  productId     String?
   product       Product?      @relation(fields: [productId], references: [id])
   order         PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -453,13 +451,22 @@ model ProductCategory {
   @@map("product_categories")
 }
 
+enum ProductType {
+  STORABLE
+  CONSUMABLE
+  SERVICE
+}
+
 model Product {
-  id              Int                 @id @default(autoincrement())
+  id              String              @id @default(cuid())
+  organizationId  String?
+  companyId       String?
   name            String
   internalRef     String?
   barcode         String?
-  type            String              @default("consu")
-  salePrice       Float               @default(0)
+  productType     ProductType         @default(CONSUMABLE)
+  unitOfMeasure   String              @default("unit")
+  salesPrice      Float               @default(0)
   costPrice       Float               @default(0)
   description     String?
   descriptionSale String?
@@ -512,7 +519,7 @@ model WebCart {
 model WebCartItem {
   id          Int      @id @default(autoincrement())
   cartId      Int
-  productId   Int
+  productId   String
   productName String
   productSku  String?
   quantity    Float    @default(1)
@@ -549,7 +556,7 @@ model LoyaltyProgram {
 model LoyaltyCard {
   id         Int            @id @default(autoincrement())
   programId  Int
-  partnerId  Int            @unique
+  partnerId  String         @unique
   points     Float          @default(0)
   program    LoyaltyProgram @relation(fields: [programId], references: [id])
   partner    Partner        @relation(fields: [partnerId], references: [id])
@@ -635,7 +642,7 @@ model StockPicking {
   note            String?
   locationId      Int?
   locationDestId  Int?
-  partnerId       Int?
+  partnerId       String?
   warehouseId     Int?
   saleOrderId     Int?
   purchaseOrderId Int?
@@ -664,7 +671,7 @@ model StockMove {
   locationId     Int
   locationDestId Int
   pickingId      Int?
-  productId      Int
+  productId      String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -678,7 +685,7 @@ model StockMove {
 
 model StockQuant {
   id               Int      @id @default(autoincrement())
-  productId        Int
+  productId        String
   locationId       Int
   quantity         Float    @default(0) // On Hand
   reservedQuantity Float    @default(0)
@@ -732,7 +739,7 @@ model AccountMove {
   amountResidual Float             @default(0)
   paymentState   String            @default("not_paid")
   journalId      Int
-  partnerId      Int?
+  partnerId      String?
   saleOrderId    Int?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
@@ -758,7 +765,7 @@ model AccountMoveLine {
   accountId     Int?
   account       AccountAccount? @relation(fields: [accountId], references: [id])
   moveId        Int
-  productId     Int?
+  productId     String?
   product       Product?        @relation(fields: [productId], references: [id])
   move          AccountMove     @relation(fields: [moveId], references: [id], onDelete: Cascade)
 
@@ -773,7 +780,7 @@ model FsTask {
   priority      Int         @default(0)
   scheduledDate DateTime?
   dateDeadline  DateTime?
-  partnerId     Int?
+  partnerId     String?
   employeeId    Int?
   street        String?
   city          String?
@@ -792,7 +799,7 @@ model RentalOrder {
   state       String            @default("draft")
   pickupDate  DateTime
   returnDate  DateTime
-  partnerId   Int
+  partnerId   String
   amountTotal Float             @default(0)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
@@ -805,7 +812,7 @@ model RentalOrder {
 model RentalOrderLine {
   id            Int         @id @default(autoincrement())
   orderId       Int
-  productId     Int
+  productId     String
   productQty    Int         @default(1)
   priceUnit     Float       @default(0)
   priceSubtotal Float       @default(0)
@@ -861,7 +868,7 @@ model HrEmployee {
   color            Int            @default(0)
   departmentId     Int?
   jobId            Int?
-  partnerId        Int?           @unique
+  partnerId        String?        @unique
   managerId        Int?
   coachId          Int?
   createdAt        DateTime       @default(now())
@@ -1029,7 +1036,7 @@ model HelpdeskTicket {
   kanbanState  String        @default("normal")
   active       Boolean       @default(true)
   stageId      Int
-  partnerId    Int?
+  partnerId    String?
   dateDeadline DateTime?
   dateClosed   DateTime?
   createdAt    DateTime      @default(now())
@@ -1064,7 +1071,7 @@ model CalendarAttendee {
   state     String        @default("needsAction")
   role      String        @default("req")
   eventId   Int
-  partnerId Int
+  partnerId String
   partner   Partner       @relation(fields: [partnerId], references: [id])
   event     CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
@@ -1119,7 +1126,7 @@ model MrpBomLine {
   id         Int     @id @default(autoincrement())
   productQty Float   @default(1)
   bomId      Int
-  productId  Int
+  productId  String
   product    Product @relation(fields: [productId], references: [id])
   bom        MrpBom  @relation(fields: [bomId], references: [id], onDelete: Cascade)
 
@@ -1136,7 +1143,7 @@ model MrpProduction {
   dateFinished DateTime?
   origin       String?
   bomId        Int?
-  productId    Int?
+  productId    String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   bom          MrpBom?        @relation(fields: [bomId], references: [id])
@@ -1231,7 +1238,7 @@ model PosOrderLine {
   priceSubtotal Float    @default(0)
   discount      Float    @default(0)
   orderId       Int
-  productId     Int?
+  productId     String?
   product       Product? @relation(fields: [productId], references: [id])
   order         PosOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
@@ -1621,7 +1628,7 @@ model QualityPoint {
   id           Int            @id @default(autoincrement())
   name         String
   testType     String         @default("passfail")
-  productId    Int?
+  productId    String?
   workcenterId Int?
   teamId       String?
   notes        String?
@@ -1643,7 +1650,7 @@ model QualityCheck {
   notes        String?
   picture      String?
   pointId      Int?
-  productId    Int?
+  productId    String?
   productionId Int?
   workorderId  Int?
   pickingId    Int?
@@ -1667,7 +1674,7 @@ model MrpEco {
   effectivity     String?   // as_soon_as_possible, date
   effectivityDate DateTime?
   approvalState   String    @default("none") // none, approved, rejected
-  productId       Int?
+  productId       String?
   bomId           Int?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -1688,7 +1695,7 @@ model Subscription {
   endDate           DateTime?
   recurringInterval Int       @default(1)
   recurringRule     String    @default("monthly")
-  partnerId         Int?
+  partnerId         String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   partner           Partner?  @relation(fields: [partnerId], references: [id])
@@ -1733,7 +1740,7 @@ model MarketingCampaign {
 }
 
 model PartnerToPartnerTag {
-  A            Int
+  A            String
   B            Int
   partner_tags PartnerTag @relation(fields: [B], references: [id], onDelete: Cascade)
   partners     Partner    @relation(fields: [A], references: [id], onDelete: Cascade)
@@ -1757,7 +1764,7 @@ model Spreadsheet {
   id        Int      @id @default(autoincrement())
   name      String
   data      String   @default("{}")
-  partnerId Int?
+  partnerId String?
   partner   Partner? @relation(fields: [partnerId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1783,7 +1790,7 @@ model Workflow {
 model StockWarehouseOrderpoint {
   id              Int            @id @default(autoincrement())
   name            String?
-  productId       Int
+  productId       String
   locationId      Int
   warehouseId     Int?
   productMinQty   Float          @default(0)
@@ -1828,8 +1835,8 @@ model StockRoute {
 
 model VendorPricelist {
   id              Int            @id @default(autoincrement())
-  partnerId       Int
-  productId       Int
+  partnerId       String
+  productId       String
   productName     String?
   productCode     String?
   sequence        Int            @default(10)

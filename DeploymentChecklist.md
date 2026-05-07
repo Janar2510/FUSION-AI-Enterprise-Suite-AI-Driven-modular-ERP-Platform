@@ -1,5 +1,33 @@
 # FusionAI Enterprise Suite - Deployment Checklist
 
+## Phase 1 — Canonical Data Spine: Pre-Migration Checklist (2026-05-06)
+
+> Run these steps **before** deploying Phase 1 to any environment.
+
+### Database Migration
+- [ ] `DATABASE_URL` set to a writable PostgreSQL 14+ instance
+- [ ] Run: `cd api && npx prisma migrate dev --name init_spine`
+- [ ] Verify migration applied: `npx prisma migrate status` shows all applied
+- [ ] Run seed: `npm run db:seed` — confirm 1 org, 1 company, admin user created
+- [ ] Verify: `psql $DATABASE_URL -c "SELECT count(*) FROM \"Organization\";"` returns 1
+
+### API Smoke Tests
+- [ ] `npm run lint` exits 0 (TypeScript: zero errors)
+- [ ] `npm test` exits 0 (8/8 integration tests passing)
+- [ ] `curl /api/health` returns `200 { status: "ok" }`
+- [ ] `curl /api/partners` returns paginated list (seeded data)
+- [ ] `curl /api/partners/<seeded-id>/profile` returns 200 with `summary`, `crm`, `sales` keys
+
+### New Environment Variables (Phase 1 — no new required vars)
+- `DATABASE_URL` — already required; now targets a schema with `Organization` table
+- `SESSION_SECRET`, `JWT_SECRET` — already guarded by production-secret-guard
+
+### Rollback Plan
+- Prisma migrations are reversible: `npx prisma migrate resolve --rolled-back <migration-name>`
+- `Partner.id` and `Product.id` changed from `Int` → `String (CUID)` — **data migration required** if upgrading an existing populated database (generate CUIDs for existing rows before applying constraint change)
+
+---
+
 ## Pre-Deployment Checklist
 
 ### ✅ Environment Setup

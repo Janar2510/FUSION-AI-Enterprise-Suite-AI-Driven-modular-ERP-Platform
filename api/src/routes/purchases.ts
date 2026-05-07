@@ -107,7 +107,7 @@ purchaseRoutes.put('/:id', asyncHandler(async (req, res) => {
     };
 
     if (partnerId) {
-        updateData.partner = { connect: { id: Number(partnerId) } };
+        updateData.partner = { connect: { id: String(partnerId) } };
     }
 
     if (lines) {

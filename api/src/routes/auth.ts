@@ -28,8 +28,8 @@ authRoutes.post('/register-options', asyncHandler(async (req, res) => {
         return;
     }
 
-    const partner = await prisma.partner.findUnique({
-        where: { id: parseInt(partnerId) },
+    const partner = await prisma.partner.findFirst({
+        where: { id: String(partnerId) },
         include: { passkeys: true }
     });
 
@@ -41,7 +41,7 @@ authRoutes.post('/register-options', asyncHandler(async (req, res) => {
     const options: GenerateRegistrationOptionsOpts = {
         rpName: 'FusionAI Enterprise',
         rpID: process.env.RP_ID || 'localhost',
-        userID: new TextEncoder().encode(partner.id.toString()),
+        userID: new TextEncoder().encode(partner.id),
         userName: partner.email || partner.name,
         userDisplayName: partner.name,
         attestationType: 'none',

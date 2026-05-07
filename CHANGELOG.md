@@ -5,6 +5,61 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Phase 1: Canonical Data Spine — 2026-05-06
+
+### Added
+
+#### 🏗️ Canonical Data Models (schema.prisma)
+- `Organization` — top-level tenant root with slug, status, and plan fields
+- `SpineCompany` — legal entity per org (VAT, fiscal year, currency, country)
+- `SpineUser` + `SpineRole` + `SpineUserRole` — SSO-ready identity spine replacing ad-hoc user fields
+- `Permission` + `RolePermission` — fine-grained RBAC building blocks
+- `AuditLog` — immutable append-only audit trail (before/after JSON diffs, IP, user-agent)
+- `OutboxEvent` — transactional outbox for reliable event publishing (topic, payload, status, attempts)
+- `TimelineEvent` — chronological activity feed per record (model + recordId routing)
+- `Activity` — scheduled follow-up tasks (call, email, meeting) linked to partners
+
+#### 🔑 Partner & Product Schema Upgrades
+- `Partner.id` migrated from `Int` → `String @default(cuid())` for global uniqueness
+- `Product.id` migrated from `Int` → `String @default(cuid())`
+- Added `organizationId`, `companyId` multi-tenancy fields to `Partner` and `Product`
+- Added `ProductType` enum: `STORABLE | CONSUMABLE | SERVICE`
+- Renamed `salePrice` → `salesPrice` on `Product`; added `unitOfMeasure`, `barcode` fields
+- Updated all FK references from `Int` to `String` across `LoyaltyCard`, `WebCart`, etc.
+
+#### ⚙️ Core Helpers (`api/src/core/`)
+- `core/tenancy/index.ts` — `tenantDb(organizationId)` Prisma proxy that auto-scopes all reads and injects `organizationId` into creates across tenant-owned models
+- `core/audit/index.ts` — `audit()` helper: writes `AuditLog` rows with computed diffs; never throws
+- `core/timeline/index.ts` — `emitTimeline()` helper: writes `TimelineEvent` rows; never throws
+- `core/outbox/index.ts` — `publishEvent()` helper: writes `OutboxEvent` rows with optional transaction context; never throws
+
+#### 🔭 360° Partner Profile API
+- `GET /api/partners/:id/profile` — parallel-fetched aggregated view including addresses, contacts, CRM leads, sale orders, purchase orders, invoices, helpdesk tickets, timeline, activities, and documents
+- Summary KPIs: `saleTotal`, `purchaseTotal`, `openLeads`, `openTickets`, `invoiceCount`
+- Graceful fallback via `safeFind()` helper for optional/future Prisma models
+
+#### 🌱 Seed Improvements (`api/prisma/seed.ts`)
+- Seeds `Organization`, `SpineCompany`, `SpineRole` (admin), `SpineUser` (admin@fusionai.com)
+- All partner/product seed rows now carry correct `organizationId` + `companyId`
+- Employee IDs in leave/expense/attendance/payslip rows derived from captured create results (no more hardcoded IDs)
+
+#### 🧪 Integration Tests
+- `api/src/__tests__/partners.profile.test.ts` — 8 Jest tests covering 200/404 responses, KPI computation, and response shape for the new profile endpoint
+- Jest + ts-jest + supertest added to `devDependencies`; `npm test` script wired
+
+### Changed
+
+#### 🔧 Route ID Type Fixes
+- `src/routes/partners.ts` — replaced all `parseInt(id)` with string IDs; `findUnique` → `findFirst`
+- `src/routes/products.ts` — same pattern
+- `src/routes/auth.ts` — `parseInt(partnerId)` → `String(partnerId)` for WebAuthn registration
+- `src/routes/pos.ts` — loyalty card lookup now uses string partnerId
+- `src/routes/purchases.ts` — partner connect uses `String(partnerId)`
+- `src/routes/ecommerce.ts` — `salePrice` → `salesPrice`; product count map keyed by `string`
+
+### Fixed
+- TypeScript build (`npm run lint`) exits 0 with 0 errors after Prisma client regeneration
+
 ## [1.0.4] - 2025-09-24
 
 ### Fixed

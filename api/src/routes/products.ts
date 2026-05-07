@@ -25,7 +25,7 @@ productRoutes.get('/categories', asyncHandler(async (_req, res) => {
 }));
 
 productRoutes.get('/:id', asyncHandler(async (req, res) => {
-    const product = await prisma.product.findUnique({ where: { id: parseInt(req.params.id) }, include: { category: true } });
+    const product = await prisma.product.findFirst({ where: { id: req.params.id }, include: { category: true } });
     if (!product) { res.status(404).json({ error: 'Product not found' }); return; }
     res.json(product);
 }));
@@ -36,11 +36,11 @@ productRoutes.post('/', asyncHandler(async (req, res) => {
 }));
 
 productRoutes.put('/:id', asyncHandler(async (req, res) => {
-    const product = await prisma.product.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const product = await prisma.product.update({ where: { id: req.params.id }, data: req.body });
     res.json(product);
 }));
 
 productRoutes.delete('/:id', asyncHandler(async (req, res) => {
-    await prisma.product.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
+    await prisma.product.update({ where: { id: req.params.id }, data: { active: false } });
     res.json({ success: true });
 }));

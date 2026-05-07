@@ -60,7 +60,7 @@ ecommerceRoutes.post('/cart/:sessionId/items', asyncHandler(async (req, res) => 
         where: { cartId: cart.id, productId }
     });
 
-    const unitPrice = product.salePrice || 0;
+    const unitPrice = product.salesPrice || 0;
 
     if (existingItem) {
         await prisma.webCartItem.update({
@@ -137,7 +137,7 @@ ecommerceRoutes.post('/cart/:sessionId/checkout', asyncHandler(async (req, res) 
     let partner = await prisma.partner.findFirst({ where: { email } });
     if (!partner) {
         partner = await prisma.partner.create({
-            data: { name, email, isCustomer: true }
+            data: { name, email, isCustomer: true, organizationId: 'default' } as any
         });
     }
 
@@ -222,10 +222,10 @@ ecommerceRoutes.post('/ai/recommendations', asyncHandler(async (req, res) => {
         });
 
         // Extract and count other products from these orders
-        const productCounts: Record<number, number> = {};
+        const productCounts: Record<string, number> = {};
 
-        [...relatedSaleOrders, ...relatedPosOrders].forEach(order => {
-            order.lines.forEach(line => {
+        [...relatedSaleOrders, ...relatedPosOrders].forEach((order: any) => {
+            order.lines.forEach((line: any) => {
                 if (line.productId && !currentProductIds.includes(line.productId)) {
                     productCounts[line.productId] = (productCounts[line.productId] || 0) + 1;
                 }
@@ -235,7 +235,7 @@ ecommerceRoutes.post('/ai/recommendations', asyncHandler(async (req, res) => {
         const sortedProductIds = Object.entries(productCounts)
             .sort(([, a], [, b]) => b - a)
             .slice(0, 4)
-            .map(([id]) => parseInt(id));
+            .map(([id]) => id);
 
         if (sortedProductIds.length > 0) {
             recommendations = await prisma.product.findMany({
