@@ -7,6 +7,8 @@ import { useSalesStore, SaleOrder, SaleOrderLine } from '../stores/salesStore';
 import { usePartnerStore } from '@/stores/partnerStore';
 import { ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 export const SalesModule: React.FC = () => {
     const { orders, fetchAllOrders, createOrder, updateOrder, confirmOrder, cancelOrder, createInvoice } = useSalesStore();
@@ -283,6 +285,24 @@ export const SalesModule: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    }
+                    rightPanels={
+                        <div className="space-y-4">
+                            {activeRecord && (
+                                <AiActionsPanel
+                                    entityType="SaleOrder"
+                                    entityId={String(activeRecord.id)}
+                                    agentKey="lead-scoring"
+                                />
+                            )}
+                            {activeRecord && (
+                                <ChatterPanel
+                                    ownerType="SaleOrder"
+                                    ownerId={activeRecord.id}
+                                    showTimeline
+                                />
+                            )}
                         </div>
                     }
                 />

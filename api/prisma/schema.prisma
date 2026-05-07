@@ -299,6 +299,10 @@ model Partner {
   spineAddresses      SpinePartnerAddress[]
   spineContacts       SpinePartnerContact[]
   payments            AccountPayment[]      @relation("PaymentPartner")
+  paymentTermId       Int?
+  paymentTerm         PaymentTerm?          @relation("PartnerPaymentTerm", fields: [paymentTermId], references: [id])
+  pricelistId         Int?
+  pricelist           Pricelist?            @relation("PartnerPricelist", fields: [pricelistId], references: [id])
 
   @@index([organizationId])
   @@map("partners")
@@ -529,8 +533,9 @@ model Product {
   mrpEcos         MrpEco[]
   webCartItems    WebCartItem[]
   orderpoints     StockWarehouseOrderpoint[]
-  vendorPricelists VendorPricelist[]
-  routes          StockRoute[]      @relation("ProductStockRoute")
+  vendorPricelists  VendorPricelist[]
+  pricelistLines    PricelistLine[]  @relation("ProductPricelist")
+  routes            StockRoute[]     @relation("ProductStockRoute")
 
   @@map("products")
 }
@@ -1927,6 +1932,85 @@ model VendorPricelist {
   product         Product        @relation(fields: [productId], references: [id])
 
   @@map("vendor_pricelists")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 5c — ERP Foundation: Payment Terms, Pricelists, Accounting Periods
+// ─────────────────────────────────────────────────────────────────────────────
+
+// G-08 — Payment terms (net-30, net-60, immediate, 50% upfront, etc.)
+model PaymentTerm {
+  id          Int               @id @default(autoincrement())
+  name        String            @unique
+  note        String?
+  active      Boolean           @default(true)
+  lines       PaymentTermLine[]
+  partners    Partner[]         @relation("PartnerPaymentTerm")
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("payment_terms")
+}
+
+model PaymentTermLine {
+  id              Int         @id @default(autoincrement())
+  paymentTermId   Int
+  paymentTerm     PaymentTerm @relation(fields: [paymentTermId], references: [id], onDelete: Cascade)
+  sequence        Int         @default(10)
+  value           String      @default("percent")  // percent | fixed | balance
+  valueAmount     Float       @default(0)           // e.g. 100 for "100%"
+  days            Int         @default(0)            // days from invoice date
+  dayType         String      @default("after_invoice_date")
+
+  @@index([paymentTermId])
+  @@map("payment_term_lines")
+}
+
+// G-09 — Customer pricelist (partner-specific or tiered pricing)
+model Pricelist {
+  id            Int             @id @default(autoincrement())
+  name          String
+  currencyCode  String          @default("EUR")
+  active        Boolean         @default(true)
+  lines         PricelistLine[]
+  partners      Partner[]       @relation("PartnerPricelist")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@map("pricelists")
+}
+
+model PricelistLine {
+  id            Int        @id @default(autoincrement())
+  pricelistId   Int
+  pricelist     Pricelist  @relation(fields: [pricelistId], references: [id], onDelete: Cascade)
+  productId     String?
+  product       Product?   @relation("ProductPricelist", fields: [productId], references: [id])
+  minQty        Float      @default(0)
+  priceDiscount Float      @default(0)  // percent discount from sales price
+  fixedPrice    Float?                  // override; null = use discount
+  dateStart     DateTime?
+  dateEnd       DateTime?
+
+  @@index([pricelistId])
+  @@index([productId])
+  @@map("pricelist_lines")
+}
+
+// G-11 — Accounting period locking
+model AccountingPeriod {
+  id          Int      @id @default(autoincrement())
+  companyId   String?
+  name        String                                  // e.g. "Jan 2026"
+  dateStart   DateTime
+  dateStop    DateTime
+  locked      Boolean  @default(false)               // true = no posting allowed
+  closedAt    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
+  @@map("accounting_periods")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -17,6 +17,7 @@ import prisma from '../lib/prisma';
 import { AppError } from './errors';
 import { nextval } from './sequence';
 import { emitTimeline } from './timeline';
+import { assertPeriodOpen } from './accounting/periodCheck';
 
 /** Ensure the request is idempotent. Returns existing record or null. */
 async function checkIdempotency<T>(
@@ -254,7 +255,63 @@ export async function validatePicking(pickingId: number) {
         partnerId: (picking as any).partnerId ?? null,
     });
 
+    // G-15: COGS accounting entries for outgoing pickings (delivery orders)
+    // Dr COGS / Cr Inventory Asset per move line
+    if (picking.pickingTypeId) {
+        void createCogsEntries(picking, result);
+    }
+
     return result;
+}
+
+/**
+ * G-15 — Create COGS journal entries when stock is delivered.
+ * Best-effort: never blocks picking validation if it fails.
+ */
+async function createCogsEntries(picking: any, donePicking: any) {
+    try {
+        // Only for outgoing pickings (deliveries)
+        const pickingType = await prisma.stockPickingType.findFirst({
+            where: { id: picking.pickingTypeId },
+        });
+        if (!pickingType || pickingType.code !== 'outgoing') return;
+
+        // Get or create COGS and Inventory journals/accounts
+        let cogsJournal = await prisma.accountJournal.findFirst({
+            where: { type: { in: ['general', 'sale'] }, active: true },
+        });
+        if (!cogsJournal) return; // no chart of accounts configured yet
+
+        const cogsMoveSeq = await nextval('account.move.out_invoice').catch(() => `COGS-${Date.now()}`);
+        const totalCost = (picking.moves ?? []).reduce((sum: number, m: any) => {
+            return sum + ((m.productQty ?? 0) * (m.product?.costPrice ?? 0));
+        }, 0);
+
+        if (totalCost <= 0) return; // nothing to post
+
+        await prisma.accountMove.create({
+            data: {
+                name: `COGS-${cogsMoveSeq}`,
+                moveType: 'entry',
+                state: 'posted',
+                postedAt: new Date(),
+                organizationId: picking.organizationId ?? undefined,
+                journalId: cogsJournal.id,
+                amountUntaxed: totalCost,
+                amountTax: 0,
+                amountTotal: totalCost,
+                amountResidual: 0,
+                lines: {
+                    create: [
+                        { name: `COGS — ${picking.name}`, debit: totalCost, credit: 0, balance: totalCost },
+                        { name: `Inventory — ${picking.name}`, debit: 0, credit: totalCost, balance: -totalCost },
+                    ],
+                },
+            },
+        });
+    } catch {
+        // COGS entry failure must never block the picking validation
+    }
 }
 
 // ── FLOW C helpers ─────────────────────────────────────────────────────────────
@@ -323,6 +380,9 @@ export async function postInvoice(moveId: number) {
     if (!move) throw AppError.notFound('Invoice');
     if (move.state === 'posted') throw AppError.conflict('Invoice is already posted and cannot be modified');
     if (move.lines.length === 0) throw AppError.validation('Cannot post an empty invoice');
+
+    // G-11: period lock guard
+    await assertPeriodOpen(move.date ? new Date(move.date) : new Date(), (move as any).companyId);
 
     const totalDebit = move.lines.reduce((s: number, l: any) => s + (l.debit || 0), 0);
     const totalCredit = move.lines.reduce((s: number, l: any) => s + (l.credit || 0), 0);

@@ -372,6 +372,15 @@ export const helpdeskApi = {
     api.get('/api/helpdesk/pipeline'),
 }
 
+// ── Chatter (record-level messages + timeline) ────────────────────────────────
+export const chatterApi = {
+  load: (ownerType: string, ownerId: string | number) =>
+    api.get('/api/messaging/chatter', { params: { ownerType, ownerId: String(ownerId) } }),
+
+  post: (ownerType: string, ownerId: string | number, body: string, isInternal = true) =>
+    api.post('/api/messaging/chatter', { ownerType, ownerId: String(ownerId), body, isInternal }),
+}
+
 // ── AI Actions (Phase 5) ──────────────────────────────────────────────────────
 export const aiActionsApi = {
   run: (agentKey: string, entityType: string, entityId: string, input?: Record<string, unknown>) =>

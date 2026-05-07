@@ -8,6 +8,7 @@ import { usePartnerStore } from '@/stores/partnerStore';
 import { Clock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 
 export const HelpdeskModule: React.FC = () => {
     const {
@@ -270,6 +271,15 @@ export const HelpdeskModule: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            }
+            rightPanels={
+                activeRecord ? (
+                    <ChatterPanel
+                        ownerType="HelpdeskTicket"
+                        ownerId={activeRecord.id}
+                        showTimeline
+                    />
+                ) : undefined
             }
         />
     );

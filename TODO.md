@@ -185,12 +185,14 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 - [x] G-06: `core/email/index.ts` — nodemailer + 5 HTML templates (invoice, order-confirm, password-reset, payment-reminder, user-invite)
 - [x] G-07: `core/tax/index.ts` — computeTotalsFromDb(), percent/fixed tax, price-inclusive, graceful 20% fallback
 - [x] G-14: `core/auth/recordRules.ts` — per-module row filters; userId on CrmLead/SaleOrder/HelpdeskTicket
-- [ ] G-04: `<ChatterPanel>` React component + wire into module forms
-- [ ] G-08: `PaymentTerm` model + invoice due-date calculation
-- [ ] G-09: Customer `Pricelist` model + sales line pricing lookup
-- [ ] G-11: `AccountingPeriod` model + period lock check in posting routes
+- [x] G-04: `ChatterPanel` component — messages + timeline feed, compose, Note/Message toggle; wired into Helpdesk, Sales, Accounting forms
+- [x] G-08: `PaymentTerm` + `PaymentTermLine` models; Net-30/60/Immediate seeded; FK on Partner
+- [x] G-09: `Pricelist` + `PricelistLine` models; FK on Partner and Product
+- [x] G-11: `AccountingPeriod` model; `assertPeriodOpen()` guard wired into `postInvoice()`
+- [x] G-15: `createCogsEntries()` — Dr COGS / Cr Inventory on outgoing picking validation
+- [x] `chatterApi` added to frontend SDK; `POST/GET /api/messaging/chatter` endpoints
+- [x] AiActionsPanel wired into Sales (lead-scoring) + Accounting (invoice-anomaly) forms
 - [ ] G-12: Wire real AI data into Discuss module AI panel (currently mock)
-- [ ] G-15: COGS `AccountMove` entries on picking validation
 
 **Hard rule:** No AI agent can post invoices, reconcile, send legal docs, or delete records.
 

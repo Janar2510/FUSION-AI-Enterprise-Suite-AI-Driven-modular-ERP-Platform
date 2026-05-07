@@ -10,6 +10,8 @@ import { ChevronRight, TrendingUp, TrendingDown, DollarSign, FileText, BookOpen,
 import toast from 'react-hot-toast';
 import { MetricGrid } from '@/components/shared/MetricCard';
 import { GlassCard } from '@/components/shared/GlassCard';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 type AccountingTab = 'out_invoice' | 'in_invoice' | 'entry';
 
@@ -550,6 +552,24 @@ export const AccountingModule: React.FC = () => {
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    }
+                    rightPanels={
+                        <div className="space-y-4">
+                            {activeRecord && (
+                                <AiActionsPanel
+                                    entityType="AccountMove"
+                                    entityId={String(activeRecord.id)}
+                                    agentKey="invoice-anomaly"
+                                />
+                            )}
+                            {activeRecord && (
+                                <ChatterPanel
+                                    ownerType="AccountMove"
+                                    ownerId={activeRecord.id}
+                                    showTimeline
+                                />
+                            )}
                         </div>
                     }
                 />
