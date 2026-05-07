@@ -180,16 +180,16 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 - [ ] Evals golden set per agent; CI runs on prompt/agent changes
 
 ### Phase 5c — ERP Foundation Gaps (from gap analysis G-01 to G-15)
-- [ ] G-03: `api/src/jobs/outboxRelay.ts` — background cron worker (ADR-0009)
+- [x] G-03: `api/src/jobs/outboxRelay.ts` — node-cron every 30s, max 5 retries, dead-letter
+- [x] G-05: `core/pdf/index.ts` — pdfkit A4 invoice + quotation PDF; GET /moves/:id/pdf + /sales/:id/pdf
+- [x] G-06: `core/email/index.ts` — nodemailer + 5 HTML templates (invoice, order-confirm, password-reset, payment-reminder, user-invite)
+- [x] G-07: `core/tax/index.ts` — computeTotalsFromDb(), percent/fixed tax, price-inclusive, graceful 20% fallback
+- [x] G-14: `core/auth/recordRules.ts` — per-module row filters; userId on CrmLead/SaleOrder/HelpdeskTicket
 - [ ] G-04: `<ChatterPanel>` React component + wire into module forms
-- [ ] G-05: `core/pdf/index.ts` — pdfkit invoice/quote generation (ADR-0010)
-- [ ] G-06: `core/email/index.ts` — nodemailer transactional emails (ADR-0011)
-- [ ] G-07: `AccountTax` model + `core/tax/index.ts` — proper tax computation (ADR-0012)
 - [ ] G-08: `PaymentTerm` model + invoice due-date calculation
 - [ ] G-09: Customer `Pricelist` model + sales line pricing lookup
 - [ ] G-11: `AccountingPeriod` model + period lock check in posting routes
-- [ ] G-12: Wire real data into AI Actions panel (currently built; discuss module still uses mock)
-- [ ] G-14: Record-level RBAC row filters — `core/auth/recordRules.ts` (ADR-0013)
+- [ ] G-12: Wire real AI data into Discuss module AI panel (currently mock)
 - [ ] G-15: COGS `AccountMove` entries on picking validation
 
 **Hard rule:** No AI agent can post invoices, reconcile, send legal docs, or delete records.
