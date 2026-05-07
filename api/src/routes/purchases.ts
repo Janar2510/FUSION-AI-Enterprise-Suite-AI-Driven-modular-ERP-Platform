@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { confirmPurchaseOrder, createVendorBill, postInvoice, registerPayment } from '../core/flow.service';
 import { AppError } from '../core/errors';
 import { requireAuth } from '../core/auth';
+import { nextval } from '../core/sequence';
 
 export const purchaseRoutes = Router();
 purchaseRoutes.use(requireAuth);
@@ -71,8 +72,7 @@ purchaseRoutes.get('/:id', asyncHandler(async (req, res) => {
 purchaseRoutes.post('/', asyncHandler(async (req, res) => {
     const { lines, partnerId, ...orderData } = req.body;
 
-    const count = await prisma.purchaseOrder.count();
-    const name = `P0${String(count + 1).padStart(4, '0')}`;
+    const name = await nextval('purchase.order').catch(() => `PO-ERR`);
     const totals = calculateTotals(lines || []);
 
     const order = await prisma.purchaseOrder.create({

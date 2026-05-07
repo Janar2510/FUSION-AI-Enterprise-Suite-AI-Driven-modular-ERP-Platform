@@ -25,6 +25,9 @@ import {
 // Register agents so they self-register into the registry
 import '../core/ai/agents/helpdeskTriage';
 import '../core/ai/agents/customerSummary';
+import '../core/ai/agents/leadScoring';
+import '../core/ai/agents/invoiceAnomaly';
+import '../core/ai/agents/stockReorder';
 
 import prisma from '../lib/prisma';
 

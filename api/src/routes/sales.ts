@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { confirmSaleOrder, createSaleInvoice } from '../core/flow.service';
 import { requireAuth } from '../core/auth';
+import { nextval } from '../core/sequence';
 
 export const saleRoutes = Router();
 saleRoutes.use(requireAuth);
@@ -54,14 +55,14 @@ function calculateTotals(lines: any[] = []) {
 
 saleRoutes.post('/', asyncHandler(async (req, res) => {
     const { lines = [], ...orderData } = req.body;
-    const count = await prisma.saleOrder.count();
+    const soName = await nextval('sale.order').catch(() => `SO-ERR`);
 
     const { computedLines, amountUntaxed, amountTax, amountTotal } = calculateTotals(lines);
 
     const order = await prisma.saleOrder.create({
         data: {
             ...orderData,
-            name: `SO${String(count + 1).padStart(5, '0')}`,
+            name: soName,
             amountUntaxed,
             amountTax,
             amountTotal,

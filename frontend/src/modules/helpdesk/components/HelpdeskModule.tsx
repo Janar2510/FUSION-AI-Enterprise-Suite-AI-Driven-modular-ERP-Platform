@@ -7,6 +7,7 @@ import { useHelpdeskStore, HelpdeskTicket } from '../stores/helpdeskStore';
 import { usePartnerStore } from '@/stores/partnerStore';
 import { Clock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 export const HelpdeskModule: React.FC = () => {
     const {
@@ -227,6 +228,13 @@ export const HelpdeskModule: React.FC = () => {
             }
             leftPanels={
                 <div className="space-y-6">
+                    {activeRecord && (
+                        <AiActionsPanel
+                            entityType="HelpdeskTicket"
+                            entityId={activeRecord.id}
+                            agentKey="helpdesk-triage"
+                        />
+                    )}
                     <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Customer</label>

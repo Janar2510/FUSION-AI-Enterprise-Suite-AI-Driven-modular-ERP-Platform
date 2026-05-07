@@ -15,16 +15,8 @@
 
 import prisma from '../lib/prisma';
 import { AppError } from './errors';
-
-// ── helpers ────────────────────────────────────────────────────────────────────
-
-function seqName(prefix: string, n: number, pad = 5) {
-    return `${prefix}${String(n).padStart(pad, '0')}`;
-}
-
-function moveName(prefix: string, n: number) {
-    return `${prefix}/${new Date().getFullYear()}/${String(n).padStart(4, '0')}`;
-}
+import { nextval } from './sequence';
+import { emitTimeline } from './timeline';
 
 /** Ensure the request is idempotent. Returns existing record or null. */
 async function checkIdempotency<T>(
@@ -90,7 +82,7 @@ export async function createQuotationFromLead(
         if (existing) return existing;
     }
 
-    const count = await prisma.saleOrder.count();
+    const soName = await nextval('sale.order').catch(() => `SO-ERR`);
     const lines = payload.lines ?? [];
     let amountUntaxed = 0;
     const computedLines = lines.map((l, i) => {
@@ -112,7 +104,7 @@ export async function createQuotationFromLead(
 
     return prisma.saleOrder.create({
         data: {
-            name: seqName('SO', count + 1),
+            name: soName,
             state: 'draft',
             partnerId: lead.partnerId,
             crmLeadId: leadId,
@@ -145,17 +137,17 @@ export async function confirmSaleOrder(orderId: number, idempotencyKey?: string)
     });
     if (!pickingType) throw AppError.conflict('No outgoing picking type configured. Set up a warehouse first.');
 
-    return prisma.$transaction(async (tx) => {
-        const updated = await tx.saleOrder.update({
-            where: { id: orderId },
-            data: { state: 'sale' },
-        });
+    // Also get an atomic picking name before the transaction
+    const pickName = await nextval('stock.picking.out').catch(
+        () => `${pickingType.sequenceCode ?? 'WH/OUT'}${String(Date.now()).slice(-5)}`
+    );
 
-        // Create delivery picking
-        const pickCount = await tx.stockPicking.count();
+    const result = await prisma.$transaction(async (tx) => {
+        await tx.saleOrder.update({ where: { id: orderId }, data: { state: 'sale' } });
+
         await tx.stockPicking.create({
             data: {
-                name: `${pickingType.sequenceCode ?? 'OUT'}/${new Date().getFullYear()}/${String(pickCount + 1).padStart(5, '0')}`,
+                name: pickName,
                 state: 'draft',
                 pickingTypeId: pickingType.id,
                 locationId: pickingType.defaultLocationSrcId ?? undefined,
@@ -182,6 +174,18 @@ export async function confirmSaleOrder(orderId: number, idempotencyKey?: string)
             include: { partner: true, lines: true, pickings: true },
         });
     });
+
+    // Emit timeline after the transaction commits
+    void emitTimeline({
+        organizationId: order.organizationId ?? '',
+        model: 'SaleOrder',
+        recordId: String(orderId),
+        type: 'STATUS_CHANGE',
+        message: `Sales order ${order.name} confirmed — delivery ${pickName} created`,
+        partnerId: order.partnerId ?? null,
+    });
+
+    return result;
 }
 
 export async function markPickingReady(pickingId: number) {
@@ -208,7 +212,7 @@ export async function validatePicking(pickingId: number) {
         throw AppError.conflict(`Picking must be in 'assigned' state to validate (current: '${picking.state}')`);
     }
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
         // Mark all moves done
         await tx.stockMove.updateMany({
             where: { pickingId },
@@ -240,6 +244,17 @@ export async function validatePicking(pickingId: number) {
 
         return donePicking;
     });
+
+    void emitTimeline({
+        organizationId: (picking as any).organizationId ?? '',
+        model: 'StockPicking',
+        recordId: String(pickingId),
+        type: 'STATUS_CHANGE',
+        message: `Picking ${picking.name} validated — all moves done`,
+        partnerId: (picking as any).partnerId ?? null,
+    });
+
+    return result;
 }
 
 // ── FLOW C helpers ─────────────────────────────────────────────────────────────
@@ -270,10 +285,10 @@ export async function createSaleInvoice(orderId: number, idempotencyKey?: string
         });
     }
 
-    const count = await prisma.accountMove.count();
+    const invName = await nextval('account.move.out_invoice').catch(() => `INV-ERR`);
     return prisma.accountMove.create({
         data: {
-            name: moveName('INV', count + 1),
+            name: invName,
             moveType: 'out_invoice',
             state: 'draft',
             amountUntaxed: order.amountUntaxed,
@@ -317,11 +332,22 @@ export async function postInvoice(moveId: number) {
         );
     }
 
-    return prisma.accountMove.update({
+    const posted = await prisma.accountMove.update({
         where: { id: moveId },
         data: { state: 'posted', postedAt: new Date() },
         include: { partner: true, lines: true, journal: true },
     });
+
+    void emitTimeline({
+        organizationId: move.organizationId ?? '',
+        model: 'AccountMove',
+        recordId: String(moveId),
+        type: 'STATUS_CHANGE',
+        message: `${move.moveType === 'out_invoice' ? 'Invoice' : 'Bill'} ${move.name} posted — amount €${move.amountTotal.toFixed(2)}`,
+        partnerId: move.partnerId ?? null,
+    });
+
+    return posted;
 }
 
 /** Register a payment against a posted invoice (idempotent). */
@@ -361,11 +387,12 @@ export async function registerPayment(
     const paymentType = move.moveType === 'out_invoice' ? 'inbound' : 'outbound';
     const partnerType = move.moveType === 'out_invoice' ? 'customer' : 'supplier';
 
-    const count = await prisma.accountPayment.count();
-    return prisma.$transaction(async (tx) => {
+    const paySeqKey = move.moveType === 'out_invoice' ? 'account.payment.customer' : 'account.payment.vendor';
+    const payName = await nextval(paySeqKey).catch(() => `PAY-ERR`);
+    const payment = await prisma.$transaction(async (tx) => {
         const payment = await tx.accountPayment.create({
             data: {
-                name: seqName('PAY', count + 1),
+                name: payName,
                 moveType: move.moveType,
                 paymentType,
                 partnerType,
@@ -390,6 +417,17 @@ export async function registerPayment(
 
         return payment;
     });
+
+    void emitTimeline({
+        organizationId: move.organizationId ?? '',
+        model: 'AccountPayment',
+        recordId: String(payment?.id ?? 0),
+        type: 'PAYMENT_RECEIVED',
+        message: `Payment ${payName} registered — €${payload.amount.toFixed(2)} against ${move.name}`,
+        partnerId: move.partnerId ?? null,
+    });
+
+    return payment;
 }
 
 // ── FLOW D helpers ─────────────────────────────────────────────────────────────
@@ -407,16 +445,19 @@ export async function confirmPurchaseOrder(orderId: number) {
     const pickingType = await prisma.stockPickingType.findFirst({ where: { code: 'incoming' } });
     if (!pickingType) throw AppError.conflict('No incoming picking type configured');
 
-    return prisma.$transaction(async (tx) => {
-        const updated = await tx.purchaseOrder.update({
+    const receiptName = await nextval('stock.picking.in').catch(
+        () => `${pickingType.sequenceCode ?? 'WH/IN'}${String(Date.now()).slice(-5)}`
+    );
+
+    const confirmed = await prisma.$transaction(async (tx) => {
+        await tx.purchaseOrder.update({
             where: { id: orderId },
             data: { state: 'purchase', dateApprove: new Date() },
         });
 
-        const pickCount = await tx.stockPicking.count();
         await tx.stockPicking.create({
             data: {
-                name: `${pickingType.sequenceCode ?? 'IN'}/${new Date().getFullYear()}/${String(pickCount + 1).padStart(5, '0')}`,
+                name: receiptName,
                 state: 'draft',
                 pickingTypeId: pickingType.id,
                 locationId: pickingType.defaultLocationSrcId ?? undefined,
@@ -443,6 +484,17 @@ export async function confirmPurchaseOrder(orderId: number) {
             include: { partner: true, lines: true, pickings: true },
         });
     });
+
+    void emitTimeline({
+        organizationId: (order as any).organizationId ?? '',
+        model: 'PurchaseOrder',
+        recordId: String(orderId),
+        type: 'STATUS_CHANGE',
+        message: `Purchase order ${order.name} confirmed — receipt ${receiptName} created`,
+        partnerId: order.partnerId ?? null,
+    });
+
+    return confirmed;
 }
 
 /** Create a vendor bill from a confirmed PO (idempotent). */
@@ -466,10 +518,10 @@ export async function createVendorBill(orderId: number, idempotencyKey?: string)
         });
     }
 
-    const count = await prisma.accountMove.count();
+    const billName = await nextval('account.move.in_invoice').catch(() => `BILL-ERR`);
     return prisma.accountMove.create({
         data: {
-            name: moveName('BILL', count + 1),
+            name: billName,
             moveType: 'in_invoice',
             state: 'draft',
             amountUntaxed: order.amountUntaxed,

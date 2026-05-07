@@ -63,6 +63,10 @@ Mirrors `CLAUDE_CODE_BUILD_PLAN.md`. Tick items as completed.
 
 **Phase 2 Status: Core security layer DONE** ✅ (remaining items: CSRF, record rules, upload guard)
 
+### Phase 2 Gaps (from ADR-0013 — G-14)
+- [ ] Record-level row filtering — `core/auth/recordRules.ts` per-module where-clause filters
+- [ ] Add `salespersonId` FK to CrmLead, SaleOrder, HelpdeskTicket (migration needed)
+
 ---
 
 ## Phase 3 — End-to-End Business Flows
@@ -160,15 +164,33 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 - [x] `@anthropic-ai/sdk` installed; `core/ai/index.ts` agent runner + registry
 - [x] `POST /api/ai/run`, `GET /api/ai/actions`, approve/reject/apply/rollback endpoints
 - [x] `aiActionsApi` typed SDK in `frontend/src/lib/api.ts`
+- [x] Lead scoring agent — `core/ai/agents/leadScoring.ts` (score 0-100, tier hot/warm/cold)
+- [x] Invoice anomaly detector — `core/ai/agents/invoiceAnomaly.ts` (flag-only, never auto-edits)
+- [x] Stock reorder recommender — `core/ai/agents/stockReorder.ts` (user confirms)
+- [x] `AiActionsPanel` React component — approve/reject/run UI wired into HelpdeskModule
+- [x] `emitTimeline()` wired into all Phase-3 state transitions (confirmSO, validatePicking, postInvoice, registerPayment, confirmPO)
+- [x] IrSequence model + `core/sequence/nextval()` — atomic SO/INV/PO/TKT numbering
+- [x] 6 new ADRs (0008–0013) — sequences, jobs, PDF, email, tax, record-RBAC
+- [x] ERP architecture gap analysis — `docs/erp-architecture-gaps-2026-05-07.md`
 - [ ] Document intelligence agent (OCR + classification + extraction, ≥0.85 confidence gate)
 - [ ] Partner deduplication agent
 - [ ] Next-best-action agent
-- [ ] Lead scoring agent (nightly batch)
 - [ ] Quote drafter agent (status DRAFT only, user sends)
-- [ ] Invoice anomaly detector (flag-only, never auto-edit)
-- [ ] Stock reorder recommender (user confirms)
 - [ ] RAG enforces permission filters (test included)
 - [ ] Evals golden set per agent; CI runs on prompt/agent changes
+
+### Phase 5c — ERP Foundation Gaps (from gap analysis G-01 to G-15)
+- [ ] G-03: `api/src/jobs/outboxRelay.ts` — background cron worker (ADR-0009)
+- [ ] G-04: `<ChatterPanel>` React component + wire into module forms
+- [ ] G-05: `core/pdf/index.ts` — pdfkit invoice/quote generation (ADR-0010)
+- [ ] G-06: `core/email/index.ts` — nodemailer transactional emails (ADR-0011)
+- [ ] G-07: `AccountTax` model + `core/tax/index.ts` — proper tax computation (ADR-0012)
+- [ ] G-08: `PaymentTerm` model + invoice due-date calculation
+- [ ] G-09: Customer `Pricelist` model + sales line pricing lookup
+- [ ] G-11: `AccountingPeriod` model + period lock check in posting routes
+- [ ] G-12: Wire real data into AI Actions panel (currently built; discuss module still uses mock)
+- [ ] G-14: Record-level RBAC row filters — `core/auth/recordRules.ts` (ADR-0013)
+- [ ] G-15: COGS `AccountMove` entries on picking validation
 
 **Hard rule:** No AI agent can post invoices, reconcile, send legal docs, or delete records.
 

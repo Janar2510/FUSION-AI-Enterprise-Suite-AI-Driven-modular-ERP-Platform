@@ -1925,6 +1925,28 @@ model VendorPricelist {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PHASE 5b — ERP Foundation: Document Sequences
+// Every document type gets a sequential number (SO-0001, INV-0001, etc.)
+// nextval() in core/sequence uses SELECT FOR UPDATE to ensure atomicity.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model IrSequence {
+  id          String   @id @default(cuid())
+  name        String   @unique  // e.g. "sale.order", "account.move.out_invoice"
+  label       String            // human-readable "Sales Order"
+  prefix      String   @default("")
+  suffix      String   @default("")
+  padding     Int      @default(4)
+  nextNumber  Int      @default(1)
+  step        Int      @default(1)
+  companyId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("ir_sequences")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PHASE 5 — AI Layer (ADR-0006: no AI auto-write to finance/legal)
 // ─────────────────────────────────────────────────────────────────────────────
 
