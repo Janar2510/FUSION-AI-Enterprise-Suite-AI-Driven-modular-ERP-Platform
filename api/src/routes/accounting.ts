@@ -5,6 +5,8 @@ import { Prisma } from '@prisma/client';
 import { postInvoice, registerPayment } from '../core/flow.service';
 import { AppError } from '../core/errors';
 import { requireAuth } from '../core/auth';
+import { generateInvoicePdf } from '../core/pdf';
+import { nextval } from '../core/sequence';
 
 export const accountingRoutes = Router();
 accountingRoutes.use(requireAuth);
@@ -102,16 +104,14 @@ accountingRoutes.get('/moves/:id', asyncHandler(async (req: Request, res: Respon
 
 accountingRoutes.post('/moves', asyncHandler(async (req: Request, res: Response) => {
     const { lines, ...data } = req.body;
-    const count = await prisma.accountMove.count();
+    const seqKey = {
+        out_invoice: 'account.move.out_invoice',
+        in_invoice: 'account.move.in_invoice',
+        out_refund: 'account.move.out_refund',
+        in_refund: 'account.move.in_refund',
+    }[data.moveType as string] ?? 'account.move.out_invoice';
 
-    // Generate Sequence Name (e.g. INV/2026/0001, MISC/2026/0001)
-    let prefix = 'MISC';
-    if (data.moveType === 'out_invoice') prefix = 'INV';
-    else if (data.moveType === 'in_invoice') prefix = 'BILL';
-    else if (data.moveType === 'out_refund') prefix = 'RINV';
-    else if (data.moveType === 'in_refund') prefix = 'RBILL';
-
-    const moveName = `${prefix}/${new Date().getFullYear()}/${String(count + 1).padStart(4, '0')}`;
+    const moveName = await nextval(seqKey).catch(() => `DOC-${Date.now()}`);
 
     const move = await prisma.accountMove.create({
         data: {
@@ -263,4 +263,12 @@ accountingRoutes.get('/payments', asyncHandler(async (req: Request, res: Respons
         prisma.accountPayment.count(),
     ]);
     res.json(paginatedResponse(data, total, page, limit));
+}));
+
+// PDF download for invoice or vendor bill
+accountingRoutes.get('/moves/:id/pdf', asyncHandler(async (req: Request, res: Response) => {
+    const { buffer, filename } = await generateInvoicePdf(parseInt(req.params.id));
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.end(buffer);
 }));

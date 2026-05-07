@@ -4,6 +4,7 @@ import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { createTaskFromTicket, addTimesheetToTask } from '../core/flow.service';
 import { AppError } from '../core/errors';
 import { requireAuth } from '../core/auth';
+import { helpdeskTicketFilter } from '../core/auth/recordRules';
 
 export const helpdeskRoutes = Router();
 helpdeskRoutes.use(requireAuth);
@@ -15,9 +16,11 @@ helpdeskRoutes.get('/stages', asyncHandler(async (_req, res) => {
 
 helpdeskRoutes.get('/tickets', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
+    const recordFilter = helpdeskTicketFilter(req.user!);
+    const where = { active: true, ...recordFilter };
     const [data, total] = await Promise.all([
-        prisma.helpdeskTicket.findMany({ where: { active: true }, skip, take: limit, orderBy: { createdAt: 'desc' }, include: { stage: true, partner: true } }),
-        prisma.helpdeskTicket.count({ where: { active: true } }),
+        prisma.helpdeskTicket.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' }, include: { stage: true, partner: true } }),
+        prisma.helpdeskTicket.count({ where }),
     ]);
     res.json(paginatedResponse(data, total, page, limit));
 }));

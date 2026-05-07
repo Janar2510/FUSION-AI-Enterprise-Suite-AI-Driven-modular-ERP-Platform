@@ -188,6 +188,9 @@ app.use('/api/automation', automationRoutes);
 import aiActionsRouter from './routes/ai-actions';
 app.use('/api/ai', apiLimiter, aiActionsRouter);
 
+// ── Phase 5c/6 — Background Jobs ─────────────────────────────
+import { startBackgroundJobs } from './jobs';
+
 // ── 404 Handler ─────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
     res.status(404).json({
@@ -204,11 +207,12 @@ app.listen(PORT, () => {
 ╔══════════════════════════════════════════════════════╗
 ║       FusionAI Enterprise Suite — API Server         ║
 ║──────────────────────────────────────────────────────║
-║  🚀 Server running on http://localhost:${PORT}          ║
-║  📚 Health check: http://localhost:${PORT}/api/health   ║
-║  🗄️  Database: SQLite (Prisma)                       ║
+║  Running on http://localhost:${PORT}                    ║
+║  Health: http://localhost:${PORT}/api/health            ║
+║  DB: PostgreSQL (Prisma)                             ║
 ╚══════════════════════════════════════════════════════╝
   `);
+    startBackgroundJobs();
 });
 
 export default app;

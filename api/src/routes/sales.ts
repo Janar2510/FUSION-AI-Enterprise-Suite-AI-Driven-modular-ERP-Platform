@@ -1,9 +1,11 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { confirmSaleOrder, createSaleInvoice } from '../core/flow.service';
 import { requireAuth } from '../core/auth';
 import { nextval } from '../core/sequence';
+import { saleOrderFilter } from '../core/auth/recordRules';
+import { generateOrderPdf } from '../core/pdf';
 
 export const saleRoutes = Router();
 saleRoutes.use(requireAuth);
@@ -11,7 +13,8 @@ saleRoutes.use(requireAuth);
 saleRoutes.get('/', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
     const state = req.query.state as string;
-    const where: any = {};
+    const recordFilter = saleOrderFilter(req.user!);
+    const where: any = { ...recordFilter };
     if (state) where.state = state;
 
     const [data, total] = await Promise.all([
@@ -207,4 +210,12 @@ saleRoutes.post('/:id/invoice-legacy', asyncHandler(async (req, res) => {
     });
 
     res.status(201).json(invoice);
+}));
+
+// PDF download for quotation or order confirmation
+saleRoutes.get('/:id/pdf', asyncHandler(async (req: Request, res: Response) => {
+    const { buffer, filename } = await generateOrderPdf(parseInt(req.params.id));
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.end(buffer);
 }));

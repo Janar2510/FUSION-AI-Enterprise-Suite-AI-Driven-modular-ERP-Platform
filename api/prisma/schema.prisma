@@ -366,6 +366,7 @@ model CrmLead {
   lostReason      String?
   color           Int         @default(0)
   organizationId  String?
+  userId          String?     // salesperson (SpineUser.id)
   stageId         Int
   partnerId       String?
   dateDeadline    DateTime?
@@ -378,6 +379,7 @@ model CrmLead {
   tags            CrmTag[]    @relation("CrmLeadToCrmTag")
 
   @@index([organizationId])
+  @@index([userId])
   @@map("crm_leads")
 }
 
@@ -392,6 +394,7 @@ model SaleOrder {
   amountTax       Float           @default(0)
   amountTotal     Float           @default(0)
   organizationId  String?
+  userId          String?         // salesperson (SpineUser.id)
   partnerId       String
   crmLeadId       Int?
   idempotencyKey  String?         @unique
@@ -1106,6 +1109,7 @@ model HelpdeskTicket {
   kanbanState     String        @default("normal")
   active          Boolean       @default(true)
   stageId         Int
+  userId          String?       // assigned agent (SpineUser.id)
   partnerId       String?
   projectId       Int?
   projectTaskId   Int?          @unique
@@ -1118,6 +1122,7 @@ model HelpdeskTicket {
   stage           HelpdeskStage @relation(fields: [stageId], references: [id])
   projectTask     ProjectTask?  @relation("TicketTask", fields: [projectTaskId], references: [id])
 
+  @@index([userId])
   @@map("helpdesk_tickets")
 }
 

@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { qualifyLead, markWon, createQuotationFromLead } from '../core/flow.service';
 import { requireAuth } from '../core/auth';
+import { crmLeadFilter } from '../core/auth/recordRules';
 
 export const crmRoutes = Router();
 crmRoutes.use(requireAuth);
@@ -19,7 +20,8 @@ crmRoutes.get('/leads', asyncHandler(async (req, res) => {
     const type = (req.query.type as string) || undefined;
     const stageId = req.query.stage_id ? parseInt(req.query.stage_id as string) : undefined;
 
-    const where: any = { active: true };
+    const recordFilter = crmLeadFilter(req.user!);
+    const where: any = { active: true, ...recordFilter };
     if (type) where.type = type;
     if (stageId) where.stageId = stageId;
 
