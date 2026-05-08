@@ -111,7 +111,7 @@ body {
 }
 
   .btn-secondary {
-    @apply bg-glass-bg backdrop-blur-md border border-glass-border text-white font-medium px-6 py-3 rounded-xl transition-all duration-300 hover:bg-glass-hover hover:border-purple-400 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
+    @apply bg-[rgba(255,255,255,0.04)] backdrop-blur-md border border-glass-border text-white font-medium px-6 py-3 rounded-xl transition-all duration-300 hover:bg-glass-hover hover:border-[rgba(245,158,11,0.4)] hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0;
   }
 
 .btn-ghost {
@@ -120,7 +120,7 @@ body {
 
 /* Input Styles */
 .input-glass {
-  @apply bg-glass-bg backdrop-blur-md border border-glass-border text-white placeholder-white/50 rounded-xl px-4 py-3 transition-all duration-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none;
+  @apply bg-[rgba(255,255,255,0.04)] backdrop-blur-md border border-glass-border text-white placeholder-white/50 rounded-xl px-4 py-3 transition-all duration-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none;
 }
 
 /* Typography */
