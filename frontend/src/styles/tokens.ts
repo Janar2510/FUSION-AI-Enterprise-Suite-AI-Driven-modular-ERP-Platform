@@ -1,0 +1,32 @@
+export const tokens = {
+  colors: {
+    bgBase:          '#0a0f1e',
+    bgSurface:       'rgba(255,255,255,0.04)',
+    bgSurfaceHover:  'rgba(255,255,255,0.06)',
+    bgInput:         'rgba(255,255,255,0.03)',
+    borderDefault:   'rgba(255,255,255,0.07)',
+    borderSubtle:    'rgba(255,255,255,0.05)',
+    accentPrimary:   '#f59e0b',
+    accentSecondary: '#f97316',
+    accentMuted:     'rgba(245,158,11,0.12)',
+    accentBorder:    'rgba(245,158,11,0.25)',
+    accentText:      '#fbbf24',
+    accentTextDim:   '#fcd34d',
+    success:         '#10b981',
+    error:           '#ef4444',
+    info:            '#6366f1',
+    textPrimary:     '#f8fafc',
+    textSecondary:   'rgba(255,255,255,0.6)',
+    textTertiary:    'rgba(255,255,255,0.35)',
+    textDisabled:    'rgba(255,255,255,0.2)',
+  },
+  fonts: {
+    heading: "'Space Grotesk', system-ui, sans-serif",
+    body:    "'Inter', system-ui, sans-serif",
+  },
+  shadows: {
+    accentGlow:    '0 0 20px rgba(245,158,11,0.15)',
+    accentGlowSm:  '0 0 8px rgba(245,158,11,0.35)',
+    cardHighlight: '0 0 20px rgba(245,158,11,0.08), inset 0 1px 0 rgba(245,158,11,0.1)',
+  },
+} as const
