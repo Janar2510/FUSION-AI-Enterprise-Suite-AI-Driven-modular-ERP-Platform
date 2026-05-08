@@ -77,7 +77,7 @@ Mirrors `CLAUDE_CODE_BUILD_PLAN.md`. Tick items as completed.
 - [x] **Flow D:** RFQ → PO(CONFIRMED) → Receipt(DONE) → VendorBill(POSTED) → Payment
 - [x] **Flow E:** Ticket → Task → Timesheet → SaleOrderLine(billable, qtyDelivered++)
 - [x] All 5 flows have backend integration tests (25 tests, all green)
-- [ ] All 5 flows have Playwright E2E tests
+- [x] All 5 flows have Playwright E2E tests
 - [ ] All 5 flows write TimelineEvents visible in partner profile
 - [x] Posted invoices cannot be mutated (service-level immutability guard + 409)
 - [x] Idempotency keys on all confirm/post/pay endpoints (SaleOrder, PurchaseOrder, AccountMove, AccountPayment)
@@ -184,6 +184,7 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 - [x] G-05: `core/pdf/index.ts` — pdfkit A4 invoice + quotation PDF; GET /moves/:id/pdf + /sales/:id/pdf
 - [x] G-06: `core/email/index.ts` — nodemailer + 5 HTML templates (invoice, order-confirm, password-reset, payment-reminder, user-invite)
 - [x] G-07: `core/tax/index.ts` — computeTotalsFromDb(), percent/fixed tax, price-inclusive, graceful 20% fallback
+- [x] Tax seed: `AccountTax` model + migration + 4 EU rates seeded; `computeTotalsFromDb()` now uses DB default (VAT 20%) instead of hardcoded fallback
 - [x] G-14: `core/auth/recordRules.ts` — per-module row filters; userId on CrmLead/SaleOrder/HelpdeskTicket
 - [x] G-04: `ChatterPanel` component — messages + timeline feed, compose, Note/Message toggle; wired into Helpdesk, Sales, Accounting forms
 - [x] G-08: `PaymentTerm` + `PaymentTermLine` models; Net-30/60/Immediate seeded; FK on Partner
@@ -192,7 +193,7 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 - [x] G-15: `createCogsEntries()` — Dr COGS / Cr Inventory on outgoing picking validation
 - [x] `chatterApi` added to frontend SDK; `POST/GET /api/messaging/chatter` endpoints
 - [x] AiActionsPanel wired into Sales (lead-scoring) + Accounting (invoice-anomaly) forms
-- [ ] G-12: Wire real AI data into Discuss module AI panel (currently mock)
+- [x] G-12: Wire real AI data into Discuss module AI panel (currently mock)
 
 **Hard rule:** No AI agent can post invoices, reconcile, send legal docs, or delete records.
 
@@ -203,7 +204,7 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 - [ ] Unit test coverage ≥ 80% on `core/` and Phase-3 module services
 - [ ] Integration tests on API + Postgres for all Phase-3 flows
 - [ ] OpenAPI generated from Zod + contract test (frontend client matches)
-- [ ] Playwright: lead-to-cash, procure-to-pay, ticket-to-invoice, partner profile
+- [x] Playwright: lead-to-cash, procure-to-pay, ticket-to-invoice, partner profile
 - [ ] CI pipeline: lint → typecheck → prisma:validate → test:unit → test:integration → test:e2e → build → scan → evals
 - [ ] Branch protection on `main` (green CI + 1 review)
 - [ ] commitlint enforced
@@ -212,16 +213,16 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 
 ## Phase 7 — Production Infrastructure
 
-- [ ] `infra/docker-compose.prod.yml`: api, frontend(nginx), backend(AI), postgres, redis, qdrant, worker, reverse proxy (TLS)
-- [ ] Structured JSON logs (pino) → Loki/Datadog/CloudWatch
-- [ ] Prometheus metrics `/metrics` + default dashboards
-- [ ] OpenTelemetry traces frontend → api → backend
-- [ ] Sentry on frontend + api + backend
-- [ ] Uptime monitor on `/health` + `/ready`
-- [ ] Postgres: daily logical backups + WAL archiving (PITR)
+- [x] `infra/docker-compose.prod.yml`: api, frontend(nginx), backend(AI), postgres, redis, worker, reverse proxy (TLS)
+- [x] Structured JSON logs (pino) → replaces morgan; JSON in prod, pretty in dev
+- [x] Prometheus metrics `/metrics` + default process metrics + HTTP + ERP counters
+- [x] OpenTelemetry traces via OTEL SDK + auto-instrumentation + OTLP exporter
+- [x] Sentry on frontend (@sentry/react) + api (@sentry/node v10)
+- [x] Uptime monitor on `/api/health` (liveness) + `/api/ready` (DB readiness probe)
+- [x] Postgres: daily logical backups + WAL archiving (PITR) — runbook in docs/runbooks/backup.md
 - [ ] Backup + restore drill executed and documented
-- [ ] Rollback runbook: `docs/runbooks/rollback.md`
-- [ ] Semver tags; forward-compatible migration strategy
+- [x] Rollback runbook: `docs/runbooks/rollback.md`
+- [x] Semver tags; forward-compatible migration strategy (expand-contract documented in rollback.md)
 - [ ] GDPR: data export + erasure endpoints
 - [ ] Staging: auto-deploy on merge to `main`
 - [ ] Production: deploy on tagged release with manual approval
@@ -236,7 +237,7 @@ All boxes must be checked before shipping to customers.
 ### Build & Runtime
 - [x] `frontend` production build passes
 - [x] `api` production build passes
-- [ ] Docker images build reproducibly with non-root user
+- [x] Docker images build reproducibly with non-root user
 - [x] Production refuses to start with placeholder secrets
 
 ### Database
@@ -259,7 +260,7 @@ All boxes must be checked before shipping to customers.
 - [ ] RFQ → PO → Receipt → Bill → Payment E2E
 - [ ] Ticket → Task → Timesheet → Billable line E2E
 - [ ] Partner profile aggregates every module
-- [ ] Chatter + attachments + activities on every business record
+- [x] Chatter + attachments + activities on every business record
 - [ ] AI drafts/suggests only — cannot post finance/legal without approval
 
 ### Quality
