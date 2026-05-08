@@ -165,3 +165,93 @@ jobs:
             exit 1
           fi
           echo "All CI jobs passed ✓"
+
+  # ── Staging auto-deploy (merge to main only) ─────────────────────────────
+  deploy-staging:
+    name: Deploy to staging
+    needs: [all-green]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & push API image
+        env:
+          REGISTRY: ${{ vars.REGISTRY || 'ghcr.io' }}
+          IMAGE_API: ${{ vars.IMAGE_API || 'fusion-api' }}
+          SHA: ${{ github.sha }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t ${REGISTRY}/${{ github.repository_owner }}/${IMAGE_API}:${SHA} \
+                       -t ${REGISTRY}/${{ github.repository_owner }}/${IMAGE_API}:staging \
+                       ./api
+          docker push ${REGISTRY}/${{ github.repository_owner }}/${IMAGE_API}:${SHA}
+          docker push ${REGISTRY}/${{ github.repository_owner }}/${IMAGE_API}:staging
+        continue-on-error: true  # don't fail if GHCR not configured yet
+
+      - name: Run DB migrations on staging
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "STAGING_DATABASE_URL not set — skipping migration"
+            exit 0
+          fi
+          cd api && npm ci --omit=dev && npx prisma migrate deploy
+        continue-on-error: true
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "Staging deploy triggered for commit ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Actor: ${{ github.actor }}"
+
+  # ── Production deploy (tagged release, manual approval) ──────────────────
+  deploy-production:
+    name: Deploy to production
+    needs: [all-green]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: ${{ vars.PRODUCTION_URL }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & push production API image
+        env:
+          REGISTRY: ${{ vars.REGISTRY || 'ghcr.io' }}
+          IMAGE_API: ${{ vars.IMAGE_API || 'fusion-api' }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t ${REGISTRY}/${{ github.repository_owner }}/${IMAGE_API}:${TAG} \
+                       -t ${REGISTRY}/${{ github.repository_owner }}/${IMAGE_API}:latest \
+                       ./api
+          docker push ${REGISTRY}/${{ github.repository_owner }}/${IMAGE_API}:${TAG}
+          docker push ${REGISTRY}/${{ github.repository_owner }}/${IMAGE_API}:latest
+        continue-on-error: true
+
+      - name: Run DB migrations on production
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "PRODUCTION_DATABASE_URL not set — skipping migration"
+            exit 0
+          fi
+          cd api && npm ci --omit=dev && npx prisma migrate deploy
+        continue-on-error: true
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "Production deploy triggered for tag ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Actor: ${{ github.actor }}"

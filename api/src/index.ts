@@ -84,6 +84,7 @@ import { skillsRoutes } from './routes/skills';
 import { spreadsheetRoutes } from './routes/spreadsheet';
 import { automationRoutes } from './routes/automation';
 import aiActionsRouter from './routes/ai-actions';
+import { gdprRoutes } from './routes/gdpr';
 import { startBackgroundJobs } from './jobs';
 import prisma from './lib/prisma';
 
@@ -211,6 +212,7 @@ app.use('/api/skills', skillsRoutes);
 app.use('/api/spreadsheet', spreadsheetRoutes);
 app.use('/api/automation', automationRoutes);
 app.use('/api/ai', apiLimiter, aiActionsRouter);
+app.use('/api/gdpr', apiLimiter, gdprRoutes);
 
 // ── 404 ──────────────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
