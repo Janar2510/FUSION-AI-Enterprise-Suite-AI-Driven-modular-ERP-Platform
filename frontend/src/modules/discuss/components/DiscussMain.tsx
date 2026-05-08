@@ -21,10 +21,18 @@ export const DiscussMain: React.FC = () => {
     messages,
     channels,
     sendMessage,
+    loadChannels,
+    loadMessages,
     setCurrentChannel,
-    addReaction
+    addReaction,
   } = useDiscussStore();
   
+  useEffect(() => { loadChannels(); }, [loadChannels]);
+
+  useEffect(() => {
+    if (currentChannel) loadMessages(currentChannel.id);
+  }, [currentChannel?.id, loadMessages]);
+
   const { data: wsData, send: wsSend } = useWebSocket(
     `/discuss/ws/${currentChannel?.id}`
   );
@@ -49,13 +57,7 @@ export const DiscussMain: React.FC = () => {
 
   const handleSend = async () => {
     if (!message.trim() || !currentChannel) return;
-    
-    await sendMessage({
-      channel_id: currentChannel.id,
-      content: message,
-      type: 'text'
-    });
-    
+    await sendMessage(currentChannel.id, message.trim());
     setMessage('');
   };
 

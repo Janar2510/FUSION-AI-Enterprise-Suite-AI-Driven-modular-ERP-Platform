@@ -381,6 +381,18 @@ export const chatterApi = {
     api.post('/api/messaging/chatter', { ownerType, ownerId: String(ownerId), body, isInternal }),
 }
 
+// ── Discuss (Channels + Messages) ────────────────────────────────────────────
+export const discussApi = {
+  listChannels: () =>
+    api.get('/api/messaging/channels'),
+
+  getMessages: (channelId: number, params?: Record<string, unknown>) =>
+    api.get(`/api/messaging/channels/${channelId}/messages`, { params }),
+
+  postMessage: (channelId: number, body: string) =>
+    api.post(`/api/messaging/channels/${channelId}/messages`, { body, messageType: 'comment' }),
+}
+
 // ── AI Actions (Phase 5) ──────────────────────────────────────────────────────
 export const aiActionsApi = {
   run: (agentKey: string, entityType: string, entityId: string, input?: Record<string, unknown>) =>

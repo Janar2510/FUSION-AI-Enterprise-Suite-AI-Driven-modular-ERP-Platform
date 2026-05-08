@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Channel, Message, User, AIInsight, AIAction } from '../types';
+import { discussApi, aiActionsApi } from '@/lib/api';
 
 interface DiscussState {
   channels: Channel[];
@@ -8,10 +9,11 @@ interface DiscussState {
   users: User[];
   aiInsights: AIInsight[];
   aiActions: AIAction[];
-  
+
   // Actions
   setCurrentChannel: (channelId: number | null) => void;
   addMessage: (message: Omit<Message, 'id' | 'created_at' | 'updated_at'>) => void;
+  sendMessage: (channelId: number, content: string) => Promise<void>;
   updateMessage: (messageId: number, updates: Partial<Message>) => void;
   deleteMessage: (messageId: number) => void;
   addReaction: (messageId: number, emoji: string) => void;
@@ -24,97 +26,48 @@ interface DiscussState {
   clearMessages: () => void;
 }
 
+function mapChannel(ch: Record<string, unknown>): Channel {
+  return {
+    id: ch.id as number,
+    name: ch.name as string,
+    description: ch.description as string | undefined,
+    type: ch.channelType === 'direct'
+      ? 'direct'
+      : ch.channelType === 'private'
+        ? 'private'
+        : 'public',
+    is_archived: !(ch.active as boolean ?? true),
+    created_at: (ch.createdAt as string) ?? new Date().toISOString(),
+    updated_at: (ch.updatedAt as string) ?? new Date().toISOString(),
+    created_by: 0,
+  };
+}
+
+function mapMessage(m: Record<string, unknown>, channelId: number): Message {
+  return {
+    id: m.id as number,
+    channel_id: (m.channelId as number) ?? channelId,
+    sender_id: 0,
+    sender_name: (m.authorName as string) ?? 'Unknown',
+    content: (m.body as string) ?? '',
+    type: 'text',
+    created_at: (m.date as string) ?? (m.createdAt as string) ?? new Date().toISOString(),
+    reactions: [],
+    is_edited: false,
+    is_deleted: false,
+  };
+}
+
 export const useDiscussStore = create<DiscussState>((set, get) => ({
-  channels: [
-    // Sample data
-    {
-      id: 1,
-      name: 'general',
-      description: 'General discussion channel',
-      type: 'public',
-      is_archived: false,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z',
-      created_by: 1
-    },
-    {
-      id: 2,
-      name: 'development',
-      description: 'Development team discussions',
-      type: 'public',
-      is_archived: false,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z',
-      created_by: 1
-    },
-    {
-      id: 3,
-      name: 'ai-assistant',
-      description: 'AI Assistant discussions',
-      type: 'private',
-      is_archived: false,
-      created_at: '2024-01-15T10:00:00Z',
-      updated_at: '2024-01-15T10:00:00Z',
-      created_by: 1
-    }
-  ],
+  channels: [],
   currentChannel: null,
-  messages: [
-    // Sample messages
-    {
-      id: 1,
-      channel_id: 1,
-      sender_id: 1,
-      sender_name: 'John Doe',
-      content: 'Welcome to the general channel!',
-      type: 'text',
-      created_at: '2024-01-15T10:00:00Z',
-      reactions: [],
-      is_edited: false,
-      is_deleted: false
-    },
-    {
-      id: 2,
-      channel_id: 1,
-      sender_id: 2,
-      sender_name: 'Jane Smith',
-      content: 'Thanks for the welcome!',
-      type: 'text',
-      created_at: '2024-01-15T10:05:00Z',
-      reactions: [
-        {
-          id: 1,
-          message_id: 2,
-          user_id: 1,
-          emoji: '👍',
-          created_at: '2024-01-15T10:06:00Z'
-        }
-      ],
-      is_edited: false,
-      is_deleted: false
-    }
-  ],
-  users: [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      status: 'online',
-      last_seen: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane.smith@example.com',
-      status: 'away',
-      last_seen: '2024-01-15T09:30:00Z'
-    }
-  ],
+  messages: [],
+  users: [],
   aiInsights: [],
   aiActions: [],
 
   setCurrentChannel: (channelId) => {
-    const channel = channelId ? get().channels.find(c => c.id === channelId) : null;
+    const channel = channelId ? get().channels.find(c => c.id === channelId) ?? null : null;
     set({ currentChannel: channel });
   },
 
@@ -123,28 +76,47 @@ export const useDiscussStore = create<DiscussState>((set, get) => ({
       ...message,
       id: Date.now(),
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
     set((state) => ({ messages: [...state.messages, newMessage] }));
   },
 
+  sendMessage: async (channelId, content) => {
+    // Optimistic add
+    get().addMessage({
+      channel_id: channelId,
+      sender_id: 0,
+      sender_name: 'You',
+      content,
+      type: 'text',
+      reactions: [],
+      is_edited: false,
+      is_deleted: false,
+    });
+    try {
+      await discussApi.postMessage(channelId, content);
+    } catch {
+      // Leave optimistic message in place; a toast could be shown by the caller
+    }
+  },
+
   updateMessage: (messageId, updates) => {
     set((state) => ({
-      messages: state.messages.map((message) =>
-        message.id === messageId
-          ? { ...message, ...updates, updated_at: new Date().toISOString() }
-          : message
-      )
+      messages: state.messages.map((msg) =>
+        msg.id === messageId
+          ? { ...msg, ...updates, updated_at: new Date().toISOString() }
+          : msg
+      ),
     }));
   },
 
   deleteMessage: (messageId) => {
     set((state) => ({
-      messages: state.messages.map((message) =>
-        message.id === messageId
-          ? { ...message, is_deleted: true, updated_at: new Date().toISOString() }
-          : message
-      )
+      messages: state.messages.map((msg) =>
+        msg.id === messageId
+          ? { ...msg, is_deleted: true, updated_at: new Date().toISOString() }
+          : msg
+      ),
     }));
   },
 
@@ -152,64 +124,72 @@ export const useDiscussStore = create<DiscussState>((set, get) => ({
     const newReaction = {
       id: Date.now(),
       message_id: messageId,
-      user_id: 1, // This would come from auth context
+      user_id: 0,
       emoji,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
     set((state) => ({
-      messages: state.messages.map((message) =>
-        message.id === messageId
-          ? { ...message, reactions: [...message.reactions, newReaction] }
-          : message
-      )
+      messages: state.messages.map((msg) =>
+        msg.id === messageId
+          ? { ...msg, reactions: [...msg.reactions, newReaction] }
+          : msg
+      ),
     }));
   },
 
   removeReaction: (messageId, emoji) => {
     set((state) => ({
-      messages: state.messages.map((message) =>
-        message.id === messageId
+      messages: state.messages.map((msg) =>
+        msg.id === messageId
           ? {
-              ...message,
-              reactions: message.reactions.filter(
-                (reaction) => !(reaction.emoji === emoji && reaction.user_id === 1)
-              )
+              ...msg,
+              reactions: msg.reactions.filter(
+                (r) => !(r.emoji === emoji && r.user_id === 0)
+              ),
             }
-          : message
-      )
+          : msg
+      ),
     }));
   },
 
   loadMessages: async (channelId) => {
-    // This would call an API to load messages
-    console.log('Loading messages for channel:', channelId);
+    try {
+      const res = await discussApi.getMessages(channelId);
+      const raw: Record<string, unknown>[] = res.data?.data ?? res.data ?? [];
+      set({ messages: raw.map((m) => mapMessage(m, channelId)) });
+    } catch {
+      // Keep existing messages on error
+    }
   },
 
   loadChannels: async () => {
-    // This would call an API to load channels
-    console.log('Loading channels');
+    try {
+      const res = await discussApi.listChannels();
+      const raw: Record<string, unknown>[] = Array.isArray(res.data) ? res.data : [];
+      set({ channels: raw.map(mapChannel) });
+    } catch {
+      // Keep existing channels on error
+    }
   },
 
   loadUsers: async () => {
-    // This would call an API to load users
-    console.log('Loading users');
+    // Users come from messages/channels — no dedicated endpoint yet
   },
 
-  loadAIInsights: async (channelId) => {
-    // This would call an API to load AI insights
-    console.log('Loading AI insights for channel:', channelId);
+  loadAIInsights: async (_channelId) => {
+    // Surfaced via aiActionsApi.pending in AIAssistantPanel
   },
 
   loadAIActions: async (channelId) => {
-    // This would call an API to load AI actions
-    console.log('Loading AI actions for channel:', channelId);
+    try {
+      const res = await aiActionsApi.pending('MailChannel', String(channelId));
+      set({ aiActions: res.data?.data ?? [] });
+    } catch {
+      // Silently ignore if AI layer not yet deployed
+    }
   },
 
   clearMessages: () => {
     set({ messages: [] });
-  }
+  },
 }));
-
-
-
-
