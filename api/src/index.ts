@@ -42,6 +42,7 @@ import { logger } from './core/logger';
 import { metricsMiddleware, metricsRegistry } from './core/metrics';
 import { requestIdMiddleware, errorHandler } from './core/errors';
 import { globalLimiter, authLimiter, apiLimiter } from './middleware/rateLimiter';
+import { csrfProtection } from './middleware/csrf';
 import { authCredentialsRoutes } from './routes/auth-credentials';
 
 // ── Route imports ────────────────────────────────────────────
@@ -142,6 +143,9 @@ app.use(session({
         maxAge: 24 * 60 * 60 * 1000,
     },
 }));
+
+// ── CSRF protection ──────────────────────────────────────────
+app.use(csrfProtection);
 
 // ── Root info ────────────────────────────────────────────────
 app.get('/', (_req: Request, res: Response) => {

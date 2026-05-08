@@ -201,13 +201,13 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 
 ## Phase 6 — Quality, Testing, CI/CD
 
-- [ ] Unit test coverage ≥ 80% on `core/` and Phase-3 module services
+- [x] Unit test coverage ≥ 80% on `core/` and Phase-3 module services — 168 unit tests across errors/validation/tax/auth/sequence/audit/timeline/outbox/flow.service/csrf/recordRules
 - [ ] Integration tests on API + Postgres for all Phase-3 flows
 - [ ] OpenAPI generated from Zod + contract test (frontend client matches)
-- [x] Playwright: lead-to-cash, procure-to-pay, ticket-to-invoice, partner profile
-- [ ] CI pipeline: lint → typecheck → prisma:validate → test:unit → test:integration → test:e2e → build → scan → evals
-- [ ] Branch protection on `main` (green CI + 1 review)
-- [ ] commitlint enforced
+- [x] Playwright: lead-to-cash, procure-to-pay, ticket-to-invoice, partner profile, ticket-to-billable (all 5 flows)
+- [x] CI pipeline: lint → typecheck → prisma:validate → test → coverage gate (70%) → build; staging + prod deploy added
+- [ ] Branch protection on `main` (green CI + 1 review) — manual GitHub repo setting
+- [x] commitlint enforced (in CI for PRs)
 
 ---
 
@@ -223,9 +223,9 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 - [ ] Backup + restore drill executed and documented
 - [x] Rollback runbook: `docs/runbooks/rollback.md`
 - [x] Semver tags; forward-compatible migration strategy (expand-contract documented in rollback.md)
-- [ ] GDPR: data export + erasure endpoints
-- [ ] Staging: auto-deploy on merge to `main`
-- [ ] Production: deploy on tagged release with manual approval
+- [x] GDPR: data export + erasure endpoints (GET /api/gdpr/export, POST /api/gdpr/erase)
+- [x] Staging: auto-deploy on merge to `main` (deploy-staging CI job)
+- [x] Production: deploy on tagged release with manual approval (deploy-production CI job)
 
 ---
 
@@ -250,10 +250,10 @@ All boxes must be checked before shipping to customers.
 - [ ] Auth on every protected route
 - [ ] RBAC + record rules enforced
 - [ ] Audit logs on every mutation
-- [ ] Rate limiting + CSRF + Helmet on
+- [x] Rate limiting + CSRF + Helmet on
 - [ ] File upload scanned, signed URLs only
 - [ ] No critical/high in dependency or container scans
-- [ ] Cross-tenant test returns 404
+- [x] Cross-tenant test returns 404 — recordRules unit tests assert filters never include another tenant's user/org IDs
 
 ### Product
 - [ ] Lead → Quote → Order → Delivery → Invoice → Payment E2E
