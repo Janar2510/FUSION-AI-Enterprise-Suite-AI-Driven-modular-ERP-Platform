@@ -1,14 +1,29 @@
+// ── OTEL must be first — before any other imports ────────────
+import { startTracing } from './core/tracing';
+startTracing();
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import morgan from 'morgan';
+import pinoHttp from 'pino-http';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
+import * as Sentry from '@sentry/node';
 
 // Load environment variables
 dotenv.config();
+
+// ── Sentry v10 (init before all other code) ─────────────────
+Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV ?? 'development',
+    release: process.env.npm_package_version,
+    enabled: !!(process.env.SENTRY_DSN),
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    integrations: [Sentry.expressIntegration()],
+});
 
 // ── Production secret guard ──────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
@@ -22,12 +37,14 @@ if (process.env.NODE_ENV === 'production') {
     }
 }
 
-// ── Phase 2 imports ──────────────────────────────────────────
+// ── Core imports ─────────────────────────────────────────────
+import { logger } from './core/logger';
+import { metricsMiddleware, metricsRegistry } from './core/metrics';
 import { requestIdMiddleware, errorHandler } from './core/errors';
 import { globalLimiter, authLimiter, apiLimiter } from './middleware/rateLimiter';
 import { authCredentialsRoutes } from './routes/auth-credentials';
 
-// Import routes
+// ── Route imports ────────────────────────────────────────────
 import { authRoutes } from './routes/auth';
 import { partnerRoutes } from './routes/partners';
 import { crmRoutes } from './routes/crm';
@@ -66,17 +83,32 @@ import { ecommerceRoutes } from './routes/ecommerce';
 import { skillsRoutes } from './routes/skills';
 import { spreadsheetRoutes } from './routes/spreadsheet';
 import { automationRoutes } from './routes/automation';
+import aiActionsRouter from './routes/ai-actions';
+import { startBackgroundJobs } from './jobs';
+import prisma from './lib/prisma';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-
-// ── Middleware ───────────────────────────────────────────────
-app.use(requestIdMiddleware);
-app.use(globalLimiter);
 const isDev = process.env.NODE_ENV !== 'production';
+
+
+// ── Observability middleware ─────────────────────────────────
+app.use(requestIdMiddleware);
+app.use(metricsMiddleware);
+app.use(pinoHttp({
+    logger,
+    customLogLevel: (_req, res) => res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info',
+    // Don't log health/metrics polls
+    autoLogging: {
+        ignore: (req) => ['/api/health', '/api/ready', '/metrics'].includes(req.url ?? ''),
+    },
+}));
+
+// ── Security + parsing middleware ────────────────────────────
+app.use(globalLimiter);
 app.use(helmet({
     contentSecurityPolicy: isDev
-        ? false  // Disabled in dev — no browser CSP friction during local development
+        ? false
         : {
             directives: {
                 defaultSrc: ["'self'"],
@@ -103,48 +135,43 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: !isDev,
         httpOnly: true,
         sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+        maxAge: 24 * 60 * 60 * 1000,
+    },
 }));
-app.use(morgan('dev'));
 
-// ── Root info handler (dev convenience) ─────────────────────
+// ── Root info ────────────────────────────────────────────────
 app.get('/', (_req: Request, res: Response) => {
-    res.json({
-        name: 'FusionAI Enterprise Suite API',
-        version: '1.0.0',
-        status: 'running',
-        docs: '/api/health',
-        note: 'All endpoints are prefixed with /api — e.g. /api/auth/login, /api/partners',
-    });
+    res.json({ name: 'FusionAI Enterprise Suite API', version: '1.0.0', status: 'running' });
 });
 
-// ── Health Check ────────────────────────────────────────────
+// ── Health — liveness (no DB) ────────────────────────────────
 app.get('/api/health', (_req: Request, res: Response) => {
-    res.json({
-        status: 'ok',
-        version: '1.0.0',
-        timestamp: new Date().toISOString(),
-        modules: [
-            'partners', 'crm', 'sales', 'purchases', 'products',
-            'inventory', 'accounting', 'hr', 'projects', 'helpdesk',
-            'calendar', 'manufacturing', 'pos', 'messaging', 'events',
-            'fleet', 'maintenance', 'surveys', 'notes', 'dashboard',
-            'fs-rental', 'marketing-web', 'knowledge', 'recruitment',
-            'attendance', 'payroll', 'appraisals', 'quality', 'plm', 'skills', 'auth',
-        ],
-    });
+    res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() });
+});
+
+// ── Ready — readiness (checks DB) ───────────────────────────
+app.get('/api/ready', async (_req: Request, res: Response) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.json({ status: 'ready', db: 'ok', timestamp: new Date().toISOString() });
+    } catch (err) {
+        logger.error({ err }, 'Readiness check failed — DB unreachable');
+        res.status(503).json({ status: 'not_ready', db: 'error' });
+    }
+});
+
+// ── Prometheus metrics (internal only — restrict in nginx) ───
+app.get('/metrics', async (_req: Request, res: Response) => {
+    res.set('Content-Type', metricsRegistry.contentType);
+    res.end(await metricsRegistry.metrics());
 });
 
 // ── API Routes ──────────────────────────────────────────────
-// Auth — credential routes with strict rate limiting
 app.use('/api/auth', authLimiter, authCredentialsRoutes);
-// WebAuthn passkey routes
 app.use('/api/auth', authLimiter, authRoutes);
-// All other API routes with standard rate limiting
 app.use('/api', apiLimiter);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/crm', crmRoutes);
@@ -183,35 +210,24 @@ app.use('/api/ecommerce', ecommerceRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/spreadsheet', spreadsheetRoutes);
 app.use('/api/automation', automationRoutes);
-
-// ── Phase 5 — AI Layer ───────────────────────────────────────
-import aiActionsRouter from './routes/ai-actions';
 app.use('/api/ai', apiLimiter, aiActionsRouter);
 
-// ── Phase 5c/6 — Background Jobs ─────────────────────────────
-import { startBackgroundJobs } from './jobs';
-
-// ── 404 Handler ─────────────────────────────────────────────
+// ── 404 ──────────────────────────────────────────────────────
 app.use((req: Request, res: Response) => {
     res.status(404).json({
-        error: { code: 'NOT_FOUND', message: 'The requested endpoint does not exist', requestId: (req as any).id ?? '' },
+        error: { code: 'NOT_FOUND', message: 'Endpoint not found', requestId: (req as any).id ?? '' },
     });
 });
 
-// ── Centralized Error Handler ───────────────────────────────
+// ── Sentry error handler (before our errorHandler) ──────────
+Sentry.setupExpressErrorHandler(app);
+
+// ── Centralized error handler ────────────────────────────────
 app.use(errorHandler);
 
-// ── Start Server ────────────────────────────────────────────
+// ── Start ────────────────────────────────────────────────────
 app.listen(PORT, () => {
-    console.log(`
-╔══════════════════════════════════════════════════════╗
-║       FusionAI Enterprise Suite — API Server         ║
-║──────────────────────────────────────────────────────║
-║  Running on http://localhost:${PORT}                    ║
-║  Health: http://localhost:${PORT}/api/health            ║
-║  DB: PostgreSQL (Prisma)                             ║
-╚══════════════════════════════════════════════════════╝
-  `);
+    logger.info({ port: PORT, env: process.env.NODE_ENV }, 'FusionAI API started');
     startBackgroundJobs();
 });
 

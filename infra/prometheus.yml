@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    service: fusionai-enterprise-suite
+    env: production
+
+scrape_configs:
+  - job_name: fusionai-api
+    static_configs:
+      - targets: ['api:3001']
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: fusionai-ai-backend
+    static_configs:
+      - targets: ['ai-backend:8000']
+    metrics_path: /metrics
+    scheme: http
+
+  - job_name: postgres
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  - job_name: redis
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  - job_name: node-exporter
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']

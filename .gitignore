@@ -18,3 +18,9 @@ build/
 
 # MacOS
 .DS_Store
+
+# IDE
+.cursor/
+
+# TypeScript build info
+*.tsbuildinfo
