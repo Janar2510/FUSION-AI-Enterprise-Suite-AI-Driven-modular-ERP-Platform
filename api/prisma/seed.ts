@@ -379,6 +379,50 @@ async function main() {
     await prisma.marketingCampaign.create({ data: { name: 'Social Media Blast', type: 'social', state: 'completed', budget: 3000, spent: 3000, leads: 520, conversions: 67, startDate: new Date('2026-01-10'), endDate: new Date('2026-02-10') } });
     await prisma.marketingCampaign.create({ data: { name: 'Trade Show Follow-up', type: 'email', state: 'draft', budget: 1500, spent: 0, leads: 0, conversions: 0, description: 'Email drip sequence for trade show booth contacts.' } });
 
+    // ── Account Taxes ─────────────────────────────────────────
+    await prisma.accountTax.createMany({
+        data: [
+            {
+                name: 'VAT 20% (Standard)',
+                amount: 20,
+                amountType: 'percent',
+                priceInclude: false,
+                active: true,
+                isDefault: true,
+                description: 'Standard EU VAT rate applied to most goods and services.',
+            },
+            {
+                name: 'VAT 10% (Reduced)',
+                amount: 10,
+                amountType: 'percent',
+                priceInclude: false,
+                active: true,
+                isDefault: false,
+                description: 'Reduced VAT rate for food, books, medical supplies, etc.',
+            },
+            {
+                name: 'VAT 0% (Exempt)',
+                amount: 0,
+                amountType: 'percent',
+                priceInclude: false,
+                active: true,
+                isDefault: false,
+                description: 'Zero-rated for intra-EU supplies and exempt categories.',
+            },
+            {
+                name: 'Fixed Fee €5 (Shipping)',
+                amount: 5,
+                amountType: 'fixed',
+                priceInclude: false,
+                active: true,
+                isDefault: false,
+                description: 'Fixed handling/shipping surcharge per order line.',
+            },
+        ],
+        skipDuplicates: true,
+    });
+    console.log('  ✓ AccountTax: 4 rates seeded (VAT 20% set as default)');
+
     console.log('✅ Seed complete! Database populated with comprehensive demo data.');
 }
 

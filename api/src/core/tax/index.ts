@@ -67,16 +67,26 @@ const FALLBACK_TAX: TaxRate = {
 
 // ── Tax map loader ────────────────────────────────────────────────────────────
 
-export async function loadTaxMap(): Promise<TaxMap> {
+export interface TaxMapResult {
+    map: TaxMap;
+    defaultTaxId: number | null;
+}
+
+export async function loadTaxMap(): Promise<TaxMapResult> {
     try {
-        const taxes = await (prisma as any).accountTax?.findMany?.({
+        const taxes = await prisma.accountTax.findMany({
             where: { active: true },
-            select: { id: true, name: true, amount: true, amountType: true, priceInclude: true },
+            select: { id: true, name: true, amount: true, amountType: true, priceInclude: true, isDefault: true },
         });
-        if (!taxes || taxes.length === 0) return {};
-        return Object.fromEntries(taxes.map((t: TaxRate) => [t.id, t]));
+        if (!taxes || taxes.length === 0) return { map: {}, defaultTaxId: null };
+        const map: TaxMap = Object.fromEntries(taxes.map(t => [
+            t.id,
+            { ...t, amountType: t.amountType as 'percent' | 'fixed' } satisfies TaxRate,
+        ]));
+        const defaultRow = taxes.find(t => t.isDefault);
+        return { map, defaultTaxId: defaultRow?.id ?? null };
     } catch {
-        return {};
+        return { map: {}, defaultTaxId: null };
     }
 }
 
@@ -142,16 +152,29 @@ export function computeTotals(lines: OrderLine[], taxMap: TaxMap): TotalsResult 
 
 /**
  * Convenience: compute totals using the live DB tax map.
- * Falls back to 20% VAT if tax table is empty.
+ *
+ * Resolution order for lines without explicit taxIds:
+ *   1. DB default tax (isDefault = true row in account_taxes)
+ *   2. Hard-coded 20% FALLBACK_TAX when the table is empty (backwards compat)
  */
 export async function computeTotalsFromDb(lines: OrderLine[]): Promise<TotalsResult> {
-    const taxMap = await loadTaxMap();
+    const { map: taxMap, defaultTaxId } = await loadTaxMap();
 
-    // If no lines have taxIds and no tax map, apply default 20% for backwards compat
     const hasExplicitTaxes = lines.some(l => l.taxIds && l.taxIds.length > 0);
-    if (!hasExplicitTaxes && Object.keys(taxMap).length === 0) {
-        const linesWithDefault = lines.map(l => ({ ...l, taxIds: [FALLBACK_TAX.id] }));
-        return computeTotals(linesWithDefault, { [FALLBACK_TAX.id]: FALLBACK_TAX });
+
+    if (!hasExplicitTaxes) {
+        if (defaultTaxId !== null) {
+            // Apply the seeded default tax to every untaxed line
+            const linesWithDefault = lines.map(l =>
+                l.taxIds && l.taxIds.length > 0 ? l : { ...l, taxIds: [defaultTaxId] }
+            );
+            return computeTotals(linesWithDefault, taxMap);
+        }
+        if (Object.keys(taxMap).length === 0) {
+            // No tax table yet — use hardcoded 20% fallback
+            const linesWithFallback = lines.map(l => ({ ...l, taxIds: [FALLBACK_TAX.id] }));
+            return computeTotals(linesWithFallback, { [FALLBACK_TAX.id]: FALLBACK_TAX });
+        }
     }
 
     return computeTotals(lines, taxMap);
