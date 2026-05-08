@@ -5,6 +5,8 @@ import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { OdooKanbanBase } from '@/components/views/OdooKanbanBase';
 import { useProjectStore, ProjectProject, ProjectTask } from '../stores/projectStore';
 import { Clock } from 'lucide-react';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 export const ProjectModule: React.FC = () => {
     const {
@@ -175,6 +177,17 @@ export const ProjectModule: React.FC = () => {
                     </div>
                 </div>
             }
+            rightPanels={
+                <div className="space-y-4">
+                    {activeProject && (
+                        <ChatterPanel
+                            ownerType="ProjectProject"
+                            ownerId={activeProject.id}
+                            showTimeline
+                        />
+                    )}
+                </div>
+            }
         />
     );
 
@@ -303,6 +316,23 @@ export const ProjectModule: React.FC = () => {
                             />
                         </div>
                     </div>
+                </div>
+            }
+            rightPanels={
+                <div className="space-y-4">
+                    {activeTask && (
+                        <AiActionsPanel
+                            entityType="ProjectTask"
+                            entityId={String(activeTask.id)}
+                        />
+                    )}
+                    {activeTask && (
+                        <ChatterPanel
+                            ownerType="ProjectTask"
+                            ownerId={activeTask.id}
+                            showTimeline
+                        />
+                    )}
                 </div>
             }
         />

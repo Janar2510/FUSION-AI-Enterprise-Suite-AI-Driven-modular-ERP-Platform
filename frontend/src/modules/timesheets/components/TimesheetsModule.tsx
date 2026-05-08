@@ -5,6 +5,8 @@ import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useTimesheetsStore, TimesheetEntry } from '../stores/timesheetsStore';
 import { useProjectStore } from '@/modules/project/stores/projectStore';
 import { useHRStore } from '@/modules/hr/stores/hrStore';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 export const TimesheetsModule: React.FC = () => {
     const {
@@ -179,6 +181,23 @@ export const TimesheetsModule: React.FC = () => {
                                 Delete Entry
                             </button>
                         </div>
+                    )}
+                </div>
+            }
+            rightPanels={
+                <div className="space-y-4">
+                    {activeRecord && (
+                        <AiActionsPanel
+                            entityType="HrTimesheet"
+                            entityId={String(activeRecord.id)}
+                        />
+                    )}
+                    {activeRecord && (
+                        <ChatterPanel
+                            ownerType="HrTimesheet"
+                            ownerId={activeRecord.id}
+                            showTimeline
+                        />
                     )}
                 </div>
             }

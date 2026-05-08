@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { HierarchyView, HierarchyNode } from '@/components/views/HierarchyView';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 import { WorkcenterDashboard } from './WorkcenterDashboard';
 
@@ -443,6 +445,23 @@ export const ManufacturingModule: React.FC = () => {
                         )}
                     </div>
 
+                </div>
+            }
+            rightPanels={
+                <div className="space-y-4">
+                    {activeOrder && (
+                        <AiActionsPanel
+                            entityType="MrpProduction"
+                            entityId={String(activeOrder.id)}
+                        />
+                    )}
+                    {activeOrder && (
+                        <ChatterPanel
+                            ownerType="MrpProduction"
+                            ownerId={activeOrder.id}
+                            showTimeline
+                        />
+                    )}
                 </div>
             }
         />

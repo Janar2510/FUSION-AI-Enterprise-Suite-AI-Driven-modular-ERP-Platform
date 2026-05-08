@@ -9,6 +9,8 @@ import { usePayrollStore } from '@/modules/payroll/stores/payrollStore';
 import { useAttendanceStore } from '@/modules/attendance/stores/attendanceStore';
 import { CalendarOff, Landmark, Clock4, Phone, Mail, Building, Briefcase, MapPin } from 'lucide-react';
 import { HierarchyView, HierarchyNode } from '@/components/views/HierarchyView';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 export const HRModule: React.FC = () => {
     const navigate = useNavigate();
@@ -312,6 +314,16 @@ export const HRModule: React.FC = () => {
                                     <span className="text-[10px] text-white/50 uppercase tracking-wide">Payslips</span>
                                 </button>
                             </div>
+                            <AiActionsPanel
+                                entityType="HrEmployee"
+                                entityId={String(activeRecord.id)}
+                                agentKey="customer-summary"
+                            />
+                            <ChatterPanel
+                                ownerType="HrEmployee"
+                                ownerId={activeRecord.id}
+                                showTimeline
+                            />
                         </div>
                     );
                 })() : undefined
@@ -413,6 +425,17 @@ export const HRModule: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            }
+            rightPanels={
+                activeRecord ? (
+                    <div className="space-y-4">
+                        <ChatterPanel
+                            ownerType="HrDepartment"
+                            ownerId={activeRecord.id}
+                            showTimeline
+                        />
+                    </div>
+                ) : undefined
             }
         />
     );
