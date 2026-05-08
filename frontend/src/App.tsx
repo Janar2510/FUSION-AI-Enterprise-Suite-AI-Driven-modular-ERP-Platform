@@ -2,13 +2,10 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { Toaster } from 'react-hot-toast'
-
 // Styles
 import './styles/globals.css'
 
 // Components
-import { AnimatedBackground } from '@/components/shared/AnimatedBackground'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { WebSocketProvider } from '@/contexts/WebSocketContext'
@@ -44,8 +41,6 @@ function App() {
           <WebSocketProvider>
             <Router>
               <div className="min-h-screen bg-dark-900 text-white relative overflow-hidden">
-                <AnimatedBackground />
-
                 <Routes>
                   {/* Auth Routes */}
                   <Route path="/login" element={
@@ -100,31 +95,6 @@ function App() {
                   } />
                 </Routes>
 
-                {/* Toast Notifications */}
-                <Toaster
-                  position="top-right"
-                  toastOptions={{
-                    duration: 4000,
-                    style: {
-                      background: 'rgba(15, 15, 35, 0.9)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#ffffff',
-                    },
-                    success: {
-                      iconTheme: {
-                        primary: '#10B981',
-                        secondary: '#ffffff',
-                      },
-                    },
-                    error: {
-                      iconTheme: {
-                        primary: '#EF4444',
-                        secondary: '#ffffff',
-                      },
-                    },
-                  }}
-                />
               </div>
             </Router>
           </WebSocketProvider>
