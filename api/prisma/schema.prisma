@@ -964,6 +964,8 @@ model HrEmployee {
   leaveAllocations HrLeaveAllocation[]
   contracts        HrContract[]
   payslips         HrPayslip[]
+  expenseSheets    HrExpenseSheet[]
+  assignedTasks    ProjectTask[]       @relation("TaskAssignee")
   skills           HrEmployeeSkill[]
   planningSlots    PlanningSlot[]
   timesheets       HrTimesheet[]
@@ -1082,21 +1084,40 @@ model HrContract {
   @@map("hr_contracts")
 }
 
-model HrExpense {
-  id          Int        @id @default(autoincrement())
+model HrExpenseSheet {
+  id          Int          @id @default(autoincrement())
   name        String
-  date        DateTime   @default(now())
-  state       String     @default("draft")
-  totalAmount Float      @default(0)
-  quantity    Float      @default(1)
-  unitAmount  Float      @default(0)
-  description String?
-  paymentMode String     @default("own_account")
-  receipt     String?
+  state       String       @default("draft") // draft, submitted, approved, posted, refused
+  totalAmount Float        @default(0)
+  paymentMode String       @default("own_account") // own_account, company
   employeeId  Int
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  employee    HrEmployee @relation(fields: [employeeId], references: [id])
+  accountMoveId Int?       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  employee    HrEmployee   @relation(fields: [employeeId], references: [id])
+  expenses    HrExpense[]
+
+  @@map("hr_expense_sheets")
+}
+
+model HrExpense {
+  id           Int              @id @default(autoincrement())
+  name         String
+  date         DateTime         @default(now())
+  state        String           @default("draft")
+  totalAmount  Float            @default(0)
+  quantity     Float            @default(1)
+  unitAmount   Float            @default(0)
+  description  String?
+  paymentMode  String           @default("own_account")
+  receipt      String?
+  category     String?
+  employeeId   Int
+  sheetId      Int?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  employee     HrEmployee       @relation(fields: [employeeId], references: [id])
+  sheet        HrExpenseSheet?  @relation(fields: [sheetId], references: [id])
 
   @@map("hr_expenses")
 }
@@ -1130,27 +1151,29 @@ model ProjectProject {
 }
 
 model ProjectTask {
-  id              Int            @id @default(autoincrement())
+  id              Int             @id @default(autoincrement())
   name            String
   description     String?
-  priority        Int            @default(0)
-  sequence        Int            @default(10)
-  color           Int            @default(0)
-  active          Boolean        @default(true)
+  priority        Int             @default(0)
+  sequence        Int             @default(10)
+  color           Int             @default(0)
+  active          Boolean         @default(true)
   dateDeadline    DateTime?
   dateEnd         DateTime?
-  kanbanState     String         @default("normal")
+  kanbanState     String          @default("normal")
   stageId         Int
   projectId       Int
   parentId        Int?
+  assigneeId      Int?
   saleOrderLineId Int?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
   timesheets      HrTimesheet[]
-  parent          ProjectTask?   @relation("TaskHierarchy", fields: [parentId], references: [id])
-  subtasks        ProjectTask[]  @relation("TaskHierarchy")
-  project         ProjectProject @relation(fields: [projectId], references: [id])
-  stage           ProjectStage   @relation(fields: [stageId], references: [id])
+  parent          ProjectTask?    @relation("TaskHierarchy", fields: [parentId], references: [id])
+  subtasks        ProjectTask[]   @relation("TaskHierarchy")
+  project         ProjectProject  @relation(fields: [projectId], references: [id])
+  stage           ProjectStage    @relation(fields: [stageId], references: [id])
+  assignee        HrEmployee?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
   helpdeskTicket  HelpdeskTicket? @relation("TicketTask")
 
   @@map("project_tasks")

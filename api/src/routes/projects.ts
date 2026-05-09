@@ -43,7 +43,7 @@ projectRoutes.get('/:projectId/tasks', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
     const projectId = parseInt(req.params.projectId);
     const [data, total] = await Promise.all([
-        prisma.projectTask.findMany({ where: { projectId, active: true }, skip, take: limit, orderBy: { sequence: 'asc' }, include: { stage: true } }),
+        prisma.projectTask.findMany({ where: { projectId, active: true }, skip, take: limit, orderBy: { sequence: 'asc' }, include: { stage: true, assignee: { select: { id: true, name: true } } } }),
         prisma.projectTask.count({ where: { projectId, active: true } }),
     ]);
     res.json(paginatedResponse(data, total, page, limit));
@@ -59,7 +59,7 @@ projectRoutes.put('/tasks/:id', asyncHandler(async (req, res) => {
     const task = await prisma.projectTask.update({
         where: { id: parseInt(req.params.id) },
         data: { ...rest, ...(stageId !== undefined && { stageId }) },
-        include: { stage: true },
+        include: { stage: true, assignee: { select: { id: true, name: true } } },
     });
     res.json(task);
 }));

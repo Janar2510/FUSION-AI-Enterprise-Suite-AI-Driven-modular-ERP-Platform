@@ -4,6 +4,7 @@ import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { OdooKanbanBase } from '@/components/views/OdooKanbanBase';
 import { useProjectStore, ProjectProject, ProjectTask } from '../stores/projectStore';
+import { useHRStore } from '@/modules/hr/stores/hrStore';
 import { Clock } from 'lucide-react';
 import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
@@ -33,9 +34,12 @@ export const ProjectModule: React.FC = () => {
     const [projectFormData, setProjectFormData] = useState<Partial<ProjectProject>>({});
     const [taskFormData, setTaskFormData] = useState<Partial<ProjectTask>>({});
 
+    const { employees, fetchEmployees } = useHRStore();
+
     useEffect(() => {
         fetchProjects();
         fetchStages();
+        fetchEmployees();
     }, []);
 
     // When tab changes, load appropriate data
@@ -240,6 +244,7 @@ export const ProjectModule: React.FC = () => {
                 { key: 'name', label: 'Task Title', render: (t) => <span className="font-bold">{t.name}</span> },
                 { key: 'project', label: 'Project', render: () => activeProject?.name || '' },
                 { key: 'stage', label: 'Stage', render: (t) => t.stage?.name || '' },
+                { key: 'assignee', label: 'Assignee', render: (t) => (t as any).assignee?.name || <span className="text-white/30">Unassigned</span> },
                 { key: 'deadline', label: 'Deadline', render: (t) => t.dateDeadline ? new Date(t.dateDeadline).toLocaleDateString() : '' },
             ]}
         />
@@ -294,6 +299,16 @@ export const ProjectModule: React.FC = () => {
                                 {projects.map(p => (
                                     <option key={p.id} value={p.id} className="text-black">{p.name}</option>
                                 ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-white/60 text-sm font-medium">Assignee</label>
+                            <select
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all appearance-none"
+                                value={(taskFormData as any).assigneeId || ''}
+                                onChange={(e) => setTaskFormData({ ...taskFormData, assigneeId: e.target.value ? parseInt(e.target.value) : null } as any)}>
+                                <option value="">Unassigned</option>
+                                {employees.map(emp => <option key={emp.id} value={emp.id} className="text-black">{emp.name}</option>)}
                             </select>
                         </div>
                         <div className="space-y-2">

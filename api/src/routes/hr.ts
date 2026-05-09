@@ -268,6 +268,126 @@ hrRoutes.patch('/expenses/:id/refuse', asyncHandler(async (req, res) => {
     const expense = await prisma.hrExpense.update({ where: { id: parseInt(req.params.id) }, data: { state: 'refused' } });
     res.json(expense);
 }));
+
+// Expense Sheets (Expense Reports)
+hrRoutes.get('/expense-sheets', asyncHandler(async (req, res) => {
+    const { skip, page, limit } = getPagination(req.query);
+    const employeeId = req.query.employee_id ? parseInt(req.query.employee_id as string) : undefined;
+    const where: any = {};
+    if (employeeId) where.employeeId = employeeId;
+
+    const [data, total] = await Promise.all([
+        prisma.hrExpenseSheet.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' }, include: { employee: true, expenses: true } }),
+        prisma.hrExpenseSheet.count({ where }),
+    ]);
+    res.json(paginatedResponse(data, total, page, limit));
+}));
+
+hrRoutes.get('/expense-sheets/:id', asyncHandler(async (req, res) => {
+    const sheet = await prisma.hrExpenseSheet.findUnique({
+        where: { id: parseInt(req.params.id) },
+        include: { employee: true, expenses: true },
+    });
+    if (!sheet) { res.status(404).json({ error: 'Expense sheet not found' }); return; }
+    res.json(sheet);
+}));
+
+hrRoutes.post('/expense-sheets', asyncHandler(async (req, res) => {
+    const { expenseIds, ...rest } = req.body;
+    const sheet = await prisma.hrExpenseSheet.create({
+        data: { ...rest },
+        include: { employee: true },
+    });
+    // Link existing expenses to this sheet
+    if (expenseIds?.length) {
+        await prisma.hrExpense.updateMany({ where: { id: { in: expenseIds } }, data: { sheetId: sheet.id } });
+    }
+    // Recompute totalAmount
+    const agg = await prisma.hrExpense.aggregate({ where: { sheetId: sheet.id }, _sum: { totalAmount: true } });
+    const updated = await prisma.hrExpenseSheet.update({
+        where: { id: sheet.id },
+        data: { totalAmount: agg._sum.totalAmount ?? 0 },
+        include: { employee: true, expenses: true },
+    });
+    res.status(201).json(updated);
+}));
+
+hrRoutes.put('/expense-sheets/:id', asyncHandler(async (req, res) => {
+    const { expenseIds, expenses, employee, ...rest } = req.body;
+    const sheet = await prisma.hrExpenseSheet.update({ where: { id: parseInt(req.params.id) }, data: rest });
+    res.json(sheet);
+}));
+
+hrRoutes.patch('/expense-sheets/:id/submit', asyncHandler(async (req, res) => {
+    const sheet = await prisma.hrExpenseSheet.update({ where: { id: parseInt(req.params.id) }, data: { state: 'submitted' } });
+    res.json(sheet);
+}));
+
+hrRoutes.patch('/expense-sheets/:id/approve', asyncHandler(async (req, res) => {
+    const sheet = await prisma.hrExpenseSheet.update({ where: { id: parseInt(req.params.id) }, data: { state: 'approved' } });
+    res.json(sheet);
+}));
+
+hrRoutes.patch('/expense-sheets/:id/refuse', asyncHandler(async (req, res) => {
+    const sheet = await prisma.hrExpenseSheet.update({ where: { id: parseInt(req.params.id) }, data: { state: 'refused' } });
+    res.json(sheet);
+}));
+
+// Post expense sheet to accounting — creates an AccountMove (vendor bill) for reimbursement
+hrRoutes.patch('/expense-sheets/:id/post', asyncHandler(async (req, res) => {
+    const sheetId = parseInt(req.params.id);
+    const sheet = await prisma.hrExpenseSheet.findUnique({ where: { id: sheetId }, include: { employee: true, expenses: true } });
+    if (!sheet) { res.status(404).json({ error: 'Sheet not found' }); return; }
+    if (sheet.state !== 'approved') { res.status(400).json({ error: 'Sheet must be approved before posting' }); return; }
+
+    // Find or create an expense account and journal
+    let expenseAccount = await prisma.accountAccount.findFirst({ where: { accountType: 'expense' } });
+    if (!expenseAccount) {
+        expenseAccount = await prisma.accountAccount.create({
+            data: { code: '612000', name: 'Employee Expenses', accountType: 'expense', active: true },
+        });
+    }
+    let expenseJournal = await prisma.accountJournal.findFirst({ where: { type: 'purchase' } });
+    if (!expenseJournal) {
+        expenseJournal = await prisma.accountJournal.create({
+            data: { name: 'Expense Journal', code: 'EXP', type: 'purchase', active: true },
+        });
+    }
+
+    const move = await prisma.accountMove.create({
+        data: {
+            name: `EXP/${new Date().getFullYear()}/${String(sheetId).padStart(4, '0')}`,
+            moveType: 'in_invoice',
+            state: 'posted',
+            date: new Date(),
+            ref: sheet.name,
+            amountTotal: sheet.totalAmount,
+            amountResidual: sheet.totalAmount,
+            journalId: expenseJournal.id,
+            lines: {
+                create: sheet.expenses.map(exp => ({
+                    name: exp.name,
+                    accountId: expenseAccount!.id,
+                    debit: exp.totalAmount,
+                    credit: 0,
+                    balance: exp.totalAmount,
+                })),
+            },
+        },
+    });
+
+    const updated = await prisma.hrExpenseSheet.update({
+        where: { id: sheetId },
+        data: { state: 'posted', accountMoveId: move.id },
+    });
+    res.json({ sheet: updated, move });
+}));
+
+hrRoutes.delete('/expense-sheets/:id', asyncHandler(async (req, res) => {
+    await prisma.hrExpenseSheet.delete({ where: { id: parseInt(req.params.id) } });
+    res.json({ success: true });
+}));
+
 hrRoutes.get('/timesheets', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
     const [data, total] = await Promise.all([
