@@ -9,8 +9,8 @@ import {
   InvoiceAnalytics, CustomerStatement
 } from '../types';
 
-// API base URL
-const API_BASE = '/api/v1/invoicing';
+// API base URL — delegates to accounting/partners adapter layer
+const API_BASE = '/api/invoicing';
 
 // Create the store with devtools middleware
 export const useInvoicingStore = create<InvoicingState & {

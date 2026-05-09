@@ -253,3 +253,69 @@ inventoryRoutes.get('/routes', asyncHandler(async (req, res) => {
     });
     res.json(routes);
 }));
+
+// ── Inventory Adjustments ────────────────────────────────────────────────────
+// GET: list all stock quants (current inventory levels per product/location)
+inventoryRoutes.get('/adjustments', asyncHandler(async (req, res) => {
+    const productId = req.query.productId as string | undefined;
+    const locationId = req.query.locationId ? parseInt(req.query.locationId as string) : undefined;
+    const where: any = {};
+    if (productId) where.productId = productId;
+    if (locationId) where.locationId = locationId;
+
+    const quants = await prisma.stockQuant.findMany({
+        where,
+        include: {
+            product: { select: { id: true, name: true } },
+            location: { select: { id: true, name: true, completeName: true } },
+        },
+        orderBy: [{ location: { name: 'asc' } }, { product: { name: 'asc' } }],
+        take: 500,
+    });
+    res.json(quants);
+}));
+
+// POST: apply inventory adjustment (set quantity on hand for product/location)
+inventoryRoutes.post('/adjustments', asyncHandler(async (req, res) => {
+    const { productId, locationId, quantity, reason } = req.body as {
+        productId: string; locationId: number; quantity: number; reason?: string;
+    };
+
+    if (!productId || !locationId || quantity === undefined) {
+        res.status(422).json({ error: { code: 'VALIDATION_ERROR', message: 'productId, locationId, and quantity are required' } });
+        return;
+    }
+
+    // Upsert the quant
+    const quant = await prisma.stockQuant.upsert({
+        where: { productId_locationId: { productId, locationId } },
+        update: { quantity },
+        create: { productId, locationId, quantity, reservedQuantity: 0 },
+        include: {
+            product: { select: { id: true, name: true } },
+            location: { select: { id: true, name: true } },
+        },
+    });
+
+    // Update the product's qtyOnHand aggregate
+    const totalOnHand = await prisma.stockQuant.aggregate({
+        where: { productId },
+        _sum: { quantity: true },
+    });
+    await prisma.product.update({
+        where: { id: productId },
+        data: { qtyOnHand: totalOnHand._sum.quantity ?? 0 },
+    });
+
+    res.status(201).json({ quant, newQtyOnHand: totalOnHand._sum.quantity ?? 0, reason });
+}));
+
+// GET: stock locations (for adjustment screen dropdowns)
+inventoryRoutes.get('/locations', asyncHandler(async (req, res) => {
+    const locations = await prisma.stockLocation.findMany({
+        where: { active: true },
+        select: { id: true, name: true, completeName: true, usage: true },
+        orderBy: { completeName: 'asc' },
+    });
+    res.json(locations);
+}));

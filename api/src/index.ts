@@ -87,6 +87,7 @@ import { spreadsheetRoutes } from './routes/spreadsheet';
 import { automationRoutes } from './routes/automation';
 import aiActionsRouter from './routes/ai-actions';
 import { gdprRoutes } from './routes/gdpr';
+import { invoicingRoutes } from './routes/invoicing';
 import { startBackgroundJobs } from './jobs';
 import prisma from './lib/prisma';
 
@@ -233,6 +234,7 @@ app.use('/api/skills', skillsRoutes);
 app.use('/api/spreadsheet', spreadsheetRoutes);
 app.use('/api/automation', automationRoutes);
 app.use('/api/ai', apiLimiter, aiActionsRouter);
+app.use('/api/invoicing', invoicingRoutes);
 app.use('/api/gdpr', apiLimiter, gdprRoutes);
 
 // ── 404 ──────────────────────────────────────────────────────
