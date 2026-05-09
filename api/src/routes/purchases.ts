@@ -189,3 +189,30 @@ purchaseRoutes.post('/:id/pay-bill', asyncHandler(async (req, res) => {
     const payment = await registerPayment(parseInt(billId), { amount, journalId, memo, idempotencyKey });
     res.status(201).json(payment);
 }));
+
+// Computed stats for supply chain dashboard
+purchaseRoutes.get('/stats/lead-time', asyncHandler(async (_req, res) => {
+    const pos = await prisma.purchaseOrder.findMany({
+        where: {
+            state: { in: ['purchase', 'done'] },
+            datePlanned: { not: null },
+        },
+        select: { dateOrder: true, datePlanned: true },
+        take: 200,
+        orderBy: { dateOrder: 'desc' },
+    });
+
+    const diffs = pos
+        .filter(po => po.datePlanned)
+        .map(po => {
+            const ms = new Date(po.datePlanned!).getTime() - new Date(po.dateOrder).getTime();
+            return ms / (1000 * 60 * 60 * 24); // days
+        })
+        .filter(d => d >= 0 && d < 365);
+
+    const avgLeadTime = diffs.length > 0
+        ? Math.round(diffs.reduce((sum, d) => sum + d, 0) / diffs.length)
+        : null;
+
+    res.json({ avgLeadTime, sampleSize: diffs.length });
+}));

@@ -26,7 +26,7 @@ interface SupplyChainState {
     stats: {
         totalOrderpoints: number;
         activeRoutes: number;
-        avgLeadTime: number;
+        avgLeadTime: number | null;
     };
     fetchData: () => Promise<void>;
     runReplenishment: () => Promise<void>;
@@ -47,9 +47,10 @@ export const useSupplyChainStore = create<SupplyChainState>((set, get) => ({
     fetchData: async () => {
         set({ loading: true });
         try {
-            const [opRes, routeRes] = await Promise.all([
+            const [opRes, routeRes, leadTimeRes] = await Promise.all([
                 axios.get('/api/inventory/orderpoints'),
-                axios.get('/api/inventory/routes')
+                axios.get('/api/inventory/routes'),
+                axios.get('/api/purchases/stats/lead-time').catch(() => ({ data: { avgLeadTime: null } })),
             ]);
 
             set({
@@ -58,7 +59,7 @@ export const useSupplyChainStore = create<SupplyChainState>((set, get) => ({
                 stats: {
                     totalOrderpoints: opRes.data.total,
                     activeRoutes: routeRes.data.length,
-                    avgLeadTime: 12, // Mock or fetch from intelligence API
+                    avgLeadTime: leadTimeRes.data.avgLeadTime ?? 0,
                 }
             });
         } catch (error) {

@@ -34,7 +34,7 @@ const SupplyChainModule: React.FC = () => {
     const metrics = [
         { title: 'Reordering Rules', value: stats.totalOrderpoints, icon: Zap, color: 'text-yellow-400' },
         { title: 'Active Routes', value: stats.activeRoutes, icon: Network, color: 'text-blue-400' },
-        { title: 'Avg Lead Time', value: `${stats.avgLeadTime} Days`, icon: Truck, color: 'text-purple-400' },
+        { title: 'Avg Lead Time', value: stats.avgLeadTime != null && stats.avgLeadTime > 0 ? `${stats.avgLeadTime} Days` : 'N/A', icon: Truck, color: 'text-purple-400' },
         { title: 'Stock Alerts', value: orderpoints.filter(op => op.product.qtyOnHand < op.productMinQty).length, icon: AlertTriangle, color: 'text-red-400' },
     ];
 
