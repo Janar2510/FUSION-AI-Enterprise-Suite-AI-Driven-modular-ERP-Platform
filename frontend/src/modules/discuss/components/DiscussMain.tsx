@@ -25,28 +25,44 @@ export const DiscussMain: React.FC = () => {
     loadMessages,
     setCurrentChannel,
     addReaction,
+    addMessage,
   } = useDiscussStore();
-  
+
   useEffect(() => { loadChannels(); }, [loadChannels]);
 
   useEffect(() => {
     if (currentChannel) loadMessages(currentChannel.id);
   }, [currentChannel?.id, loadMessages]);
 
-  const { data: wsData, send: wsSend } = useWebSocket(
+  // Polling for real-time messages when WebSocket server is unavailable
+  useEffect(() => {
+    if (!currentChannel) return;
+    const interval = setInterval(() => {
+      loadMessages(currentChannel.id);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [currentChannel?.id]);
+
+  const { data: wsData, send: wsSend, isConnected: wsConnected } = useWebSocket(
     `/discuss/ws/${currentChannel?.id}`
   );
 
   useEffect(() => {
-    if (wsData) {
-      // Handle real-time updates
-      if (wsData.type === 'message') {
-        // New message received
-      } else if (wsData.type === 'typing') {
-        // Someone is typing
-        setIsTyping(true);
-        setTimeout(() => setIsTyping(false), 3000);
-      }
+    if (!wsData) return;
+    if (wsData.type === 'message' && wsData.content) {
+      // Inject inbound WebSocket message into store
+      addMessage({
+        channel_id: wsData.channel_id ?? currentChannel?.id ?? 0,
+        content: wsData.content,
+        sender_id: wsData.sender_id ?? 0,
+        sender_name: wsData.sender_name ?? 'Unknown',
+        reactions: [],
+        is_deleted: false,
+        is_pinned: false,
+      });
+    } else if (wsData.type === 'typing') {
+      setIsTyping(true);
+      setTimeout(() => setIsTyping(false), 3000);
     }
   }, [wsData]);
 

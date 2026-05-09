@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface UseWebSocketReturn {
@@ -6,64 +6,86 @@ interface UseWebSocketReturn {
   isConnected: boolean;
   sendMessage: (event: string, data: any) => void;
   disconnect: () => void;
+  // Discuss-compatible interface
+  data: any;
+  send: (data: any) => void;
+}
+
+const WS_URL = (import.meta as any).env.VITE_WS_URL || (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+
+function getStoredToken(): string | null {
+  try {
+    // Try standard localStorage key used by auth store
+    const raw = localStorage.getItem('fusionai_auth') || localStorage.getItem('auth');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.state?.accessToken ?? parsed?.accessToken ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export const useWebSocket = (endpoint: string): UseWebSocketReturn => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [lastData, setLastData] = useState<any>(null);
 
   useEffect(() => {
-    // For now, just return a mock implementation
-    // In a real app, this would connect to the actual WebSocket server
-    const mockSocket = {
-      on: (event: string, callback: (data: any) => void) => {
-        console.log(`Mock WebSocket: Listening for ${event}`);
-      },
-      off: (event: string, callback: (data: any) => void) => {
-        console.log(`Mock WebSocket: Stopped listening for ${event}`);
-      },
-      emit: (event: string, data: any) => {
-        console.log(`Mock WebSocket: Emitting ${event}`, data);
-      },
-      disconnect: () => {
-        console.log('Mock WebSocket: Disconnected');
-      }
-    } as any;
+    const token = getStoredToken();
 
-    setSocket(mockSocket);
-    setIsConnected(true);
-    socketRef.current = mockSocket;
+    // Try real socket.io connection — fall back silently if server isn't running WS
+    const socket = io(WS_URL, {
+      path: '/socket.io',
+      auth: token ? { token } : {},
+      query: { endpoint },
+      transports: ['websocket', 'polling'],
+      timeout: 5000,
+      reconnectionAttempts: 3,
+    });
+
+    socketRef.current = socket;
+
+    socket.on('connect', () => setIsConnected(true));
+    socket.on('disconnect', () => setIsConnected(false));
+    socket.on('connect_error', () => {
+      // Server doesn't have WS — stay disconnected, polling will handle real-time
+      setIsConnected(false);
+    });
+
+    // Generic inbound data relay
+    socket.onAny((event, data) => {
+      if (event !== 'connect' && event !== 'disconnect') {
+        setLastData({ type: event, ...data });
+      }
+    });
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
+      socket.disconnect();
+      socketRef.current = null;
     };
   }, [endpoint]);
 
-  const sendMessage = (event: string, data: any) => {
-    if (socket) {
-      socket.emit(event, data);
-    }
-  };
+  const sendMessage = useCallback((event: string, data: any) => {
+    socketRef.current?.emit(event, data);
+  }, []);
 
-  const disconnect = () => {
-    if (socket) {
-      socket.disconnect();
-      setSocket(null);
-      setIsConnected(false);
+  const send = useCallback((data: any) => {
+    if (data?.type) {
+      socketRef.current?.emit(data.type, data);
     }
-  };
+  }, []);
+
+  const disconnect = useCallback(() => {
+    socketRef.current?.disconnect();
+    setIsConnected(false);
+  }, []);
 
   return {
-    socket,
+    socket: socketRef.current,
     isConnected,
     sendMessage,
-    disconnect
+    disconnect,
+    data: lastData,
+    send,
   };
 };
-
-
-
-
