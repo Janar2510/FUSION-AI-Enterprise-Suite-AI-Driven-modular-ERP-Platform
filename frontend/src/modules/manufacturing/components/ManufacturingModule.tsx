@@ -37,6 +37,8 @@ export const ManufacturingModule: React.FC = () => {
         createRouting,
         startOrder,
         finishOrder,
+        createBackorder,
+        createScrap,
         optimizeSchedule,
         aiSchedule,
         recordQualityData
@@ -360,12 +362,37 @@ export const ManufacturingModule: React.FC = () => {
                             </button>
                         )}
                         {activeOrder?.state === 'progress' && (
-                            <button
-                                onClick={handleFinishOrder}
-                                className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 flex items-center gap-2 rounded-md transition-colors"
-                            >
-                                Mark as Done
-                            </button>
+                            <>
+                                <button
+                                    onClick={handleFinishOrder}
+                                    className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 flex items-center gap-2 rounded-md transition-colors"
+                                >
+                                    Mark as Done
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        const bo = await createBackorder(activeOrder.id);
+                                        if (bo) { setActiveOrder(null); toast.success(`Backorder ${bo.name} created`); }
+                                    }}
+                                    className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 flex items-center gap-2 rounded-md transition-colors"
+                                >
+                                    Create Backorder
+                                </button>
+                                {activeOrder.productId && (
+                                    <button
+                                        onClick={async () => {
+                                            const qty = parseFloat(prompt('Scrap quantity:') ?? '0');
+                                            if (qty > 0) {
+                                                await createScrap(activeOrder.id, String(activeOrder.productId), qty);
+                                                toast.success(`Scrap recorded: ${qty} units`);
+                                            }
+                                        }}
+                                        className="bg-red-700 hover:bg-red-600 text-white px-4 py-2 flex items-center gap-2 rounded-md transition-colors"
+                                    >
+                                        Scrap
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>

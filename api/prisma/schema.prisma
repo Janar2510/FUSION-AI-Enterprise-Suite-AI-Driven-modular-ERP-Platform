@@ -532,6 +532,8 @@ model Product {
   qualityPoints   QualityPoint[]
   qualityAlerts   QualityAlert[]
   mrpEcos         MrpEco[]
+  mrpScraps         MrpScrap[]
+  subscriptionLines SubscriptionLine[]
   webCartItems    WebCartItem[]
   orderpoints     StockWarehouseOrderpoint[]
   vendorPricelists  VendorPricelist[]
@@ -1219,24 +1221,46 @@ model MrpBomLine {
 }
 
 model MrpProduction {
-  id           Int            @id @default(autoincrement())
-  name         String         @unique
-  state        String         @default("draft")
-  productQty   Float          @default(1)
-  qtyProduced  Float          @default(0)
-  dateStart    DateTime?
-  dateFinished DateTime?
-  origin       String?
-  bomId        Int?
-  productId    String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  bom          MrpBom?        @relation(fields: [bomId], references: [id])
-  product      Product?       @relation(fields: [productId], references: [id])
-  workOrders   MrpWorkorder[]
-  qualityChecks QualityCheck[]
+  id              Int            @id @default(autoincrement())
+  name            String         @unique
+  state           String         @default("draft")
+  productQty      Float          @default(1)
+  qtyProduced     Float          @default(0)
+  dateStart       DateTime?
+  dateFinished    DateTime?
+  origin          String?
+  backorderId     Int?           // parent production if this is a backorder
+  bomId           Int?
+  productId       String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  bom             MrpBom?        @relation(fields: [bomId], references: [id])
+  product         Product?       @relation(fields: [productId], references: [id])
+  backorder       MrpProduction? @relation("BackorderOf", fields: [backorderId], references: [id])
+  backorders      MrpProduction[] @relation("BackorderOf")
+  workOrders      MrpWorkorder[]
+  qualityChecks   QualityCheck[]
+  scraps          MrpScrap[]
 
   @@map("mrp_productions")
+}
+
+model MrpScrap {
+  id           Int            @id @default(autoincrement())
+  name         String
+  state        String         @default("draft") // draft | done
+  productQty   Float          @default(1)
+  scrapQty     Float          @default(1)
+  origin       String?
+  productionId Int?
+  productId    String?
+  locationId   Int?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  production   MrpProduction? @relation(fields: [productionId], references: [id])
+  product      Product?       @relation(fields: [productId], references: [id])
+
+  @@map("mrp_scraps")
 }
 
 model MrpWorkorder {
@@ -1798,22 +1822,40 @@ model MrpEco {
 }
 
 model Subscription {
-  id                Int       @id @default(autoincrement())
+  id                Int                @id @default(autoincrement())
   name              String?
-  state             String    @default("draft")
-  plan              String    @default("starter")
-  mrr               Float     @default(0)
-  startDate         DateTime  @default(now())
+  state             String             @default("draft")  // draft | active | paused | cancelled | expired
+  plan              String             @default("starter")
+  mrr               Float              @default(0)
+  startDate         DateTime           @default(now())
   nextBilling       DateTime?
   endDate           DateTime?
-  recurringInterval Int       @default(1)
-  recurringRule     String    @default("monthly")
+  recurringInterval Int                @default(1)
+  recurringRule     String             @default("monthly") // monthly | quarterly | annual
   partnerId         String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  partner           Partner?  @relation(fields: [partnerId], references: [id])
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  partner           Partner?           @relation(fields: [partnerId], references: [id])
+  lines             SubscriptionLine[]
 
   @@map("subscriptions")
+}
+
+model SubscriptionLine {
+  id             Int          @id @default(autoincrement())
+  subscriptionId Int
+  name           String
+  productId      String?
+  quantity       Float        @default(1)
+  priceUnit      Float        @default(0)
+  discount       Float        @default(0)  // percent 0-100
+  priceSubtotal  Float        @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  product        Product?     @relation(fields: [productId], references: [id])
+
+  @@map("subscription_lines")
 }
 
 model PlanningSlot {

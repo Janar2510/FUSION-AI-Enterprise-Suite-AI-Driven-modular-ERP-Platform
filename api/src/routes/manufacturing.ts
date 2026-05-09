@@ -293,6 +293,100 @@ manufacturingRoutes.delete('/routings/:id', asyncHandler(async (req, res) => {
     return;
 }));
 
+// ── Backorders ───────────────────────────────────────────────────────────────
+manufacturingRoutes.post('/orders/:id/backorder', asyncHandler(async (req, res) => {
+    const parentId = parseInt(req.params.id);
+    const parent = await prisma.mrpProduction.findUnique({
+        where: { id: parentId },
+        include: { product: { select: { name: true } } },
+    });
+    if (!parent) { res.status(404).json({ error: 'Manufacturing order not found' }); return; }
+
+    const remainingQty = parent.productQty - parent.qtyProduced;
+    if (remainingQty <= 0) {
+        res.status(422).json({ error: { code: 'NO_REMAINING', message: 'No remaining quantity to backorder' } });
+        return;
+    }
+
+    const count = await prisma.mrpProduction.count();
+    const backorder = await prisma.mrpProduction.create({
+        data: {
+            name: `${parent.name}/BO`,
+            state: 'draft',
+            productQty: remainingQty,
+            qtyProduced: 0,
+            productId: parent.productId,
+            bomId: parent.bomId,
+            backorderId: parentId,
+            origin: parent.name,
+        },
+        include: { product: { select: { name: true } } },
+    });
+
+    // Mark parent as done with partial qty
+    await prisma.mrpProduction.update({
+        where: { id: parentId },
+        data: { state: 'done', dateFinished: new Date() },
+    });
+
+    res.status(201).json(backorder);
+}));
+
+// ── Scrap ─────────────────────────────────────────────────────────────────────
+manufacturingRoutes.get('/scraps', asyncHandler(async (req, res) => {
+    const scraps = await prisma.mrpScrap.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+            product: { select: { id: true, name: true } },
+            production: { select: { id: true, name: true } },
+        },
+        take: 200,
+    });
+    res.json(scraps);
+}));
+
+manufacturingRoutes.post('/orders/:id/scrap', asyncHandler(async (req, res) => {
+    const productionId = parseInt(req.params.id);
+    const { productId, scrapQty, origin } = req.body as {
+        productId: string; scrapQty: number; origin?: string;
+    };
+
+    const production = await prisma.mrpProduction.findUnique({ where: { id: productionId } });
+    if (!production) { res.status(404).json({ error: 'Manufacturing order not found' }); return; }
+
+    const scrapCount = await prisma.mrpScrap.count();
+    const scrap = await prisma.mrpScrap.create({
+        data: {
+            name: `SCRAP/${String(scrapCount + 1).padStart(5, '0')}`,
+            state: 'done',
+            productId,
+            scrapQty: scrapQty ?? 1,
+            productQty: scrapQty ?? 1,
+            productionId,
+            origin: origin ?? production.name,
+        },
+        include: { product: { select: { id: true, name: true } } },
+    });
+
+    res.status(201).json(scrap);
+}));
+
+manufacturingRoutes.post('/scraps', asyncHandler(async (req, res) => {
+    const { productId, scrapQty, productionId, origin } = req.body;
+    const count = await prisma.mrpScrap.count();
+    const scrap = await prisma.mrpScrap.create({
+        data: {
+            name: `SCRAP/${String(count + 1).padStart(5, '0')}`,
+            state: 'done',
+            productId, scrapQty: scrapQty ?? 1, productQty: scrapQty ?? 1,
+            productionId: productionId ? parseInt(productionId) : null,
+            origin,
+        },
+        include: { product: { select: { id: true, name: true } } },
+    });
+    res.status(201).json(scrap);
+}));
+
 // AI & Intelligence
 manufacturingRoutes.post('/ai/optimize-schedule', asyncHandler(async (req: Request, res) => {
     const result = await runAgent(

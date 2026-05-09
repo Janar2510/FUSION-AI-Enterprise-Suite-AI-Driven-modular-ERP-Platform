@@ -76,6 +76,18 @@ export interface QualityCheck {
     createdAt: string;
 }
 
+export interface MrpScrap {
+    id: number;
+    name: string;
+    state: string;
+    scrapQty: number;
+    productId?: string | null;
+    productionId?: number | null;
+    origin?: string | null;
+    product?: { id: string; name: string };
+    createdAt: string;
+}
+
 export interface MrpProduction {
     id: number;
     name: string;
@@ -85,12 +97,14 @@ export interface MrpProduction {
     dateStart?: string | null;
     dateFinished?: string | null;
     origin?: string | null;
+    backorderId?: number | null;
     bomId?: number | null;
     productId?: number | null;
     bom?: MrpBom | null;
     product?: { id: number; name: string };
     workOrders?: MrpWorkorder[];
     qualityChecks?: QualityCheck[];
+    backorders?: MrpProduction[];
 }
 
 interface ManufacturingStore {
@@ -121,6 +135,11 @@ interface ManufacturingStore {
     fetchQualityChecks: () => Promise<void>;
     updateQualityCheck: (id: number, data: Partial<QualityCheck>) => Promise<void>;
 
+    createBackorder: (productionId: number) => Promise<MrpProduction | undefined>;
+    scraps: MrpScrap[];
+    fetchScraps: () => Promise<void>;
+    createScrap: (productionId: number, productId: string, scrapQty: number) => Promise<MrpScrap | undefined>;
+
     optimizeSchedule: () => Promise<void>;
     recordQualityData: (workcenterId: number, passRate: number, defectRate: number, temp: number | null, humidity: number | null) => Promise<void>;
 }
@@ -131,6 +150,7 @@ export const useManufacturingStore = create<ManufacturingStore>((set, get) => ({
     workcenters: [],
     routings: [],
     qualityChecks: [],
+    scraps: [],
     loading: false,
     error: null,
     aiSchedule: null,
@@ -258,6 +278,40 @@ export const useManufacturingStore = create<ManufacturingStore>((set, get) => ({
             set({ loading: false });
         } catch (err: any) {
             console.error(err);
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    createBackorder: async (productionId) => {
+        try {
+            set({ loading: true, error: null });
+            const res = await axios.post(`${API_BASE}/api/manufacturing/orders/${productionId}/backorder`);
+            await get().fetchOrders();
+            set({ loading: false });
+            return res.data;
+        } catch (err: any) {
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    fetchScraps: async () => {
+        try {
+            set({ loading: true, error: null });
+            const res = await axios.get(`${API_BASE}/api/manufacturing/scraps`);
+            set({ scraps: res.data ?? [], loading: false });
+        } catch (err: any) {
+            set({ error: err.message, loading: false });
+        }
+    },
+
+    createScrap: async (productionId, productId, scrapQty) => {
+        try {
+            set({ loading: true, error: null });
+            const res = await axios.post(`${API_BASE}/api/manufacturing/orders/${productionId}/scrap`, { productId, scrapQty });
+            await get().fetchScraps();
+            set({ loading: false });
+            return res.data;
+        } catch (err: any) {
             set({ error: err.message, loading: false });
         }
     },
