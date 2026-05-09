@@ -11,6 +11,21 @@ const STAGES = [
     { id: 'done', label: 'Done' }
 ] as const;
 
+const COLOR_PALETTE = [
+    '',              // 0 — no color
+    '#e11d48',       // 1 — red
+    '#f97316',       // 2 — orange
+    '#eab308',       // 3 — yellow
+    '#22c55e',       // 4 — green
+    '#06b6d4',       // 5 — cyan
+    '#3b82f6',       // 6 — blue
+    '#8b5cf6',       // 7 — violet
+    '#ec4899',       // 8 — pink
+    '#6366f1',       // 9 — indigo
+    '#14b8a6',       // 10 — teal
+    '#64748b',       // 11 — slate
+];
+
 export const NotesModule: React.FC = () => {
     const {
         notes,
@@ -104,17 +119,22 @@ export const NotesModule: React.FC = () => {
                                                         {...provided.draggableProps}
                                                         {...provided.dragHandleProps}
                                                         onClick={() => handleRowClick(note)}
-                                                        className={`bg-white/5 border border-white/10 p-4 rounded-xl cursor-pointer hover:bg-white/10 transition-all ${snapshot.isDragging ? 'shadow-2xl shadow-primary-purple/20 ring-1 ring-primary-purple' : ''
+                                                        className={`bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-all overflow-hidden ${snapshot.isDragging ? 'shadow-2xl shadow-primary-purple/20 ring-1 ring-primary-purple' : ''
                                                             }`}
                                                     >
-                                                        <div className="flex items-start justify-between mb-2">
-                                                            <h4 className="text-white font-medium line-clamp-2">{note.name}</h4>
-                                                        </div>
-                                                        {note.body && (
-                                                            <div className="text-xs text-white/50 line-clamp-3 overflow-hidden text-ellipsis mb-2">
-                                                                {note.body.replace(/<[^>]+>/g, '')}
-                                                            </div>
+                                                        {note.color > 0 && (
+                                                            <div style={{ backgroundColor: COLOR_PALETTE[note.color] ?? '' }} className="h-1 w-full" />
                                                         )}
+                                                        <div className="p-4">
+                                                            <div className="flex items-start justify-between mb-2">
+                                                                <h4 className="text-white font-medium line-clamp-2">{note.name}</h4>
+                                                            </div>
+                                                            {note.body && (
+                                                                <div className="text-xs text-white/50 line-clamp-3 overflow-hidden text-ellipsis mb-2">
+                                                                    {note.body.replace(/<[^>]+>/g, '')}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 )}
                                             </Draggable>
@@ -171,6 +191,18 @@ export const NotesModule: React.FC = () => {
                             >
                                 {s.label}
                             </button>
+                        ))}
+                    </div>
+                    {/* Color picker */}
+                    <div className="flex items-center gap-1 ml-2">
+                        {COLOR_PALETTE.map((color, idx) => (
+                            <button
+                                key={idx}
+                                title={idx === 0 ? 'No color' : `Color ${idx}`}
+                                onClick={() => setFormData({ ...formData, color: idx })}
+                                style={{ backgroundColor: color || 'transparent' }}
+                                className={`w-5 h-5 rounded-full border-2 transition-transform hover:scale-110 ${formData.color === idx ? 'border-white scale-110' : 'border-white/20'} ${idx === 0 ? 'bg-white/10' : ''}`}
+                            />
                         ))}
                     </div>
                     {activeRecord && (

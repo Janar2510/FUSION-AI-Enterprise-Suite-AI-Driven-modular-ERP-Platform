@@ -317,7 +317,6 @@ export const HRModule: React.FC = () => {
                             <AiActionsPanel
                                 entityType="HrEmployee"
                                 entityId={String(activeRecord.id)}
-                                agentKey="customer-summary"
                             />
                             <ChatterPanel
                                 ownerType="HrEmployee"

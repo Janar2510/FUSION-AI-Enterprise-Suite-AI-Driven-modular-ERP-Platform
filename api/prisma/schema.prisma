@@ -530,6 +530,7 @@ model Product {
   quants          StockQuant[]
   qualityChecks   QualityCheck[]
   qualityPoints   QualityPoint[]
+  qualityAlerts   QualityAlert[]
   mrpEcos         MrpEco[]
   webCartItems    WebCartItem[]
   orderpoints     StockWarehouseOrderpoint[]
@@ -1270,6 +1271,7 @@ model MrpWorkcenter {
   workOrders       MrpWorkorder[]
   routingOperations MrpRoutingOperation[]
   qualityPoints    QualityPoint[]
+  qualityAlerts    QualityAlert[]
 
   @@map("mrp_workcenters")
 }
@@ -1747,8 +1749,33 @@ model QualityCheck {
   production   MrpProduction? @relation(fields: [productionId], references: [id])
   workorder    MrpWorkorder?  @relation(fields: [workorderId], references: [id])
   picking      StockPicking? @relation(fields: [pickingId], references: [id])
+  alerts       QualityAlert[]
 
   @@map("quality_checks")
+}
+
+model QualityAlert {
+  id           Int           @id @default(autoincrement())
+  name         String
+  stage        String        @default("new")   // new, in_progress, done, cancel
+  priority     Int           @default(0)       // 0=normal, 1=important, 2=critical
+  description  String?
+  rootCause    String?
+  correctiveAction String?
+  productId    String?
+  workcenterId Int?
+  teamId       String?
+  checkId      Int?
+  deadline     DateTime?
+  doneDate     DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  product      Product?      @relation(fields: [productId], references: [id])
+  workcenter   MrpWorkcenter? @relation(fields: [workcenterId], references: [id])
+  check        QualityCheck? @relation(fields: [checkId], references: [id])
+
+  @@index([stage])
+  @@map("quality_alerts")
 }
 
 model MrpEco {

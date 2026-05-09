@@ -2,23 +2,30 @@ import React, { useEffect, useState } from 'react';
 import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
-import { useQualityStore, QualityCheck, QualityPoint } from '../stores/qualityStore';
+import { useQualityStore, QualityCheck, QualityPoint, QualityAlert } from '../stores/qualityStore';
 import { useInventoryStore } from '@/modules/inventory/stores/inventoryStore';
-import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck, Bell } from 'lucide-react';
 import { GlassCard } from '@/components/shared/GlassCard';
 
+type QualityTab = 'checks' | 'alerts';
+
 export const QualityModule: React.FC = () => {
-    const { checks, points, fetchChecks, fetchPoints, createCheck, updateCheck } = useQualityStore();
+    const { checks, points, alerts, fetchChecks, fetchPoints, fetchAlerts, createCheck, updateCheck, createAlert, updateAlert, moveAlertStage, deleteAlert } = useQualityStore();
     const { products, fetchAllProducts } = useInventoryStore();
 
+    const [activeTab, setActiveTab] = useState<QualityTab>('checks');
     const [currentView, setCurrentView] = useState<ViewType>('kanban'); // Kanban acts as Dashboard
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCheck, setActiveCheck] = useState<QualityCheck | null>(null);
     const [formData, setFormData] = useState<Partial<QualityCheck>>({});
+    const [activeAlert, setActiveAlert] = useState<QualityAlert | null>(null);
+    const [alertFormData, setAlertFormData] = useState<Partial<QualityAlert>>({});
+    const [alertView, setAlertView] = useState<'list' | 'form'>('list');
 
     useEffect(() => {
         fetchChecks();
         fetchPoints();
+        fetchAlerts();
         fetchAllProducts();
     }, []);
 
@@ -332,21 +339,178 @@ export const QualityModule: React.FC = () => {
         );
     };
 
+    const PRIORITY_LABELS: Record<number, { label: string; color: string }> = {
+        0: { label: 'Normal', color: 'text-white/60' },
+        1: { label: 'Important', color: 'text-yellow-400' },
+        2: { label: 'Critical', color: 'text-red-400' },
+    };
+
+    const ALERT_STAGES = ['new', 'in_progress', 'done', 'cancel'];
+
+    const renderAlertsPanel = () => {
+        if (alertView === 'form') {
+            return (
+                <OdooFormBase
+                    statusRibbon={
+                        <div className="flex items-center gap-2 flex-wrap">
+                            {ALERT_STAGES.map(s => (
+                                <button key={s} onClick={async () => {
+                                    if (!activeAlert) return;
+                                    const updated = await moveAlertStage(activeAlert.id, s);
+                                    if (updated) { setActiveAlert(updated); setAlertFormData(updated); }
+                                }} className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${alertFormData.stage === s ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+                                    {s.replace('_', ' ')}
+                                </button>
+                            ))}
+                            <div className="flex-1" />
+                            {activeAlert && (
+                                <button onClick={async () => { await deleteAlert(activeAlert.id); setAlertView('list'); }}
+                                    className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-3 py-1.5 rounded text-sm transition-colors border border-red-500/30">
+                                    Delete
+                                </button>
+                            )}
+                        </div>
+                    }
+                    headerContent={
+                        <input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-white/20 placeholder-white/30 outline-none focus:border-orange-500 transition-all w-full pb-2 mb-4"
+                            placeholder="Alert Title..." value={alertFormData.name || ''}
+                            onChange={e => setAlertFormData({ ...alertFormData, name: e.target.value })} />
+                    }
+                    leftPanels={
+                        <div className="space-y-6">
+                            <div>
+                                <label className="text-white/60 text-sm font-medium mb-2 block uppercase tracking-wide">Priority</label>
+                                <div className="flex gap-2">
+                                    {[0, 1, 2].map(p => (
+                                        <button key={p} onClick={() => setAlertFormData({ ...alertFormData, priority: p })}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${alertFormData.priority === p ? 'bg-orange-500/20 text-orange-400 border border-orange-500/40' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}>
+                                            {PRIORITY_LABELS[p]?.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-white/60 text-sm font-medium mb-2 block uppercase tracking-wide">Description</label>
+                                <textarea className="w-full h-32 bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-orange-500 transition-all resize-none text-sm"
+                                    placeholder="Describe the quality issue..." value={alertFormData.description || ''}
+                                    onChange={e => setAlertFormData({ ...alertFormData, description: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="text-white/60 text-sm font-medium mb-2 block uppercase tracking-wide">Root Cause</label>
+                                <textarea className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-orange-500 transition-all resize-none text-sm"
+                                    placeholder="Identified root cause..." value={alertFormData.rootCause || ''}
+                                    onChange={e => setAlertFormData({ ...alertFormData, rootCause: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="text-white/60 text-sm font-medium mb-2 block uppercase tracking-wide">Corrective Action</label>
+                                <textarea className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-orange-500 transition-all resize-none text-sm"
+                                    placeholder="Planned corrective action..." value={alertFormData.correctiveAction || ''}
+                                    onChange={e => setAlertFormData({ ...alertFormData, correctiveAction: e.target.value })} />
+                            </div>
+                            <div className="flex gap-3 pt-4">
+                                <button onClick={async () => {
+                                    if (activeAlert) { await updateAlert(activeAlert.id, alertFormData); }
+                                    else { await createAlert(alertFormData); }
+                                    setAlertView('list');
+                                }} className="bg-orange-600 hover:bg-orange-500 text-white px-6 py-2.5 rounded-lg font-medium transition-colors text-sm">
+                                    Save
+                                </button>
+                                <button onClick={() => setAlertView('list')} className="bg-white/5 hover:bg-white/10 text-white px-6 py-2.5 rounded-lg font-medium transition-colors text-sm">
+                                    Discard
+                                </button>
+                            </div>
+                        </div>
+                    }
+                />
+            );
+        }
+
+        const filteredAlerts = alerts.filter(a => a.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        return (
+            <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <div className="text-white/60 text-sm">{filteredAlerts.length} alert{filteredAlerts.length !== 1 ? 's' : ''}</div>
+                    <button onClick={() => { setActiveAlert(null); setAlertFormData({ name: 'New Quality Alert', stage: 'new', priority: 0 }); setAlertView('form'); }}
+                        className="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                        <Bell className="w-4 h-4" /> New Alert
+                    </button>
+                </div>
+                {filteredAlerts.length === 0 ? (
+                    <div className="text-center text-white/40 py-16">No quality alerts — production is running clean</div>
+                ) : (
+                    <div className="space-y-3">
+                        {filteredAlerts.map(alert => (
+                            <div key={alert.id} onClick={() => { setActiveAlert(alert); setAlertFormData(alert); setAlertView('form'); }}
+                                className="bg-white/5 border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/10 transition-all">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-1">
+                                            <h4 className="text-white font-medium">{alert.name}</h4>
+                                            <span className={`text-xs font-bold uppercase ${PRIORITY_LABELS[alert.priority]?.color}`}>
+                                                {PRIORITY_LABELS[alert.priority]?.label}
+                                            </span>
+                                        </div>
+                                        {alert.description && <p className="text-white/50 text-sm line-clamp-2">{alert.description}</p>}
+                                    </div>
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ml-4 flex-shrink-0 ${
+                                        alert.stage === 'done' ? 'bg-green-500/20 text-green-400' :
+                                        alert.stage === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
+                                        alert.stage === 'cancel' ? 'bg-white/10 text-white/40' :
+                                        'bg-orange-500/20 text-orange-400'}`}>
+                                        {alert.stage.replace('_', ' ')}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     return (
-        <OdooViewManager
-            title="Quality Control"
-            currentView={currentView}
-            onViewChange={setCurrentView}
-            onNew={handleNew}
-            onSave={handleSave}
-            onDiscard={() => setCurrentView('kanban')}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            viewsAvailable={['kanban', 'list', 'form']}
-        >
-            {currentView === 'kanban' && renderDashboard()}
-            {currentView === 'list' && renderList()}
-            {currentView === 'form' && renderForm()}
-        </OdooViewManager>
+        <div className="h-full flex flex-col">
+            {/* Tab navigation */}
+            <div className="flex bg-white/5 rounded-full border border-white/10 p-1 mb-6 w-fit mx-8 mt-4">
+                {([
+                    { id: 'checks', label: 'Quality Checks' },
+                    { id: 'alerts', label: `Alerts${alerts.filter(a => a.stage === 'new').length > 0 ? ` (${alerts.filter(a => a.stage === 'new').length})` : ''}` },
+                ] as const).map(tab => (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === tab.id ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' : 'text-white/60 hover:text-white hover:bg-white/5 border border-transparent'}`}>
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {activeTab === 'checks' && (
+                <OdooViewManager
+                    title="Quality Control"
+                    currentView={currentView}
+                    onViewChange={setCurrentView}
+                    onNew={handleNew}
+                    onSave={handleSave}
+                    onDiscard={() => setCurrentView('kanban')}
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    viewsAvailable={['kanban', 'list', 'form']}
+                >
+                    {currentView === 'kanban' && renderDashboard()}
+                    {currentView === 'list' && renderList()}
+                    {currentView === 'form' && renderForm()}
+                </OdooViewManager>
+            )}
+
+            {activeTab === 'alerts' && (
+                <div className="flex-1 px-8 overflow-auto">
+                    <div className="mb-4">
+                        <input type="search" placeholder="Search alerts..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                            className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-orange-500 transition-all w-64" />
+                    </div>
+                    {renderAlertsPanel()}
+                </div>
+            )}
+        </div>
     );
 };

@@ -5,6 +5,7 @@ import { MetricGrid } from '@/components/shared/MetricCard';
 import { OdooDataGrid } from '@/components/shared/OdooDataGrid';
 import { OdooViewManager, ViewType } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { ShoppingCart, Building2, DollarSign, CheckCircle2, FileText } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -344,6 +345,17 @@ export const PurchasesModule: React.FC = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Chatter + timeline */}
+                {activeOrder && (
+                    <div className="pt-8">
+                        <ChatterPanel
+                            ownerType="PurchaseOrder"
+                            ownerId={activeOrder.id}
+                            showTimeline
+                        />
+                    </div>
+                )}
             </div>
         );
     };

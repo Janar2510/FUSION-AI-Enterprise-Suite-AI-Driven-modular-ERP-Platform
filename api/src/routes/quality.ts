@@ -64,3 +64,61 @@ qualityRoutes.delete('/checks/:id', asyncHandler(async (req, res) => {
     await prisma.qualityCheck.delete({ where: { id: parseInt(req.params.id) } });
     res.json({ success: true });
 }));
+
+// --- Quality Alerts ---
+qualityRoutes.get('/alerts', asyncHandler(async (req, res) => {
+    const { skip, page, limit } = getPagination(req.query);
+    const stage = req.query.stage as string | undefined;
+    const where = stage ? { stage } : {};
+    const [data, total] = await Promise.all([
+        prisma.qualityAlert.findMany({
+            where,
+            skip, take: limit, orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+            include: {
+                product: { select: { id: true, name: true } },
+                workcenter: { select: { id: true, name: true } },
+                check: { select: { id: true, name: true, state: true } },
+            }
+        }),
+        prisma.qualityAlert.count({ where }),
+    ]);
+    res.json(paginatedResponse(data, total, page, limit));
+}));
+
+qualityRoutes.get('/alerts/:id', asyncHandler(async (req, res) => {
+    const alert = await prisma.qualityAlert.findUnique({
+        where: { id: parseInt(req.params.id) },
+        include: {
+            product: { select: { id: true, name: true } },
+            workcenter: { select: { id: true, name: true } },
+            check: { select: { id: true, name: true, state: true } },
+        }
+    });
+    if (!alert) { res.status(404).json({ error: 'Alert not found' }); return; }
+    res.json(alert);
+}));
+
+qualityRoutes.post('/alerts', asyncHandler(async (req, res) => {
+    const alert = await prisma.qualityAlert.create({ data: req.body });
+    res.status(201).json(alert);
+}));
+
+qualityRoutes.put('/alerts/:id', asyncHandler(async (req, res) => {
+    const alert = await prisma.qualityAlert.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    res.json(alert);
+}));
+
+qualityRoutes.patch('/alerts/:id/stage', asyncHandler(async (req, res) => {
+    const { stage } = req.body as { stage: string };
+    const doneDate = stage === 'done' ? new Date() : undefined;
+    const alert = await prisma.qualityAlert.update({
+        where: { id: parseInt(req.params.id) },
+        data: { stage, ...(doneDate ? { doneDate } : {}) }
+    });
+    res.json(alert);
+}));
+
+qualityRoutes.delete('/alerts/:id', asyncHandler(async (req, res) => {
+    await prisma.qualityAlert.delete({ where: { id: parseInt(req.params.id) } });
+    res.status(204).send();
+}));
