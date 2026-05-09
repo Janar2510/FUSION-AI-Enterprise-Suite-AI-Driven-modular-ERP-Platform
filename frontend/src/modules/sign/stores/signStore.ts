@@ -45,7 +45,7 @@ export const useSignStore = create<SignState>((set) => ({
           signed_at: '2024-01-15T11:30:00Z',
           signature_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
           signature_method: 'draw',
-          ip_address: '192.168.1.100',
+          ip_address: null,
           verification_status: 'verified'
         },
         {
@@ -227,7 +227,7 @@ export const useSignStore = create<SignState>((set) => ({
                       signed_at: newSignature.signedAt,
                       signature_data: signatureData,
                       signature_method: 'draw',
-                      ip_address: '192.168.1.100', // This would come from the actual request
+                      ip_address: null, // This would come from the actual request
                       verification_status: 'verified'
                     }
                   : signer
@@ -247,7 +247,7 @@ export const useSignStore = create<SignState>((set) => ({
                     signed_at: newSignature.signedAt,
                     signature_data: signatureData,
                     signature_method: 'draw',
-                    ip_address: '192.168.1.100',
+                    ip_address: null,
                     verification_status: 'verified'
                   }
                 : signer
