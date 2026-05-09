@@ -1469,18 +1469,19 @@ model EventRegistration {
 }
 
 model FleetVehicle {
-  id           Int               @id @default(autoincrement())
+  id           Int                @id @default(autoincrement())
   name         String
   licensePlate String?
   model        String?
   brand        String?
   color        String?
   fuelType     String?
-  odometer     Float             @default(0)
-  state        String            @default("active")
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  odometer     Float              @default(0)
+  state        String             @default("active")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
   logs         FleetVehicleLog[]
+  contracts    FleetContract[]
 
   @@map("fleet_vehicles")
 }
@@ -1488,7 +1489,7 @@ model FleetVehicle {
 model FleetVehicleLog {
   id          Int          @id @default(autoincrement())
   date        DateTime     @default(now())
-  type        String
+  type        String       // fuel, repair, service, other
   description String?
   amount      Float        @default(0)
   odometer    Float        @default(0)
@@ -1498,18 +1499,41 @@ model FleetVehicleLog {
   @@map("fleet_vehicle_logs")
 }
 
+model FleetContract {
+  id              Int          @id @default(autoincrement())
+  name            String
+  state           String       @default("new") // new, open, close, cancelled
+  contractType    String       @default("insurance") // insurance, leasing, service
+  startDate       DateTime
+  expirationDate  DateTime?
+  costPerMonth    Float        @default(0)
+  insurer         String?
+  notes           String?
+  vehicleId       Int
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  vehicle         FleetVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("fleet_contracts")
+}
+
 model MaintenanceEquipment {
-  id         Int                  @id @default(autoincrement())
-  name       String
-  serialNo   String?
-  model      String?
-  category   String?
-  location   String?
-  assignDate DateTime?
-  cost       Float                @default(0)
-  note       String?
-  active     Boolean              @default(true)
-  requests   MaintenanceRequest[]
+  id                   Int                  @id @default(autoincrement())
+  name                 String
+  serialNo             String?
+  model                String?
+  category             String?
+  location             String?
+  assignDate           DateTime?
+  cost                 Float                @default(0)
+  note                 String?
+  active               Boolean              @default(true)
+  preventiveFreqDays   Int?
+  nextMaintenanceDate  DateTime?
+  lastMaintenanceDate  DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  requests             MaintenanceRequest[]
 
   @@map("maintenance_equipment")
 }
@@ -1520,9 +1544,10 @@ model MaintenanceRequest {
   description     String?
   requestDate     DateTime              @default(now())
   closeDate       DateTime?
+  durationHours   Float?
   priority        Int                   @default(0)
-  stage           String                @default("new")
-  maintenanceType String                @default("corrective")
+  stage           String                @default("new") // new, in_progress, done, cancelled
+  maintenanceType String                @default("corrective") // corrective, preventive
   equipmentId     Int?
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
