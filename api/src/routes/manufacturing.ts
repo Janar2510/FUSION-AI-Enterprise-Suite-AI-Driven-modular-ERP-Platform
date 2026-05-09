@@ -1,8 +1,12 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import prisma from '../lib/prisma';
+import { requireAuth } from '../core/auth';
+import { runAgent } from '../core/ai';
+import '../core/ai/agents/manufacturingScheduler';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 
 export const manufacturingRoutes = Router();
+manufacturingRoutes.use(requireAuth);
 
 // BOMs
 manufacturingRoutes.get('/boms', asyncHandler(async (req, res) => {
@@ -290,25 +294,24 @@ manufacturingRoutes.delete('/routings/:id', asyncHandler(async (req, res) => {
 }));
 
 // AI & Intelligence
-manufacturingRoutes.post('/ai/optimize-schedule', asyncHandler(async (req, res) => {
-    // Simulated AI schedule optimization logic
-    const orders = await prisma.mrpProduction.findMany({ where: { state: 'confirmed' } });
-    const workcenters = await prisma.mrpWorkcenter.findMany({ where: { active: true } });
-
-    // Neural optimization algorithm (Simulated)
-    const schedule = orders.map((order, index) => ({
-        orderId: order.id,
-        name: order.name,
-        scheduledStart: new Date(Date.now() + index * 3600000),
-        workcenterId: workcenters[index % workcenters.length]?.id
-    }));
-
+manufacturingRoutes.post('/ai/optimize-schedule', asyncHandler(async (req: Request, res) => {
+    const result = await runAgent(
+        'manufacturing-scheduler',
+        { orgId: (req as any).user?.orgId ?? '' },
+        { userId: (req as any).user?.sub, orgId: (req as any).user?.orgId },
+    );
     res.json({
         optimized: true,
-        confidence: 0.94,
-        schedule
+        confidence: result.output.confidence,
+        schedule: result.output.suggestions.map(s => ({
+            orderId: parseInt(String(s.field).replace('mo_', '').split('_')[0]) || 0,
+            ...((s.suggestedValue as any) ?? {}),
+            reasoning: s.reasoning,
+        })),
+        summary: result.output.summary,
+        conflicts: (result.output.metadata?.conflicts as string[]) ?? [],
+        aiActionId: result.id,
     });
-    return;
 }));
 
 manufacturingRoutes.post('/ai/log-quality-data', asyncHandler(async (req, res) => {

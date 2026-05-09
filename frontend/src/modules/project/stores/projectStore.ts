@@ -53,6 +53,9 @@ interface ProjectStore {
   createProject: (data: Partial<ProjectProject>) => Promise<ProjectProject | undefined>;
   updateProject: (id: number, data: Partial<ProjectProject>) => Promise<void>;
   createTask: (projectId: number, data: Partial<ProjectTask>) => Promise<ProjectTask | undefined>;
+  updateTask: (id: number, projectId: number, data: Partial<ProjectTask>) => Promise<void>;
+  deleteTask: (id: number, projectId: number) => Promise<void>;
+  deleteProject: (id: number) => Promise<void>;
   updateTaskStage: (id: number, stageId: number, projectId: number) => Promise<void>;
 }
 
@@ -128,6 +131,42 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       await get().fetchTasks(projectId);
       set({ loading: false });
       return res.data;
+    } catch (err: any) {
+      console.error(err);
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  updateTask: async (id, projectId, data) => {
+    try {
+      set({ loading: true, error: null });
+      await axios.put(`${API_BASE}/api/projects/tasks/${id}`, data);
+      await get().fetchTasks(projectId);
+      set({ loading: false });
+    } catch (err: any) {
+      console.error(err);
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  deleteTask: async (id, projectId) => {
+    try {
+      set({ loading: true, error: null });
+      await axios.delete(`${API_BASE}/api/projects/tasks/${id}`);
+      await get().fetchTasks(projectId);
+      set({ loading: false });
+    } catch (err: any) {
+      console.error(err);
+      set({ error: err.message, loading: false });
+    }
+  },
+
+  deleteProject: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      await axios.delete(`${API_BASE}/api/projects/${id}`);
+      await get().fetchProjects();
+      set({ loading: false });
     } catch (err: any) {
       console.error(err);
       set({ error: err.message, loading: false });

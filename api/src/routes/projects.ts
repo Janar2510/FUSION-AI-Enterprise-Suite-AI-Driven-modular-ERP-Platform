@@ -54,6 +54,26 @@ projectRoutes.post('/:projectId/tasks', asyncHandler(async (req, res) => {
     res.status(201).json(task);
 }));
 
+projectRoutes.put('/tasks/:id', asyncHandler(async (req, res) => {
+    const { stageId, ...rest } = req.body;
+    const task = await prisma.projectTask.update({
+        where: { id: parseInt(req.params.id) },
+        data: { ...rest, ...(stageId !== undefined && { stageId }) },
+        include: { stage: true },
+    });
+    res.json(task);
+}));
+
+projectRoutes.delete('/tasks/:id', asyncHandler(async (req, res) => {
+    await prisma.projectTask.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
+    res.status(204).send();
+}));
+
+projectRoutes.delete('/:id', asyncHandler(async (req, res) => {
+    await prisma.projectProject.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
+    res.status(204).send();
+}));
+
 projectRoutes.patch('/tasks/:id/stage', asyncHandler(async (req, res) => {
     const task = await prisma.projectTask.update({ where: { id: parseInt(req.params.id) }, data: { stageId: req.body.stageId } });
     res.json(task);
