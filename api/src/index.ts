@@ -153,6 +153,15 @@ app.get('/', (_req: Request, res: Response) => {
     res.json({ name: 'FusionAI Enterprise Suite API', version: '1.0.0', status: 'running' });
 });
 
+// ── OpenAPI spec + Scalar UI (dev only) ─────────────────────
+import { generateOpenApiSpec } from './openapi';
+app.get('/api/docs/openapi.json', (_req: Request, res: Response) => {
+    res.json(generateOpenApiSpec());
+});
+app.get('/api/docs', (_req: Request, res: Response) => {
+    res.send(`<!doctype html><html><head><title>FusionAI API Docs</title><meta charset="utf-8"/></head><body><script id="api-reference" data-url="/api/docs/openapi.json"></script><script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script></body></html>`);
+});
+
 // ── Health — liveness (no DB) ────────────────────────────────
 app.get('/api/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() });

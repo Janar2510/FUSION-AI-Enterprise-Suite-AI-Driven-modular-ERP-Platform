@@ -172,10 +172,10 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 - [x] IrSequence model + `core/sequence/nextval()` — atomic SO/INV/PO/TKT numbering
 - [x] 6 new ADRs (0008–0013) — sequences, jobs, PDF, email, tax, record-RBAC
 - [x] ERP architecture gap analysis — `docs/erp-architecture-gaps-2026-05-07.md`
-- [ ] Document intelligence agent (OCR + classification + extraction, ≥0.85 confidence gate)
-- [ ] Partner deduplication agent
-- [ ] Next-best-action agent
-- [ ] Quote drafter agent (status DRAFT only, user sends)
+- [x] Document intelligence agent (OCR + classification + extraction, ≥0.85 confidence gate)
+- [x] Partner deduplication agent
+- [x] Next-best-action agent
+- [x] Quote drafter agent (status DRAFT only, user sends)
 - [ ] RAG enforces permission filters (test included)
 - [ ] Evals golden set per agent; CI runs on prompt/agent changes
 
