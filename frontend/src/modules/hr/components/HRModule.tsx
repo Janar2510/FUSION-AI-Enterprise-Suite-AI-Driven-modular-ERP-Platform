@@ -158,10 +158,21 @@ export const HRModule: React.FC = () => {
             statusRibbon={
                 <div className="flex items-center justify-between w-full">
                     <div className="flex gap-2">
-                        {/* Action buttons could go here */}
+                        {activeRecord && (
+                            <button
+                                onClick={async () => {
+                                    const newActive = !employeeFormData.active;
+                                    await updateEmployee(activeRecord.id, { active: newActive });
+                                    setEmployeeFormData(prev => ({ ...prev, active: newActive }));
+                                }}
+                                className={`px-4 py-1.5 rounded text-sm font-medium transition-colors ${employeeFormData.active ? 'bg-white/5 hover:bg-white/10 text-white/60 border border-white/10' : 'bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white border border-green-500/30'}`}
+                            >
+                                {employeeFormData.active ? 'Archive' : 'Unarchive'}
+                            </button>
+                        )}
                     </div>
                     <div className="flex text-sm font-medium">
-                        <div className={`px-4 py-2 flex items-center pr-6 uppercase text-primary-purple font-bold`}>
+                        <div className={`px-4 py-2 flex items-center pr-6 uppercase font-bold ${employeeFormData.active ? 'text-primary-purple' : 'text-white/40'}`}>
                             {employeeFormData.active ? 'Active' : 'Archived'}
                         </div>
                     </div>

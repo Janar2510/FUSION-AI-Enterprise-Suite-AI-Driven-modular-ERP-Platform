@@ -8,6 +8,8 @@ export interface TimesheetEntry {
     name: string;
     date: string;
     unitAmount: number; // Hours
+    isBillable: boolean;
+    billedAmount: number;
     employeeId?: number | null;
     employee?: { id: number; name: string };
     projectId: number;

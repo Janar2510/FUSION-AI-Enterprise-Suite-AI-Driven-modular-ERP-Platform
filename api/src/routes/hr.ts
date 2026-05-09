@@ -53,6 +53,16 @@ hrRoutes.put('/employees/:id', asyncHandler(async (req, res) => {
     res.json(emp);
 }));
 
+hrRoutes.patch('/employees/:id/archive', asyncHandler(async (req, res) => {
+    const emp = await prisma.hrEmployee.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
+    res.json(emp);
+}));
+
+hrRoutes.patch('/employees/:id/unarchive', asyncHandler(async (req, res) => {
+    const emp = await prisma.hrEmployee.update({ where: { id: parseInt(req.params.id) }, data: { active: true } });
+    res.json(emp);
+}));
+
 // Leaves
 hrRoutes.get('/leaves', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);

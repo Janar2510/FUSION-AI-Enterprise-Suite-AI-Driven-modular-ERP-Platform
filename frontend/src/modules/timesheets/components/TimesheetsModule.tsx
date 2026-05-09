@@ -88,6 +88,7 @@ export const TimesheetsModule: React.FC = () => {
                 { key: 'task', label: 'Task', render: (t) => t.task?.name || '' },
                 { key: 'name', label: 'Description', render: (t) => t.name || '' },
                 { key: 'unitAmount', label: 'Hours', render: (t) => <span className="font-bold">{t.unitAmount?.toFixed(2) || '0.00'}</span> },
+                { key: 'isBillable', label: 'Billable', render: (t) => t.isBillable ? <span className="text-green-400 text-xs font-medium">● Billable</span> : <span className="text-white/30 text-xs">Non-billable</span> },
             ]}
         />
     );
@@ -169,6 +170,15 @@ export const TimesheetsModule: React.FC = () => {
                                 value={formData.unitAmount || 0}
                                 onChange={(e) => setFormData({ ...formData, unitAmount: parseFloat(e.target.value) })}
                             />
+                        </div>
+                        <div>
+                            <label className="block text-white/60 text-sm font-medium mb-2">Billable</label>
+                            <button
+                                onClick={() => setFormData({ ...formData, isBillable: !formData.isBillable })}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.isBillable ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-white/5 text-white/40 border border-white/10'}`}
+                            >
+                                {formData.isBillable ? '✓ Billable' : 'Non-Billable'}
+                            </button>
                         </div>
                     </div>
 
