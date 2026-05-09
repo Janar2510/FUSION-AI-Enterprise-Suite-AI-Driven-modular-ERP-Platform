@@ -89,6 +89,8 @@ import aiActionsRouter from './routes/ai-actions';
 import { gdprRoutes } from './routes/gdpr';
 import { invoicingRoutes } from './routes/invoicing';
 import { startBackgroundJobs } from './jobs';
+import { createServer } from 'http';
+import { initWebSocket } from './core/ws';
 import prisma from './lib/prisma';
 
 const app = express();
@@ -251,7 +253,10 @@ Sentry.setupExpressErrorHandler(app);
 app.use(errorHandler);
 
 // ── Start ────────────────────────────────────────────────────
-app.listen(PORT, () => {
+const httpServer = createServer(app);
+initWebSocket(httpServer);
+
+httpServer.listen(PORT, () => {
     logger.info({ port: PORT, env: process.env.NODE_ENV }, 'FusionAI API started');
     startBackgroundJobs();
 });
