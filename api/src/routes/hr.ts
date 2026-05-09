@@ -1,8 +1,10 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import prisma from '../lib/prisma';
+import { requireAuth } from '../core/auth';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 
 export const hrRoutes = Router();
+hrRoutes.use(requireAuth);
 
 // Departments
 hrRoutes.get('/departments', asyncHandler(async (_req, res) => {

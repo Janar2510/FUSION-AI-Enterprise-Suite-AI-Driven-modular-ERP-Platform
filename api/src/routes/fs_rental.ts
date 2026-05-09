@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { requireAuth } from '../core/auth';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 
 export const fsRentalRoutes = Router();
+fsRentalRoutes.use(requireAuth);
 
 // ============================================================================
 // FIELD SERVICE TASKS

@@ -1506,9 +1506,11 @@ model Note {
   stage     String   @default("new")
   color     Int      @default(0)
   sequence  Int      @default(10)
+  userId    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([userId])
   @@map("notes")
 }
 
