@@ -961,6 +961,8 @@ model HrEmployee {
   department       HrDepartment?  @relation("DeptEmployees", fields: [departmentId], references: [id])
   expenses         HrExpense[]
   leaveRequests    HrLeave[]
+  leaveAllocations HrLeaveAllocation[]
+  contracts        HrContract[]
   payslips         HrPayslip[]
   skills           HrEmployeeSkill[]
   planningSlots    PlanningSlot[]
@@ -1008,21 +1010,76 @@ model HrTimesheet {
   @@map("hr_timesheets")
 }
 
+model HrLeaveType {
+  id                Int               @id @default(autoincrement())
+  name              String
+  color             String            @default("blue")
+  allocationMode    String            @default("fixed") // fixed, request, no
+  validationMode    String            @default("manager") // no_validation, manager, both
+  maxAllowance      Float             @default(0) // 0 = unlimited
+  isCarryover       Boolean           @default(false)
+  requireAttachment Boolean           @default(false)
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  leaves            HrLeave[]
+  allocations       HrLeaveAllocation[]
+
+  @@map("hr_leave_types")
+}
+
+model HrLeaveAllocation {
+  id            Int           @id @default(autoincrement())
+  name          String?
+  state         String        @default("draft") // draft, validate, refuse
+  numberOfDays  Float         @default(0)
+  dateFrom      DateTime?
+  dateTo        DateTime?
+  employeeId    Int
+  leaveTypeId   Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  employee      HrEmployee    @relation(fields: [employeeId], references: [id])
+  leaveType     HrLeaveType   @relation(fields: [leaveTypeId], references: [id])
+
+  @@map("hr_leave_allocations")
+}
+
 model HrLeave {
-  id           Int        @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   name         String?
-  state        String     @default("draft")
-  leaveType    String     @default("legal")
+  state        String        @default("draft")
+  leaveType    String        @default("legal")
+  leaveTypeId  Int?
   dateFrom     DateTime
   dateTo       DateTime
-  numberOfDays Float      @default(1)
+  numberOfDays Float         @default(1)
   notes        String?
   employeeId   Int
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  employee     HrEmployee @relation(fields: [employeeId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  employee     HrEmployee    @relation(fields: [employeeId], references: [id])
+  hrLeaveType  HrLeaveType?  @relation(fields: [leaveTypeId], references: [id])
 
   @@map("hr_leaves")
+}
+
+model HrContract {
+  id             Int        @id @default(autoincrement())
+  name           String
+  state          String     @default("new") // new, open, close, cancel
+  contractType   String     @default("employee") // employee, worker, freelance
+  dateStart      DateTime
+  dateEnd        DateTime?
+  wage           Float      @default(0)
+  trialDateEnd   DateTime?
+  notes          String?
+  employeeId     Int
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  employee       HrEmployee @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_contracts")
 }
 
 model HrExpense {

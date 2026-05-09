@@ -98,6 +98,142 @@ hrRoutes.delete('/leaves/:id', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
+// Leave Types
+hrRoutes.get('/leave-types', asyncHandler(async (_req, res) => {
+    const types = await prisma.hrLeaveType.findMany({ where: { active: true }, orderBy: { name: 'asc' } });
+    res.json(types);
+}));
+
+hrRoutes.post('/leave-types', asyncHandler(async (req, res) => {
+    const t = await prisma.hrLeaveType.create({ data: req.body });
+    res.status(201).json(t);
+}));
+
+hrRoutes.put('/leave-types/:id', asyncHandler(async (req, res) => {
+    const t = await prisma.hrLeaveType.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    res.json(t);
+}));
+
+hrRoutes.delete('/leave-types/:id', asyncHandler(async (req, res) => {
+    await prisma.hrLeaveType.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
+    res.json({ success: true });
+}));
+
+// Leave Allocations
+hrRoutes.get('/leave-allocations', asyncHandler(async (req, res) => {
+    const { skip, page, limit } = getPagination(req.query);
+    const employeeId = req.query.employee_id ? parseInt(req.query.employee_id as string) : undefined;
+    const where: any = {};
+    if (employeeId) where.employeeId = employeeId;
+
+    const [data, total] = await Promise.all([
+        prisma.hrLeaveAllocation.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' }, include: { employee: true, leaveType: true } }),
+        prisma.hrLeaveAllocation.count({ where }),
+    ]);
+    res.json(paginatedResponse(data, total, page, limit));
+}));
+
+hrRoutes.post('/leave-allocations', asyncHandler(async (req, res) => {
+    const alloc = await prisma.hrLeaveAllocation.create({ data: req.body, include: { employee: true, leaveType: true } });
+    res.status(201).json(alloc);
+}));
+
+hrRoutes.patch('/leave-allocations/:id/approve', asyncHandler(async (req, res) => {
+    const alloc = await prisma.hrLeaveAllocation.update({ where: { id: parseInt(req.params.id) }, data: { state: 'validate' } });
+    res.json(alloc);
+}));
+
+hrRoutes.patch('/leave-allocations/:id/refuse', asyncHandler(async (req, res) => {
+    const alloc = await prisma.hrLeaveAllocation.update({ where: { id: parseInt(req.params.id) }, data: { state: 'refuse' } });
+    res.json(alloc);
+}));
+
+hrRoutes.put('/leave-allocations/:id', asyncHandler(async (req, res) => {
+    const alloc = await prisma.hrLeaveAllocation.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    res.json(alloc);
+}));
+
+hrRoutes.delete('/leave-allocations/:id', asyncHandler(async (req, res) => {
+    await prisma.hrLeaveAllocation.delete({ where: { id: parseInt(req.params.id) } });
+    res.json({ success: true });
+}));
+
+// Leave Balance — days allocated minus days taken for an employee per leave type
+hrRoutes.get('/leave-balance/:employeeId', asyncHandler(async (req, res) => {
+    const employeeId = parseInt(req.params.employeeId);
+    const types = await prisma.hrLeaveType.findMany({ where: { active: true } });
+
+    const balances = await Promise.all(types.map(async (lt) => {
+        const [allocated, taken] = await Promise.all([
+            prisma.hrLeaveAllocation.aggregate({
+                where: { employeeId, leaveTypeId: lt.id, state: 'validate' },
+                _sum: { numberOfDays: true },
+            }),
+            prisma.hrLeave.aggregate({
+                where: { employeeId, leaveTypeId: lt.id, state: 'validate' },
+                _sum: { numberOfDays: true },
+            }),
+        ]);
+        const totalAllocated = allocated._sum.numberOfDays ?? 0;
+        const totalTaken = taken._sum.numberOfDays ?? 0;
+        return {
+            leaveTypeId: lt.id,
+            leaveTypeName: lt.name,
+            color: lt.color,
+            allocated: totalAllocated,
+            taken: totalTaken,
+            remaining: totalAllocated - totalTaken,
+        };
+    }));
+
+    res.json(balances);
+}));
+
+// Contracts
+hrRoutes.get('/contracts', asyncHandler(async (req, res) => {
+    const { skip, page, limit } = getPagination(req.query);
+    const employeeId = req.query.employee_id ? parseInt(req.query.employee_id as string) : undefined;
+    const where: any = {};
+    if (employeeId) where.employeeId = employeeId;
+
+    const [data, total] = await Promise.all([
+        prisma.hrContract.findMany({ where, skip, take: limit, orderBy: { dateStart: 'desc' }, include: { employee: true } }),
+        prisma.hrContract.count({ where }),
+    ]);
+    res.json(paginatedResponse(data, total, page, limit));
+}));
+
+hrRoutes.get('/contracts/:id', asyncHandler(async (req, res) => {
+    const contract = await prisma.hrContract.findUnique({ where: { id: parseInt(req.params.id) }, include: { employee: true } });
+    if (!contract) { res.status(404).json({ error: 'Contract not found' }); return; }
+    res.json(contract);
+}));
+
+hrRoutes.post('/contracts', asyncHandler(async (req, res) => {
+    const contract = await prisma.hrContract.create({ data: req.body, include: { employee: true } });
+    res.status(201).json(contract);
+}));
+
+hrRoutes.put('/contracts/:id', asyncHandler(async (req, res) => {
+    const contract = await prisma.hrContract.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    res.json(contract);
+}));
+
+hrRoutes.patch('/contracts/:id/open', asyncHandler(async (req, res) => {
+    const contract = await prisma.hrContract.update({ where: { id: parseInt(req.params.id) }, data: { state: 'open' } });
+    res.json(contract);
+}));
+
+hrRoutes.patch('/contracts/:id/close', asyncHandler(async (req, res) => {
+    const contract = await prisma.hrContract.update({ where: { id: parseInt(req.params.id) }, data: { state: 'close' } });
+    res.json(contract);
+}));
+
+hrRoutes.delete('/contracts/:id', asyncHandler(async (req, res) => {
+    await prisma.hrContract.delete({ where: { id: parseInt(req.params.id) } });
+    res.json({ success: true });
+}));
+
 // Expenses
 hrRoutes.get('/expenses', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
