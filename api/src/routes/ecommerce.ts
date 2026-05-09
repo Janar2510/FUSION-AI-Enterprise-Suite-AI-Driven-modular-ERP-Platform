@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { computeTotalsFromDb, OrderLine } from '../core/tax';
 import { asyncHandler } from '../lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -84,11 +85,16 @@ ecommerceRoutes.post('/cart/:sessionId/items', asyncHandler(async (req, res) => 
         });
     }
 
-    // Recalculate cart
-    const items = await prisma.webCartItem.findMany({ where: { cartId: cart.id } });
-    const subtotal = items.reduce((sum, item) => sum + item.lineTotal, 0);
-    const taxAmount = subtotal * 0.1;
-    const totalAmount = subtotal + taxAmount;
+    // Recalculate cart using real tax engine
+    const items = await prisma.webCartItem.findMany({ where: { cartId: cart.id }, include: { product: true } });
+    const lines: OrderLine[] = items.map(item => ({
+        productQty: item.quantity,
+        priceUnit: item.unitPrice,
+    }));
+    const totals = await computeTotalsFromDb(lines);
+    const subtotal = totals.amountUntaxed;
+    const taxAmount = totals.amountTax;
+    const totalAmount = totals.amountTotal;
 
     const updatedCart = await prisma.webCart.update({
         where: { id: cart.id },

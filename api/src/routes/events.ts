@@ -29,6 +29,11 @@ eventRoutes.put('/:id', asyncHandler(async (req, res) => {
     res.json(ev);
 }));
 
+eventRoutes.delete('/:id', asyncHandler(async (req, res) => {
+    await prisma.eventEvent.delete({ where: { id: parseInt(req.params.id) } });
+    res.status(204).send();
+}));
+
 // Registrations
 eventRoutes.post('/:id/register', asyncHandler(async (req, res) => {
     const reg = await prisma.eventRegistration.create({ data: { ...req.body, eventId: parseInt(req.params.id) } });

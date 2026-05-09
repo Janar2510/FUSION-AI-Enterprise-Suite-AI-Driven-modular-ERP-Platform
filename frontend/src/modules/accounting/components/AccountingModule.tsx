@@ -83,7 +83,7 @@ export const AccountingModule: React.FC = () => {
 
         if (['out_invoice', 'in_invoice'].includes(activeTab)) {
             amountUntaxed = currentLines.reduce((sum, line) => sum + ((line.quantity || 0) * (line.priceUnit || 0)), 0);
-            amountTax = amountUntaxed * 0.15; // 15% flat tax for sim 
+            amountTax = amountUntaxed * 0.20; // 20% VAT default — actual rate applied server-side via computeTotalsFromDb()
             amountTotal = amountUntaxed + amountTax;
         }
 

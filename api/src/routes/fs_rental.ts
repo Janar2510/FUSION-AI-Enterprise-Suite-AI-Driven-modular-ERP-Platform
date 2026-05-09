@@ -33,6 +33,12 @@ fsRentalRoutes.delete('/tasks/:id', asyncHandler(async (req, res) => {
     res.status(204).send();
 }));
 
+fsRentalRoutes.get('/tasks/:id', asyncHandler(async (req, res) => {
+    const task = await prisma.fsTask.findUnique({ where: { id: parseInt(req.params.id) }, include: { partner: true, employee: true } });
+    if (!task) { res.status(404).json({ error: 'Task not found' }); return; }
+    res.json(task);
+}));
+
 // ============================================================================
 // RENTAL ORDERS
 // ============================================================================
@@ -57,6 +63,12 @@ fsRentalRoutes.post('/rentals', asyncHandler(async (req, res) => {
         include: { lines: true }
     });
     res.status(201).json(order);
+}));
+
+fsRentalRoutes.get('/rentals/:id', asyncHandler(async (req, res) => {
+    const order = await prisma.rentalOrder.findUnique({ where: { id: parseInt(req.params.id) }, include: { partner: true, lines: { include: { product: true } } } });
+    if (!order) { res.status(404).json({ error: 'Rental order not found' }); return; }
+    res.json(order);
 }));
 
 fsRentalRoutes.put('/rentals/:id', asyncHandler(async (req, res) => {
