@@ -43,6 +43,7 @@ import { metricsMiddleware, metricsRegistry } from './core/metrics';
 import { requestIdMiddleware, errorHandler } from './core/errors';
 import { globalLimiter, authLimiter, apiLimiter } from './middleware/rateLimiter';
 import { csrfProtection } from './middleware/csrf';
+import { requireAuth } from './core/auth';
 import { authCredentialsRoutes } from './routes/auth-credentials';
 
 // ── Route imports ────────────────────────────────────────────
@@ -175,9 +176,18 @@ app.get('/metrics', async (_req: Request, res: Response) => {
 });
 
 // ── API Routes ──────────────────────────────────────────────
+// Public routes — no auth required
 app.use('/api/auth', authLimiter, authCredentialsRoutes);
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api', apiLimiter);
+
+// Public data routes (unauthenticated access by design)
+app.use('/api/ecommerce', ecommerceRoutes);         // session-based cart
+app.use('/api/marketing-web', marketingWebRoutes);  // public website pages
+
+// Global auth guard — all routes registered below require a valid Bearer token
+app.use('/api', requireAuth);
+
 app.use('/api/partners', partnerRoutes);
 app.use('/api/crm', crmRoutes);
 app.use('/api/sales', saleRoutes);
@@ -199,7 +209,6 @@ app.use('/api/surveys', surveyRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/fs-rental', fsRentalRoutes);
-app.use('/api/marketing-web', marketingWebRoutes);
 app.use('/api/knowledge', knowledgeRoutes);
 app.use('/api/recruitment', recruitmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
@@ -211,7 +220,6 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/planning', planningRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/settings', settingsRoutes);
-app.use('/api/ecommerce', ecommerceRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/spreadsheet', spreadsheetRoutes);
 app.use('/api/automation', automationRoutes);
