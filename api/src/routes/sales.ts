@@ -219,3 +219,71 @@ saleRoutes.get('/:id/pdf', asyncHandler(async (req: Request, res: Response) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.end(buffer);
 }));
+
+// ── Sales Analytics Dashboard ──────────────────────────────────────────────
+saleRoutes.get('/analytics', asyncHandler(async (_req: Request, res: Response) => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const [
+        ordersByState,
+        revenueThisMonth,
+        revenueThisYear,
+        recentOrders,
+        topPartners,
+    ] = await Promise.all([
+        // Orders grouped by state
+        Promise.all(
+            ['draft', 'sale', 'cancel', 'delivered'].map(async state => ({
+                state,
+                count: await prisma.saleOrder.count({ where: { state } }),
+            }))
+        ),
+        // Revenue this month (confirmed orders)
+        prisma.saleOrder.aggregate({
+            where: { state: { in: ['sale', 'delivered'] }, createdAt: { gte: startOfMonth } },
+            _sum: { amountTotal: true },
+        }),
+        // Revenue this year
+        prisma.saleOrder.aggregate({
+            where: { state: { in: ['sale', 'delivered'] }, createdAt: { gte: startOfYear } },
+            _sum: { amountTotal: true },
+        }),
+        // Last 10 confirmed orders
+        prisma.saleOrder.findMany({
+            where: { state: { in: ['sale', 'delivered'] } },
+            orderBy: { createdAt: 'desc' },
+            take: 10,
+            include: { partner: { select: { name: true } } },
+        }),
+        // Top 5 partners by revenue
+        prisma.saleOrder.groupBy({
+            by: ['partnerId'],
+            where: { state: { in: ['sale', 'delivered'] } },
+            _sum: { amountTotal: true },
+            orderBy: { _sum: { amountTotal: 'desc' } },
+            take: 5,
+        }).then(async rows => {
+            const ids = rows.map(r => r.partnerId);
+            const partners = await prisma.partner.findMany({
+                where: { id: { in: ids } },
+                select: { id: true, name: true },
+            });
+            const byId = new Map(partners.map(p => [p.id, p.name]));
+            return rows.map(r => ({
+                partnerId: r.partnerId,
+                partnerName: byId.get(r.partnerId) ?? 'Unknown',
+                revenue: Math.round((r._sum.amountTotal ?? 0) * 100) / 100,
+            }));
+        }),
+    ]);
+
+    res.json({
+        ordersByState: Object.fromEntries(ordersByState.map(o => [o.state, o.count])),
+        revenueThisMonth: Math.round((revenueThisMonth._sum.amountTotal ?? 0) * 100) / 100,
+        revenueThisYear: Math.round((revenueThisYear._sum.amountTotal ?? 0) * 100) / 100,
+        recentOrders,
+        topPartners,
+    });
+}));

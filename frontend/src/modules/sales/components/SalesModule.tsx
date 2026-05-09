@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { OdooDataGrid } from '@/components/shared/OdooDataGrid';
 import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useSalesStore, SaleOrder, SaleOrderLine } from '../stores/salesStore';
 import { usePartnerStore } from '@/stores/partnerStore';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, TrendingUp, DollarSign, ShoppingCart, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
+
+const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
 
 export const SalesModule: React.FC = () => {
     const { orders, fetchAllOrders, createOrder, updateOrder, confirmOrder, cancelOrder, createInvoice } = useSalesStore();
@@ -136,7 +139,7 @@ export const SalesModule: React.FC = () => {
             onDiscard={() => setCurrentView('list')}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            viewsAvailable={['list', 'form']} // Kanban is less typical for purely SOs
+            viewsAvailable={['dashboard', 'list', 'form']}
         >
             {currentView === 'list' && (
                 <OdooListBase
@@ -314,6 +317,103 @@ export const SalesModule: React.FC = () => {
                     }
                 />
             )}
+            {currentView === 'dashboard' && <SalesDashboard />}
         </OdooViewManager>
+    );
+};
+
+// ── Sales Dashboard ──────────────────────────────────────────────────────────
+const SalesDashboard: React.FC = () => {
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        axios.get(`${API_BASE}/api/sales/analytics`)
+            .then(r => setData(r.data))
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }, []);
+
+    const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    if (loading) return <div className="text-white/40 text-sm p-8">Loading analytics…</div>;
+    if (!data) return <div className="text-white/40 text-sm p-8">No sales data yet.</div>;
+
+    const stateLabels: Record<string, { label: string; color: string }> = {
+        draft:     { label: 'Quotations', color: 'text-white/60' },
+        sale:      { label: 'Confirmed',  color: 'text-green-400' },
+        delivered: { label: 'Delivered',  color: 'text-blue-400' },
+        cancel:    { label: 'Cancelled',  color: 'text-red-400' },
+    };
+
+    return (
+        <div className="px-4 space-y-8">
+            {/* KPI cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                    { icon: DollarSign, label: 'Revenue This Month', value: `€${fmt(data.revenueThisMonth)}`, color: 'text-green-400' },
+                    { icon: TrendingUp, label: 'Revenue This Year', value: `€${fmt(data.revenueThisYear)}`, color: 'text-blue-400' },
+                    { icon: ShoppingCart, label: 'Confirmed Orders', value: (data.ordersByState?.sale ?? 0).toString(), color: 'text-purple-400' },
+                    { icon: Users, label: 'Top Partners', value: (data.topPartners?.length ?? 0).toString(), color: 'text-yellow-400' },
+                ].map(({ icon: Icon, label, value, color }) => (
+                    <div key={label} className="bg-white/5 border border-white/10 rounded-xl p-5">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Icon className={`w-5 h-5 ${color}`} />
+                            <span className="text-white/60 text-sm">{label}</span>
+                        </div>
+                        <div className={`text-2xl font-bold font-mono ${color}`}>{value}</div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Order state breakdown */}
+            <div>
+                <h3 className="text-white font-semibold mb-4">Orders by State</h3>
+                <div className="grid grid-cols-4 gap-3">
+                    {Object.entries(data.ordersByState ?? {}).map(([state, count]) => {
+                        const meta = stateLabels[state] ?? { label: state, color: 'text-white/60' };
+                        return (
+                            <div key={state} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                                <div className="text-white/50 text-xs mb-1">{meta.label}</div>
+                                <div className={`text-3xl font-bold ${meta.color}`}>{count as number}</div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Top partners by revenue */}
+            {data.topPartners?.length > 0 && (
+                <div>
+                    <h3 className="text-white font-semibold mb-4">Top Customers by Revenue</h3>
+                    <div className="space-y-2">
+                        {data.topPartners.map((p: any, i: number) => (
+                            <div key={p.partnerId} className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                                <span className="text-white/40 text-sm w-6">#{i + 1}</span>
+                                <span className="text-white flex-1">{p.partnerName}</span>
+                                <span className="text-green-400 font-mono font-bold">€{fmt(p.revenue)}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Recent confirmed orders */}
+            {data.recentOrders?.length > 0 && (
+                <div>
+                    <h3 className="text-white font-semibold mb-4">Recent Confirmed Orders</h3>
+                    <div className="space-y-2">
+                        {data.recentOrders.map((o: any) => (
+                            <div key={o.id} className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                                <span className="text-white/60 text-sm font-mono">{o.name}</span>
+                                <span className="text-white flex-1">{o.partner?.name ?? '—'}</span>
+                                <span className="text-white/60 text-sm">{new Date(o.createdAt).toLocaleDateString()}</span>
+                                <span className="text-green-400 font-mono font-bold">€{fmt(o.amountTotal)}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };

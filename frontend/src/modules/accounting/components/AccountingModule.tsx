@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
@@ -6,14 +7,16 @@ import { OdooDataGrid } from '@/components/shared/OdooDataGrid';
 import { useAccountingStore, AccountMove, AccountMoveLine } from '../stores/accountingStore';
 import { usePartnerStore } from '@/stores/partnerStore';
 import { useInventoryStore } from '@/modules/inventory/stores/inventoryStore';
-import { ChevronRight, TrendingUp, TrendingDown, DollarSign, FileText, BookOpen, PackageOpen } from 'lucide-react';
+import { ChevronRight, TrendingUp, TrendingDown, DollarSign, FileText, BookOpen, PackageOpen, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { MetricGrid } from '@/components/shared/MetricCard';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
-type AccountingTab = 'out_invoice' | 'in_invoice' | 'entry';
+const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+
+type AccountingTab = 'out_invoice' | 'in_invoice' | 'entry' | 'reports';
 
 export const AccountingModule: React.FC = () => {
     const {
@@ -255,7 +258,8 @@ export const AccountingModule: React.FC = () => {
                     {[
                         { id: 'out_invoice', label: 'Customer Invoices' },
                         { id: 'in_invoice', label: 'Vendor Bills' },
-                        { id: 'entry', label: 'Journal Entries' }
+                        { id: 'entry', label: 'Journal Entries' },
+                        { id: 'reports', label: '📊 Reports' },
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -574,6 +578,247 @@ export const AccountingModule: React.FC = () => {
                     }
                 />
             )}
+
+            {/* ── Financial Reports Panel ─────────────────────────────── */}
+            {activeTab === 'reports' && <AccountingReports />}
         </OdooViewManager>
+    );
+};
+
+// ── Accounting Reports Component ────────────────────────────────────────────
+type ReportType = 'trial-balance' | 'profit-loss' | 'balance-sheet' | 'aged-receivable';
+
+const AccountingReports: React.FC = () => {
+    const [activeReport, setActiveReport] = useState<ReportType>('profit-loss');
+    const [loading, setLoading] = useState(false);
+    const [data, setData] = useState<any>(null);
+    const [dateFrom, setDateFrom] = useState(() => {
+        const d = new Date(); d.setDate(1); return d.toISOString().split('T')[0];
+    });
+    const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0]);
+    const [asOf, setAsOf] = useState(() => new Date().toISOString().split('T')[0]);
+
+    const fetchReport = async () => {
+        setLoading(true);
+        try {
+            const params: Record<string, string> = {};
+            if (activeReport !== 'aged-receivable') {
+                if (activeReport === 'balance-sheet') { params.as_of = asOf; }
+                else { params.date_from = dateFrom; params.date_to = dateTo; }
+            }
+            const qs = new URLSearchParams(params).toString();
+            const res = await axios.get(`${API_BASE}/api/accounting/reports/${activeReport}${qs ? '?' + qs : ''}`);
+            setData(res.data);
+        } catch (e: any) {
+            toast.error(e?.response?.data?.error?.message || 'Failed to load report');
+        } finally { setLoading(false); }
+    };
+
+    useEffect(() => { fetchReport(); }, [activeReport]);
+
+    const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const cls = (n: number) => n < 0 ? 'text-red-400' : n > 0 ? 'text-green-400' : 'text-white/60';
+
+    const reports: { id: ReportType; label: string }[] = [
+        { id: 'profit-loss', label: 'Profit & Loss' },
+        { id: 'balance-sheet', label: 'Balance Sheet' },
+        { id: 'trial-balance', label: 'Trial Balance' },
+        { id: 'aged-receivable', label: 'Aged Receivables' },
+    ];
+
+    return (
+        <div className="px-4 space-y-6">
+            {/* Report type selector */}
+            <div className="flex gap-2 flex-wrap">
+                {reports.map(r => (
+                    <button key={r.id} onClick={() => setActiveReport(r.id)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeReport === r.id ? 'bg-primary-purple text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>
+                        {r.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Date filters */}
+            <div className="flex gap-4 items-center flex-wrap">
+                {activeReport === 'balance-sheet' ? (
+                    <label className="flex items-center gap-2 text-white/60 text-sm">
+                        As of:
+                        <input type="date" value={asOf} onChange={e => setAsOf(e.target.value)}
+                            className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                    </label>
+                ) : activeReport !== 'aged-receivable' ? (
+                    <>
+                        <label className="flex items-center gap-2 text-white/60 text-sm">
+                            From: <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                        </label>
+                        <label className="flex items-center gap-2 text-white/60 text-sm">
+                            To: <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
+                                className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                        </label>
+                    </>
+                ) : null}
+                <button onClick={fetchReport} disabled={loading}
+                    className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-40">
+                    {loading ? 'Loading…' : 'Refresh'}
+                </button>
+            </div>
+
+            {/* Report output */}
+            {loading && <div className="text-white/40 text-sm">Generating report…</div>}
+
+            {!loading && data && activeReport === 'profit-loss' && (
+                <div className="space-y-6">
+                    <div>
+                        <h3 className="text-white font-semibold mb-3 text-lg">Income</h3>
+                        <table className="w-full text-sm"><tbody>
+                            {data.income.lines.map((l: any) => (
+                                <tr key={l.code} className="border-b border-white/5">
+                                    <td className="py-2 text-white/60">{l.code}</td>
+                                    <td className="py-2 text-white px-4">{l.name}</td>
+                                    <td className={`py-2 text-right font-mono ${cls(l.amount)}`}>{fmt(l.amount)}</td>
+                                </tr>
+                            ))}
+                            <tr className="font-bold border-t border-white/20">
+                                <td colSpan={2} className="py-2 text-white">Total Income</td>
+                                <td className={`py-2 text-right font-mono ${cls(data.income.total)}`}>{fmt(data.income.total)}</td>
+                            </tr>
+                        </tbody></table>
+                    </div>
+                    <div>
+                        <h3 className="text-white font-semibold mb-3 text-lg">Expenses</h3>
+                        <table className="w-full text-sm"><tbody>
+                            {data.expenses.lines.map((l: any) => (
+                                <tr key={l.code} className="border-b border-white/5">
+                                    <td className="py-2 text-white/60">{l.code}</td>
+                                    <td className="py-2 text-white px-4">{l.name}</td>
+                                    <td className={`py-2 text-right font-mono ${cls(l.amount)}`}>{fmt(l.amount)}</td>
+                                </tr>
+                            ))}
+                            <tr className="font-bold border-t border-white/20">
+                                <td colSpan={2} className="py-2 text-white">Total Expenses</td>
+                                <td className={`py-2 text-right font-mono text-red-400`}>{fmt(data.expenses.total)}</td>
+                            </tr>
+                        </tbody></table>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex justify-between items-center">
+                        <span className="text-white font-bold text-lg">Net Income</span>
+                        <span className={`text-2xl font-bold font-mono ${cls(data.netIncome)}`}>{fmt(data.netIncome)}</span>
+                    </div>
+                </div>
+            )}
+
+            {!loading && data && activeReport === 'trial-balance' && (
+                <table className="w-full text-sm">
+                    <thead><tr className="border-b border-white/10 text-white/60">
+                        <th className="py-2 text-left">Code</th>
+                        <th className="py-2 text-left px-4">Account</th>
+                        <th className="py-2 text-right">Debit</th>
+                        <th className="py-2 text-right">Credit</th>
+                        <th className="py-2 text-right">Balance</th>
+                    </tr></thead>
+                    <tbody>
+                        {data.rows.map((r: any) => (
+                            <tr key={r.accountId} className="border-b border-white/5">
+                                <td className="py-1.5 text-white/60">{r.code}</td>
+                                <td className="py-1.5 text-white px-4">{r.name}</td>
+                                <td className="py-1.5 text-right font-mono text-white/80">{fmt(r.debit)}</td>
+                                <td className="py-1.5 text-right font-mono text-white/80">{fmt(r.credit)}</td>
+                                <td className={`py-1.5 text-right font-mono ${cls(r.balance)}`}>{fmt(r.balance)}</td>
+                            </tr>
+                        ))}
+                        <tr className="border-t-2 border-white/20 font-bold">
+                            <td colSpan={2} className="py-2 text-white">Totals</td>
+                            <td className="py-2 text-right font-mono text-white">{fmt(data.totals.debit)}</td>
+                            <td className="py-2 text-right font-mono text-white">{fmt(data.totals.credit)}</td>
+                            <td className={`py-2 text-right font-mono ${cls(data.totals.balance)}`}>{fmt(data.totals.balance)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            )}
+
+            {!loading && data && activeReport === 'balance-sheet' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {[
+                        { title: 'Assets', section: data.assets, positive: true },
+                        { title: 'Liabilities', section: data.liabilities, positive: false },
+                    ].map(({ title, section }) => (
+                        <div key={title}>
+                            <h3 className="text-white font-semibold mb-3 text-lg">{title}</h3>
+                            <table className="w-full text-sm"><tbody>
+                                {section.lines.map((l: any) => (
+                                    <tr key={l.code} className="border-b border-white/5">
+                                        <td className="py-1.5 text-white/60">{l.code}</td>
+                                        <td className="py-1.5 text-white px-3">{l.name}</td>
+                                        <td className={`py-1.5 text-right font-mono ${cls(l.amount)}`}>{fmt(l.amount)}</td>
+                                    </tr>
+                                ))}
+                                <tr className="border-t border-white/20 font-bold">
+                                    <td colSpan={2} className="py-2 text-white">Total {title}</td>
+                                    <td className={`py-2 text-right font-mono ${cls(section.total)}`}>{fmt(section.total)}</td>
+                                </tr>
+                            </tbody></table>
+                        </div>
+                    ))}
+                    <div className="md:col-span-2">
+                        <h3 className="text-white font-semibold mb-3 text-lg">Equity</h3>
+                        <table className="w-full text-sm"><tbody>
+                            {data.equity.lines.map((l: any) => (
+                                <tr key={l.code} className="border-b border-white/5">
+                                    <td className="py-1.5 text-white/60">{l.code}</td>
+                                    <td className="py-1.5 text-white px-3">{l.name}</td>
+                                    <td className={`py-1.5 text-right font-mono ${cls(l.amount)}`}>{fmt(l.amount)}</td>
+                                </tr>
+                            ))}
+                            <tr className="border-t border-white/20 font-bold">
+                                <td colSpan={2} className="py-2 text-white">Total Equity</td>
+                                <td className={`py-2 text-right font-mono ${cls(data.equity.total)}`}>{fmt(data.equity.total)}</td>
+                            </tr>
+                        </tbody></table>
+                        <div className={`mt-4 text-sm font-medium ${data.balanced ? 'text-green-400' : 'text-red-400'}`}>
+                            {data.balanced ? '✓ Balance sheet is balanced' : '⚠ Balance sheet is not balanced — check for unposted entries'}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {!loading && data && activeReport === 'aged-receivable' && (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-5 gap-4">
+                        {Object.entries(data.buckets).map(([bucket, amount]) => (
+                            <div key={bucket} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                                <div className="text-white/60 text-xs mb-1">{bucket}</div>
+                                <div className={`text-lg font-bold font-mono ${(amount as number) > 0 ? 'text-red-400' : 'text-white/40'}`}>{fmt(amount as number)}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <table className="w-full text-sm">
+                        <thead><tr className="border-b border-white/10 text-white/60">
+                            <th className="py-2 text-left">Customer</th>
+                            <th className="py-2 text-left px-4">Invoice</th>
+                            <th className="py-2 text-left">Due Date</th>
+                            <th className="py-2 text-right">Days Overdue</th>
+                            <th className="py-2 text-right">Amount</th>
+                        </tr></thead>
+                        <tbody>
+                            {data.rows.map((r: any, i: number) => (
+                                <tr key={i} className="border-b border-white/5">
+                                    <td className="py-1.5 text-white">{r.partnerName}</td>
+                                    <td className="py-1.5 text-white/70 px-4">{r.invoiceName}</td>
+                                    <td className="py-1.5 text-white/60">{r.dueDate}</td>
+                                    <td className={`py-1.5 text-right ${r.daysOverdue > 90 ? 'text-red-400' : r.daysOverdue > 30 ? 'text-yellow-400' : 'text-white/60'}`}>{r.daysOverdue}</td>
+                                    <td className="py-1.5 text-right font-mono text-white">{fmt(r.amount)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <div className="text-right text-white/60 text-sm font-medium">Total outstanding: <span className="text-red-400 font-bold">{fmt(data.total)}</span></div>
+                </div>
+            )}
+
+            {!loading && data && data.rows?.length === 0 && data.income?.lines?.length === 0 && (
+                <div className="text-center text-white/40 py-12">No posted entries found for this period. Post some invoices or journal entries first.</div>
+            )}
+        </div>
     );
 };

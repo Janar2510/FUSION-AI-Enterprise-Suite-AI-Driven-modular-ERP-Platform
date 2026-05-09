@@ -94,3 +94,85 @@ crmRoutes.get('/pipeline', asyncHandler(async (_req, res) => {
     });
     res.json(stages);
 }));
+
+// ── CRM Activities (calls, emails, meetings) ────────────────────────────────
+// Activities are polymorphic — stored in the Activity model with ownerType='CrmLead'
+
+crmRoutes.get('/leads/:id/activities', asyncHandler(async (req, res) => {
+    const leadId = req.params.id;
+    const activities = await (prisma as any).activity?.findMany?.({
+        where: { ownerType: 'CrmLead', ownerId: leadId },
+        orderBy: [{ doneAt: 'asc' }, { dueAt: 'asc' }],
+    }) ?? [];
+    res.json(activities);
+}));
+
+crmRoutes.post('/leads/:id/activities', asyncHandler(async (req, res) => {
+    const leadId = req.params.id;
+    const { type, summary, body, dueAt } = req.body as {
+        type: string; summary: string; body?: string; dueAt?: string;
+    };
+
+    // Validate lead exists
+    const lead = await prisma.crmLead.findUnique({ where: { id: parseInt(leadId) } });
+    if (!lead) { res.status(404).json({ error: 'Lead not found' }); return; }
+
+    const activity = await (prisma as any).activity?.create?.({
+        data: {
+            ownerType: 'CrmLead',
+            ownerId: leadId,
+            organizationId: (req as any).user?.orgId ?? 'default',
+            createdById: (req as any).user?.sub ?? 'system',
+            type,
+            summary,
+            body,
+            dueAt: dueAt ? new Date(dueAt) : null,
+        },
+    });
+    res.status(201).json(activity);
+}));
+
+crmRoutes.patch('/activities/:id/done', asyncHandler(async (req, res) => {
+    const activity = await (prisma as any).activity?.update?.({
+        where: { id: req.params.id },
+        data: { doneAt: new Date() },
+    });
+    res.json(activity);
+}));
+
+crmRoutes.delete('/activities/:id', asyncHandler(async (req, res) => {
+    await (prisma as any).activity?.delete?.({ where: { id: req.params.id } });
+    res.status(204).send();
+}));
+
+// ── CRM Analytics ───────────────────────────────────────────────────────────
+crmRoutes.get('/analytics', asyncHandler(async (_req, res) => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [totalLeads, openOpportunities, newThisMonth, stageBreakdown, avgDeal] = await Promise.all([
+        prisma.crmLead.count({ where: { active: true } }),
+        prisma.crmLead.count({ where: { active: true, type: 'opportunity' } }),
+        prisma.crmLead.count({ where: { createdAt: { gte: startOfMonth } } }),
+        prisma.crmStage.findMany({
+            orderBy: { sequence: 'asc' },
+            include: { _count: { select: { leads: { where: { active: true } } } } },
+        }),
+        prisma.crmLead.aggregate({
+            where: { active: true, expectedRevenue: { gt: 0 } },
+            _avg: { expectedRevenue: true },
+        }),
+    ]);
+
+    res.json({
+        totalLeads,
+        openOpportunities,
+        newThisMonth,
+        avgDealSize: Math.round((avgDeal._avg.expectedRevenue ?? 0) * 100) / 100,
+        stageBreakdown: stageBreakdown.map(s => ({
+            id: s.id,
+            name: s.name,
+            count: s._count.leads,
+        })),
+    });
+}));
