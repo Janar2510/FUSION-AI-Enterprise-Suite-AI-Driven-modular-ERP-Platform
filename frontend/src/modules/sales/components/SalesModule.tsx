@@ -289,7 +289,14 @@ export const SalesModule: React.FC = () => {
                     }
                     rightPanels={
                         <div className="space-y-4">
-                            {activeRecord && (
+                            {activeRecord && activeRecord.state === 'draft' && (
+                                <AiActionsPanel
+                                    entityType="SaleOrder"
+                                    entityId={String(activeRecord.id)}
+                                    agentKey="quote-drafter"
+                                />
+                            )}
+                            {activeRecord && activeRecord.state !== 'draft' && (
                                 <AiActionsPanel
                                     entityType="SaleOrder"
                                     entityId={String(activeRecord.id)}

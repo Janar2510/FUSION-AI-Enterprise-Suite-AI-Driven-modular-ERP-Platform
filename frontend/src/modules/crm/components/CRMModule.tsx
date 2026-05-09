@@ -11,6 +11,7 @@ import { DropResult } from 'react-beautiful-dnd';
 import { BreadcrumbHeader } from '@/components/shared/BreadcrumbHeader';
 import { SmartButton } from '@/components/shared/SmartButton';
 import { CRMSettings } from './CRMSettings';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 // Internal form wrapper removed as nested routing is now handling CRM views
 
@@ -431,6 +432,13 @@ export const CRMModule: React.FC = () => {
                         }
                         rightPanels={
                             <div className="space-y-6">
+                                {activeRecord?.partnerId && (
+                                    <AiActionsPanel
+                                        entityType="CrmLead"
+                                        entityId={String(activeRecord.id)}
+                                        agentKey="next-best-action"
+                                    />
+                                )}
                                 <div className="space-y-2">
                                     <label className="text-white/60 text-sm font-medium">Expected Closing</label>
                                     <input

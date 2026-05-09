@@ -28,6 +28,10 @@ import '../core/ai/agents/customerSummary';
 import '../core/ai/agents/leadScoring';
 import '../core/ai/agents/invoiceAnomaly';
 import '../core/ai/agents/stockReorder';
+import '../core/ai/agents/documentIntelligence';
+import '../core/ai/agents/partnerDedup';
+import '../core/ai/agents/nextBestAction';
+import '../core/ai/agents/quoteDrafter';
 
 import prisma from '../lib/prisma';
 

@@ -47,6 +47,11 @@ const AGENT_LABELS: Record<string, string> = {
     'lead-scoring': 'Lead Score',
     'invoice-anomaly': 'Anomaly Check',
     'stock-reorder': 'Reorder Recommender',
+    'document-intelligence': 'Document Classifier',
+    'partner-dedup': 'Dedup Check',
+    'next-best-action': 'Next Best Action',
+    'quote-drafter': 'Draft Quote',
+    'manufacturing-scheduler': 'Schedule Optimizer',
 };
 
 const CONFIDENCE_COLOR = (c: number) =>
