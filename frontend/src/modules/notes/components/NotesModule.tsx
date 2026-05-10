@@ -43,6 +43,7 @@ export const NotesModule: React.FC = () => {
         stage: 'new',
         color: 0
     });
+    const [tagInput, setTagInput] = useState(''); // chip input draft
 
     useEffect(() => {
         fetchNotes();
@@ -50,17 +51,15 @@ export const NotesModule: React.FC = () => {
 
     const handleNew = () => {
         setActiveRecord(null);
-        setFormData({
-            stage: 'new',
-            color: 0,
-            name: 'New Note'
-        });
+        setFormData({ stage: 'new', color: 0, name: 'New Note', tags: [] });
+        setTagInput('');
         setCurrentView('form');
     };
 
     const handleRowClick = (record: Note) => {
         setActiveRecord(record);
         setFormData(record);
+        setTagInput('');
         setCurrentView('form');
     };
 
@@ -132,6 +131,15 @@ export const NotesModule: React.FC = () => {
                                                             {note.body && (
                                                                 <div className="text-xs text-white/50 line-clamp-3 overflow-hidden text-ellipsis mb-2">
                                                                     {note.body.replace(/<[^>]+>/g, '')}
+                                                                </div>
+                                                            )}
+                                                            {note.tags?.length > 0 && (
+                                                                <div className="flex flex-wrap gap-1 mt-1">
+                                                                    {note.tags.map(tag => (
+                                                                        <span key={tag} className="bg-primary-purple/20 text-purple-300 text-[10px] px-2 py-0.5 rounded-full border border-primary-purple/30">
+                                                                            {tag}
+                                                                        </span>
+                                                                    ))}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -221,6 +229,38 @@ export const NotesModule: React.FC = () => {
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
+                    {/* ── Tag chip input ─────────────────────────────────────── */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {(formData.tags ?? []).map(tag => (
+                            <span key={tag} className="inline-flex items-center gap-1 bg-primary-purple/20 text-purple-300 text-xs px-2.5 py-1 rounded-full border border-primary-purple/40">
+                                {tag}
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, tags: (formData.tags ?? []).filter(t => t !== tag) })}
+                                    className="text-purple-400 hover:text-white leading-none ml-0.5"
+                                >×</button>
+                            </span>
+                        ))}
+                        <input
+                            type="text"
+                            value={tagInput}
+                            onChange={e => setTagInput(e.target.value)}
+                            onKeyDown={e => {
+                                if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+                                    e.preventDefault();
+                                    const newTag = tagInput.trim().replace(/,/g, '');
+                                    if (newTag && !(formData.tags ?? []).includes(newTag)) {
+                                        setFormData({ ...formData, tags: [...(formData.tags ?? []), newTag] });
+                                    }
+                                    setTagInput('');
+                                } else if (e.key === 'Backspace' && !tagInput && (formData.tags ?? []).length > 0) {
+                                    setFormData({ ...formData, tags: (formData.tags ?? []).slice(0, -1) });
+                                }
+                            }}
+                            placeholder={formData.tags?.length ? '' : 'Add tag, press Enter…'}
+                            className="flex-1 min-w-[140px] bg-transparent text-white/80 text-sm outline-none placeholder-white/25"
+                        />
+                    </div>
                 </div>
             }
             leftPanels={

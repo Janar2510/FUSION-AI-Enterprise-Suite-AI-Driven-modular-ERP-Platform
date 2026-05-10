@@ -1,5 +1,27 @@
 # FusionAI Enterprise Suite - Deployment Checklist
 
+## Sprint 12 — Persistence & Frontend Wiring: Pre-Deployment Notes (2026-05-10)
+
+### Database Steps
+- [ ] Apply migration: `cd api && npx prisma migrate deploy`
+  - Creates `sign_requests` and `sign_signers` tables
+- [ ] Confirm migration applied: `cd api && npx prisma migrate status`
+
+### New API Endpoints (smoke-test after deploy)
+- [ ] `GET /api/sign/requests` (auth required) → 200 paginated list
+- [ ] `POST /api/sign/requests` `{ documentTitle, signers: [{ name, email }] }` → 201
+- [ ] `PUT /api/sign/requests/:id/sign` `{ signerId, signatureData }` → 200
+- [ ] `POST /api/sign/requests/:id/signers` `{ name, email, role }` → 201
+
+### Frontend Changes
+- **Sign module**: fully wired to backend — no remaining in-memory state.
+- **Invoicing**: payment and credit-note lists now fetch on mount.
+- **HR**: private employee info fetched/saved via dedicated endpoints.
+- **Quality**: new "Control Points" tab with inline tolerance editor.
+- **Notes**: tag chip input in note editor; tags visible on kanban cards.
+
+---
+
 ## Sprint 11 — Security Fixes & Module Completions: Pre-Deployment Notes (2026-05-10)
 
 ### ⚠️ Critical Security Notes

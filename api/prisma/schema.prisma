@@ -2416,3 +2416,46 @@ model HrRecruitmentStage {
   @@map("hr_recruitment_stages")
 }
 
+// ── Sign / e-Signature module ──────────────────────────────────────────────────
+model SignRequest {
+  id                   Int          @id @default(autoincrement())
+  documentTitle        String
+  documentUrl          String?
+  status               String       @default("pending") // pending|in_progress|signed|rejected|approved|expired
+  dueDate              DateTime?
+  createdBy            String?
+  isUrgent             Boolean      @default(false)
+  requiresWitness      Boolean      @default(false)
+  witnessEmail         String?
+  witnessName          String?
+  witnessSignedAt      DateTime?
+  witnessSignatureData String?      @db.Text
+  witnessIpAddress     String?
+  message              String?
+  metadata             Json?        @default("{}")
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  signers              SignSigner[]
+
+  @@map("sign_requests")
+}
+
+model SignSigner {
+  id                 Int         @id @default(autoincrement())
+  requestId          Int
+  name               String
+  email              String
+  role               String      @default("other") // client|service_provider|employee|hr_manager|witness|other
+  status             String      @default("pending") // pending|signed|rejected
+  signedAt           DateTime?
+  signatureData      String?     @db.Text
+  signatureMethod    String?     // draw|type|upload
+  ipAddress          String?
+  verificationStatus String?     // pending|verified|failed
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  request            SignRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("sign_signers")
+}
+

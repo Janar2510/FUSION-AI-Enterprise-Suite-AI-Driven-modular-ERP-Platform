@@ -7,6 +7,8 @@ export interface QualityPoint {
     id: number;
     name: string;
     testType: string;
+    toleranceMin?: number | null;
+    toleranceMax?: number | null;
     productId?: number;
     teamId?: string;
     notes?: string;

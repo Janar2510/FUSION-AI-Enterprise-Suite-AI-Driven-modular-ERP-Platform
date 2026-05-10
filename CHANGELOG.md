@@ -4,6 +4,20 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+## [Unreleased] — Sprint 12: Persistence & Frontend Wiring — 2026-05-10
+
+### Added
+- **Sign module — full persistence**: new `sign_requests` + `sign_signers` Prisma models; CRUD API at `/api/sign/requests` including signer-submit (`PUT /:id/sign`) and add-signer (`POST /:id/signers`); frontend `signStore` rewritten to use real API instead of in-memory state.
+- **Invoicing store — `fetchPayments` / `fetchCreditNotes`**: the two missing fetch actions were added so the payment and credit-note lists hydrate on mount.
+- **HR store — private employee info**: `HrEmployeePrivate` interface + `fetchEmployeePrivate` / `updateEmployeePrivate` actions wired to `GET /PUT /api/hr/employees/:id/private`.
+- **Quality — Control Points tab**: new "Control Points" tab in Quality module; inline `toleranceMin` / `toleranceMax` editor per point (measure-type points only); saves via existing `updatePoint` API action.
+- **Notes — tag chip input**: `tags: string[]` field added to frontend `Note` type; chip-input in form (Enter/comma to add, Backspace to remove); tag chips rendered on kanban cards.
+
+### Schema
+- Migration `sprint12_sign_module`: `sign_requests`, `sign_signers` tables.
+
+---
+
 ## [Unreleased] — Sprint 11: Security Fixes & Module Completions — 2026-05-10
 
 ### Security

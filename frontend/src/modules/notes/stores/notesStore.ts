@@ -10,6 +10,7 @@ export interface Note {
     stage: string; // new, in_progress, done
     color: number;
     sequence: number;
+    tags: string[];
 }
 
 interface NotesStore {

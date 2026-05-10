@@ -35,7 +35,9 @@ export const useInvoicingStore = create<InvoicingState & {
   createPayment: (payment: PaymentFormData) => Promise<Payment>;
   updatePayment: (id: number, payment: PaymentFormData) => Promise<Payment>;
   deletePayment: (id: number) => Promise<void>;
-  
+  fetchPayments: (invoiceId?: number) => Promise<void>;
+
+  fetchCreditNotes: () => Promise<void>;
   createCreditNote: (creditNote: CreditNoteFormData) => Promise<CreditNote>;
   updateCreditNote: (id: number, creditNote: CreditNoteFormData) => Promise<CreditNote>;
   deleteCreditNote: (id: number) => Promise<void>;
@@ -264,6 +266,20 @@ export const useInvoicingStore = create<InvoicingState & {
     },
     
     // Payment actions
+    fetchPayments: async (invoiceId?: number) => {
+      set({ loading: true, error: null });
+      try {
+        const url = invoiceId
+          ? `${API_BASE}/payments?invoice_id=${invoiceId}&limit=100`
+          : `${API_BASE}/payments?limit=100`;
+        const response = await axios.get(url);
+        const payments = response.data?.data ?? response.data?.records ?? response.data;
+        set({ payments: Array.isArray(payments) ? payments : [], loading: false });
+      } catch (error) {
+        set({ error: 'Failed to fetch payments', loading: false });
+      }
+    },
+
     createPayment: async (payment) => {
       set({ loading: true, error: null });
       try {
@@ -311,6 +327,17 @@ export const useInvoicingStore = create<InvoicingState & {
     },
     
     // Credit Note actions
+    fetchCreditNotes: async () => {
+      set({ loading: true, error: null });
+      try {
+        const response = await axios.get(`${API_BASE}/credit-notes?limit=100`);
+        const notes = response.data?.data ?? response.data?.records ?? response.data;
+        set({ creditNotes: Array.isArray(notes) ? notes : [], loading: false });
+      } catch (error) {
+        set({ error: 'Failed to fetch credit notes', loading: false });
+      }
+    },
+
     createCreditNote: async (creditNote) => {
       set({ loading: true, error: null });
       try {

@@ -7,10 +7,10 @@ import { useInventoryStore } from '@/modules/inventory/stores/inventoryStore';
 import { CheckCircle2, XCircle, AlertTriangle, ShieldCheck, Bell } from 'lucide-react';
 import { GlassCard } from '@/components/shared/GlassCard';
 
-type QualityTab = 'checks' | 'alerts';
+type QualityTab = 'checks' | 'alerts' | 'points';
 
 export const QualityModule: React.FC = () => {
-    const { checks, points, alerts, fetchChecks, fetchPoints, fetchAlerts, createCheck, updateCheck, createAlert, updateAlert, moveAlertStage, deleteAlert } = useQualityStore();
+    const { checks, points, alerts, fetchChecks, fetchPoints, fetchAlerts, createCheck, updateCheck, createAlert, updateAlert, moveAlertStage, deleteAlert, updatePoint } = useQualityStore();
     const { products, fetchAllProducts } = useInventoryStore();
 
     const [activeTab, setActiveTab] = useState<QualityTab>('checks');
@@ -297,6 +297,16 @@ export const QualityModule: React.FC = () => {
                                             readOnly={isReadonly}
                                             onChange={(e) => setFormData({ ...formData, measureValue: parseFloat(e.target.value) })}
                                         />
+                                        {formData.point && (formData.point.toleranceMin != null || formData.point.toleranceMax != null) && (
+                                            <p className="text-xs text-white/40 mt-1">
+                                                Tolerance: {formData.point.toleranceMin ?? '—'} &nbsp;–&nbsp; {formData.point.toleranceMax ?? '—'}
+                                                {formData.measureValue != null && formData.point.toleranceMin != null && formData.point.toleranceMax != null && (
+                                                    <span className={`ml-2 font-semibold ${formData.measureValue >= formData.point.toleranceMin && formData.measureValue <= formData.point.toleranceMax ? 'text-green-400' : 'text-red-400'}`}>
+                                                        {formData.measureValue >= formData.point.toleranceMin && formData.measureValue <= formData.point.toleranceMax ? '✓ Within tolerance' : '✗ Out of tolerance'}
+                                                    </span>
+                                                )}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -476,6 +486,7 @@ export const QualityModule: React.FC = () => {
                 {([
                     { id: 'checks', label: 'Quality Checks' },
                     { id: 'alerts', label: `Alerts${alerts.filter(a => a.stage === 'new').length > 0 ? ` (${alerts.filter(a => a.stage === 'new').length})` : ''}` },
+                    { id: 'points', label: 'Control Points' },
                 ] as const).map(tab => (
                     <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                         className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === tab.id ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' : 'text-white/60 hover:text-white hover:bg-white/5 border border-transparent'}`}>
@@ -510,6 +521,80 @@ export const QualityModule: React.FC = () => {
                     </div>
                     {renderAlertsPanel()}
                 </div>
+            )}
+
+            {activeTab === 'points' && (
+                <div className="flex-1 px-8 overflow-auto">
+                    <h3 className="text-white font-medium mb-4">Quality Control Points — Tolerance Settings</h3>
+                    {points.length === 0 ? (
+                        <div className="text-center text-white/40 py-16">No control points configured</div>
+                    ) : (
+                        <div className="space-y-3">
+                            {points.map(pt => (
+                                <PointToleranceRow key={pt.id} point={pt} onSave={updatePoint} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ── Inline tolerance editor row ────────────────────────────────────────────────
+const PointToleranceRow: React.FC<{
+    point: import('../stores/qualityStore').QualityPoint;
+    onSave: (id: number, d: any) => Promise<any>;
+}> = ({ point, onSave }) => {
+    const [min, setMin] = React.useState<string>(point.toleranceMin != null ? String(point.toleranceMin) : '');
+    const [max, setMax] = React.useState<string>(point.toleranceMax != null ? String(point.toleranceMax) : '');
+    const [saving, setSaving] = React.useState(false);
+    const [saved, setSaved] = React.useState(false);
+
+    const dirty = min !== (point.toleranceMin != null ? String(point.toleranceMin) : '')
+        || max !== (point.toleranceMax != null ? String(point.toleranceMax) : '');
+
+    const handleSave = async () => {
+        setSaving(true);
+        await onSave(point.id, {
+            toleranceMin: min !== '' ? parseFloat(min) : null,
+            toleranceMax: max !== '' ? parseFloat(max) : null,
+        });
+        setSaving(false);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+    };
+
+    return (
+        <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-wrap items-center gap-4">
+            <div className="flex-1 min-w-[140px]">
+                <div className="text-white font-medium text-sm">{point.name}</div>
+                <div className="text-white/40 text-xs capitalize">{point.testType}</div>
+            </div>
+            {point.testType === 'measure' ? (
+                <>
+                    <div className="flex items-center gap-2 text-sm">
+                        <label className="text-white/60 w-8">Min</label>
+                        <input type="number" value={min} onChange={e => setMin(e.target.value)}
+                            className="w-24 bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-sm outline-none focus:border-orange-400"
+                            placeholder="—" />
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                        <label className="text-white/60 w-8">Max</label>
+                        <input type="number" value={max} onChange={e => setMax(e.target.value)}
+                            className="w-24 bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-sm outline-none focus:border-orange-400"
+                            placeholder="—" />
+                    </div>
+                    {dirty && (
+                        <button onClick={handleSave} disabled={saving}
+                            className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white px-3 py-1 rounded text-xs font-medium transition-colors">
+                            {saving ? 'Saving…' : 'Save'}
+                        </button>
+                    )}
+                    {saved && <span className="text-green-400 text-xs">✓ Saved</span>}
+                </>
+            ) : (
+                <span className="text-white/30 text-xs italic">Pass/Fail — no tolerance needed</span>
             )}
         </div>
     );

@@ -90,6 +90,7 @@ import { automationRoutes } from './routes/automation';
 import aiActionsRouter from './routes/ai-actions';
 import { gdprRoutes } from './routes/gdpr';
 import { invoicingRoutes } from './routes/invoicing';
+import { signRoutes } from './routes/sign';
 import { startBackgroundJobs } from './jobs';
 import { createServer } from 'http';
 import { initWebSocket } from './core/ws';
@@ -242,6 +243,7 @@ app.use('/api/spreadsheet', spreadsheetRoutes);
 app.use('/api/automation', automationRoutes);
 app.use('/api/ai', apiLimiter, aiActionsRouter);
 app.use('/api/invoicing', invoicingRoutes);
+app.use('/api/sign', signRoutes);
 app.use('/api/gdpr', apiLimiter, gdprRoutes);
 
 // ── 404 ──────────────────────────────────────────────────────
