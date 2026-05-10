@@ -7,47 +7,47 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // FusionAI Brand Colors
+        // FusionAI Brand Colors — Amber/Orange palette matching tokens.css
         primary: {
-          50: '#f3f0ff',
-          100: '#e9e5ff',
-          200: '#d6ceff',
-          300: '#b8a6ff',
-          400: '#9574ff',
-          500: '#7c3aed', // Primary purple
-          600: '#6b46c1', // Main brand color
-          700: '#5b21b6',
-          800: '#4c1d95',
-          900: '#3b0764',
-          950: '#2e1065',
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#f59e0b', // matches --accent-primary
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
+          950: '#451a03',
         },
         secondary: {
-          50: '#fdf4ff',
-          100: '#fae8ff',
-          200: '#f5d0fe',
-          300: '#f0abfc',
-          400: '#e879f9',
-          500: '#d946ef',
-          600: '#c026d3',
-          700: '#a21caf',
-          800: '#86198f',
-          900: '#701a75',
-          950: '#4a044e',
+          50: '#fff7ed',
+          100: '#ffedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#f97316', // matches --accent-secondary
+          600: '#ea580c',
+          700: '#c2410c',
+          800: '#9a3412',
+          900: '#7c2d12',
+          950: '#431407',
         },
         accent: {
-          50: '#fdf2f8',
-          100: '#fce7f3',
-          200: '#fbcfe8',
-          300: '#f9a8d4',
-          400: '#f472b6',
-          500: '#ec4899', // Accent pink
-          600: '#db2777',
-          700: '#be185d',
-          800: '#9d174d',
-          900: '#831843',
-          950: '#500724',
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981', // Teal accent for status/success
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+          950: '#022c22',
         },
-        // Dark theme colors
+        // Dark theme colors — aligned with tokens.css --bg-base: #0a0f1e
         dark: {
           50: '#f8fafc',
           100: '#f1f5f9',
@@ -56,17 +56,17 @@ module.exports = {
           400: '#94a3b8',
           500: '#64748b',
           600: '#475569',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a', // Dark background
-          950: '#020617',
+          700: '#1a2035',
+          800: '#111827',
+          900: '#0a0f1e', // matches --bg-base
+          950: '#060b15',
         },
         // Glass effect colors
         glass: {
-          bg: 'rgba(255, 255, 255, 0.05)',
-          border: 'rgba(255, 255, 255, 0.1)',
-          hover: 'rgba(255, 255, 255, 0.1)',
-          active: 'rgba(139, 92, 246, 0.3)',
+          bg: 'rgba(255, 255, 255, 0.04)',
+          border: 'rgba(255, 255, 255, 0.07)',
+          hover: 'rgba(255, 255, 255, 0.06)',
+          active: 'rgba(245, 158, 11, 0.15)', // amber active state
         },
       },
       fontFamily: {
@@ -174,16 +174,16 @@ module.exports = {
           '50%': { transform: 'translateY(-20px)' },
         },
         glow: {
-          '0%': { boxShadow: '0 0 5px rgba(139, 92, 246, 0.5)' },
-          '100%': { boxShadow: '0 0 20px rgba(139, 92, 246, 0.8), 0 0 30px rgba(139, 92, 246, 0.6)' },
+          '0%': { boxShadow: '0 0 5px rgba(245, 158, 11, 0.5)' },
+          '100%': { boxShadow: '0 0 20px rgba(245, 158, 11, 0.8), 0 0 30px rgba(245, 158, 11, 0.6)' },
         },
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.4)',
         'glass-inset': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
-        'glow': '0 0 20px rgba(139, 92, 246, 0.5)',
-        'glow-lg': '0 0 40px rgba(139, 92, 246, 0.6)',
-        'inner-glow': 'inset 0 0 20px rgba(139, 92, 246, 0.3)',
+        'glow': '0 0 20px rgba(245, 158, 11, 0.35)',
+        'glow-lg': '0 0 40px rgba(245, 158, 11, 0.45)',
+        'inner-glow': 'inset 0 0 20px rgba(245, 158, 11, 0.2)',
       },
     },
   },
