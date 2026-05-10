@@ -61,4 +61,18 @@ router.post('/', async (req: Request, res: Response) => {
     }
 });
 
+// List platform users (admin-level endpoint)
+router.get('/users', async (req: Request, res: Response) => {
+    try {
+        const users = await (prisma as any).spineUser?.findMany?.({
+            select: { id: true, name: true, email: true, active: true },
+            orderBy: { name: 'asc' },
+        }) ?? [];
+        res.json(users);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
 export const settingsRoutes = router;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Users, Shield, Globe, Database, ToggleLeft, ToggleRight, ChevronRight, Save, Server, Fingerprint } from 'lucide-react';
+import { Settings, Users, Shield, Globe, Database, ToggleLeft, ToggleRight, ChevronRight, Save, Server, Fingerprint, CreditCard, Plus, Trash2 } from 'lucide-react';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
@@ -38,17 +38,12 @@ const defaultModules: ModuleConfig[] = [
     { id: 'expenses', name: 'Expenses', enabled: true, description: 'Expense reports and reimbursement' },
 ];
 
-interface UserEntry { id: number; name: string; email: string; role: string; active: boolean; }
+interface UserEntry { id: string | number; name: string; email: string; role?: string; active: boolean; }
 
-const mockUsers: UserEntry[] = [
-    { id: 1, name: 'Admin User', email: 'admin@fusionai.com', role: 'Admin', active: true },
-    { id: 2, name: 'Alice Johnson', email: 'alice@fusionai.com', role: 'Manager', active: true },
-    { id: 3, name: 'Bob Smith', email: 'bob@fusionai.com', role: 'User', active: true },
-    { id: 4, name: 'Carol Davis', email: 'carol@fusionai.com', role: 'User', active: true },
-    { id: 5, name: 'David Lee', email: 'david@fusionai.com', role: 'Manager', active: false },
-];
+type Tab = 'general' | 'modules' | 'users' | 'security' | 'accounting' | 'technical';
 
-type Tab = 'general' | 'modules' | 'users' | 'security' | 'technical';
+interface PaymentTerm { id: number; name: string; note: string | null; }
+interface Pricelist { id: number; name: string; currency: string; active: boolean; }
 
 const SettingsPage: React.FC = () => {
     const { user, registerPasskey } = useAuth();
@@ -110,6 +105,62 @@ const SettingsPage: React.FC = () => {
         setModules(prev => prev.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m));
     };
 
+    // ── Platform Users (live) ────────────────────────────────────────────────────
+    const { data: platformUsers = [] } = useQuery<UserEntry[]>({
+        queryKey: ['settings-users'],
+        queryFn: async () => (await axios.get('/api/settings/users')).data ?? [],
+    });
+
+    // ── Payment Terms ────────────────────────────────────────────────────────────
+    const { data: paymentTerms = [], refetch: refetchPT } = useQuery<PaymentTerm[]>({
+        queryKey: ['paymentTerms'],
+        queryFn: async () => (await axios.get('/api/payment-terms?limit=100')).data.data ?? [],
+    });
+    const [ptForm, setPtForm] = useState({ name: '', note: '' });
+    const [ptCreating, setPtCreating] = useState(false);
+    const createPT = async () => {
+        if (!ptForm.name.trim()) return;
+        try {
+            await axios.post('/api/payment-terms', ptForm);
+            setPtForm({ name: '', note: '' });
+            setPtCreating(false);
+            await refetchPT();
+            toast.success('Payment term created');
+        } catch { toast.error('Failed to create payment term'); }
+    };
+    const deletePT = async (id: number) => {
+        try {
+            await axios.delete(`/api/payment-terms/${id}`);
+            await refetchPT();
+            toast.success('Deleted');
+        } catch { toast.error('Failed to delete'); }
+    };
+
+    // ── Pricelists ───────────────────────────────────────────────────────────────
+    const { data: pricelists = [], refetch: refetchPL } = useQuery<Pricelist[]>({
+        queryKey: ['pricelists'],
+        queryFn: async () => (await axios.get('/api/pricelists?limit=100')).data.data ?? [],
+    });
+    const [plForm, setPlForm] = useState({ name: '', currency: 'USD' });
+    const [plCreating, setPlCreating] = useState(false);
+    const createPL = async () => {
+        if (!plForm.name.trim()) return;
+        try {
+            await axios.post('/api/pricelists', plForm);
+            setPlForm({ name: '', currency: 'USD' });
+            setPlCreating(false);
+            await refetchPL();
+            toast.success('Pricelist created');
+        } catch { toast.error('Failed to create pricelist'); }
+    };
+    const deletePL = async (id: number) => {
+        try {
+            await axios.delete(`/api/pricelists/${id}`);
+            await refetchPL();
+            toast.success('Deleted');
+        } catch { toast.error('Failed to delete'); }
+    };
+
     const handleSave = () => {
         const payload: Record<string, string> = {
             'general.companyName': general.companyName,
@@ -131,6 +182,7 @@ const SettingsPage: React.FC = () => {
         { id: 'modules', label: 'Modules', icon: Database },
         { id: 'users', label: 'Users & Roles', icon: Users },
         { id: 'security', label: 'Security', icon: Shield },
+        { id: 'accounting', label: 'Accounting', icon: CreditCard },
         { id: 'technical', label: 'Technical', icon: Server },
     ];
 
@@ -324,7 +376,7 @@ const SettingsPage: React.FC = () => {
                                         </h2>
                                         <div className="flex gap-2 text-sm">
                                             <span className="px-3 py-1 bg-white/10 text-white/60 rounded-lg">
-                                                {mockUsers.length} users
+                                                {platformUsers.length} users
                                             </span>
                                             <span className="px-3 py-1 bg-white/10 text-white/60 rounded-lg">3 roles</span>
                                         </div>
@@ -339,7 +391,7 @@ const SettingsPage: React.FC = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {mockUsers.map(u => (
+                                            {platformUsers.map(u => (
                                                 <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
                                                     <td className="px-6 py-4 text-white font-medium flex items-center gap-3">
                                                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
@@ -348,7 +400,7 @@ const SettingsPage: React.FC = () => {
                                                         {u.name}
                                                     </td>
                                                     <td className="px-6 py-4 text-white/60">{u.email}</td>
-                                                    <td className="px-6 py-4">{roleBadge(u.role)}</td>
+                                                    <td className="px-6 py-4">{roleBadge(u.role ?? 'User')}</td>
                                                     <td className="px-6 py-4 text-center">
                                                         <div className={`w-2.5 h-2.5 rounded-full mx-auto ${u.active ? 'bg-green-400' : 'bg-red-400'}`} />
                                                     </td>
@@ -389,6 +441,107 @@ const SettingsPage: React.FC = () => {
                                         <p className="text-xs text-white/30 italic">
                                             Passkeys provide a faster and more secure way to sign in without using passwords.
                                         </p>
+                                    </div>
+                                </GlassCard>
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'accounting' && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                {/* Payment Terms */}
+                                <GlassCard className="p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                                            <CreditCard className="w-5 h-5 text-blue-400" />Payment Terms
+                                        </h2>
+                                        <button onClick={() => setPtCreating(v => !v)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30 rounded-lg text-sm transition-colors">
+                                            <Plus className="w-4 h-4" /> New
+                                        </button>
+                                    </div>
+                                    {ptCreating && (
+                                        <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4 space-y-3">
+                                            <input placeholder="Name (e.g. Net 30)" value={ptForm.name}
+                                                onChange={e => setPtForm(p => ({ ...p, name: e.target.value }))}
+                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-blue-400/60" />
+                                            <input placeholder="Note (optional)" value={ptForm.note}
+                                                onChange={e => setPtForm(p => ({ ...p, note: e.target.value }))}
+                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-blue-400/60" />
+                                            <div className="flex gap-2">
+                                                <button onClick={createPT}
+                                                    className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm">Save</button>
+                                                <button onClick={() => setPtCreating(false)}
+                                                    className="px-3 py-1.5 bg-white/5 text-white/60 hover:bg-white/10 rounded-lg text-sm">Cancel</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="space-y-1">
+                                        {paymentTerms.length === 0 && (
+                                            <p className="text-white/30 text-sm py-4 text-center">No payment terms yet. Create one above.</p>
+                                        )}
+                                        {paymentTerms.map(pt => (
+                                            <div key={pt.id} className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/5 hover:bg-white/8 transition-all">
+                                                <div>
+                                                    <p className="text-white font-medium text-sm">{pt.name}</p>
+                                                    {pt.note && <p className="text-white/40 text-xs mt-0.5">{pt.note}</p>}
+                                                </div>
+                                                <button onClick={() => deletePT(pt.id)}
+                                                    className="text-white/20 hover:text-red-400 transition-colors p-1">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </GlassCard>
+
+                                {/* Pricelists */}
+                                <GlassCard className="p-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                                            <CreditCard className="w-5 h-5 text-purple-400" />Pricelists
+                                        </h2>
+                                        <button onClick={() => setPlCreating(v => !v)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 rounded-lg text-sm transition-colors">
+                                            <Plus className="w-4 h-4" /> New
+                                        </button>
+                                    </div>
+                                    {plCreating && (
+                                        <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4 space-y-3">
+                                            <input placeholder="Name (e.g. Wholesale EUR)" value={plForm.name}
+                                                onChange={e => setPlForm(p => ({ ...p, name: e.target.value }))}
+                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-purple-400/60" />
+                                            <select value={plForm.currency}
+                                                onChange={e => setPlForm(p => ({ ...p, currency: e.target.value }))}
+                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none appearance-none">
+                                                {['USD', 'EUR', 'GBP', 'CAD', 'AUD'].map(c => (
+                                                    <option key={c} value={c}>{c}</option>
+                                                ))}
+                                            </select>
+                                            <div className="flex gap-2">
+                                                <button onClick={createPL}
+                                                    className="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm">Save</button>
+                                                <button onClick={() => setPlCreating(false)}
+                                                    className="px-3 py-1.5 bg-white/5 text-white/60 hover:bg-white/10 rounded-lg text-sm">Cancel</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="space-y-1">
+                                        {pricelists.length === 0 && (
+                                            <p className="text-white/30 text-sm py-4 text-center">No pricelists yet. Create one above.</p>
+                                        )}
+                                        {pricelists.map(pl => (
+                                            <div key={pl.id} className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/5 hover:bg-white/8 transition-all">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-xs font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded">{pl.currency}</span>
+                                                    <p className="text-white font-medium text-sm">{pl.name}</p>
+                                                    {!pl.active && <span className="text-xs text-white/30">(inactive)</span>}
+                                                </div>
+                                                <button onClick={() => deletePL(pl.id)}
+                                                    className="text-white/20 hover:text-red-400 transition-colors p-1">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
                                     </div>
                                 </GlassCard>
                             </motion.div>

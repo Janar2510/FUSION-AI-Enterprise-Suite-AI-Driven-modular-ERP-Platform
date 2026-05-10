@@ -5,6 +5,15 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Sprint 7: Settings UI & Users API — 2026-05-10
+
+### Added
+- **Settings Accounting tab**: new tab in `Settings.tsx` with inline CRUD management for Payment Terms and Pricelists, calling the Sprint 6 backend API endpoints (`/api/payment-terms`, `/api/pricelists`).
+- **`GET /api/settings/users`**: new endpoint in `settings.ts` returning a list of platform users from `SpineUser`; used by the Settings Users tab.
+
+### Changed
+- **Settings Users tab**: replaced `mockUsers` hardcoded array with a live `useQuery` hook calling `GET /api/settings/users`; `role` field is now optional with a graceful `'User'` fallback.
+
 ## [Unreleased] — Sprint 6: Bug Fixes & New Entities — 2026-05-10
 
 ### Added

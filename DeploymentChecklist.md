@@ -1,5 +1,19 @@
 # FusionAI Enterprise Suite - Deployment Checklist
 
+## Sprint 7 — Settings UI & Users API: Pre-Deployment Notes (2026-05-10)
+
+### No Database Migration Required
+- Settings Users endpoint reads from the existing `SpineUser` table — no schema changes.
+
+### New API Endpoints (smoke-test after deploy)
+- [ ] `GET /api/settings/users` → 200 list of users
+
+### Frontend Changes
+- Settings page now has a fifth "Accounting" tab — verify Payment Terms and Pricelists CRUD works end-to-end.
+- Settings "Users & Roles" tab now loads live data; no mock users.
+
+---
+
 ## Sprint 6 — Bug Fixes & New Entities: Pre-Deployment Notes (2026-05-10)
 
 ### Required Database Migration
