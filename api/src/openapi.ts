@@ -363,6 +363,139 @@ registry.registerPath({
     responses: { 200: { description: 'Erasure confirmation' } },
 });
 
+// ── Dashboard (Sprint 8) ──────────────────────────────────────────────────────
+const RecentActivityItemSchema = registry.register(
+    'RecentActivityItem',
+    z.object({
+        id: z.number().int(),
+        summary: z.string(),
+        ownerType: z.string(),
+        ownerId: z.number().int(),
+        createdAt: z.string().datetime(),
+    }).openapi('RecentActivityItem'),
+);
+
+registry.registerPath({
+    method: 'get',
+    path: '/api/dashboard/recent-activity',
+    tags: ['Dashboard'],
+    security: [{ bearerAuth: [] }],
+    summary: 'Last 15 timeline events for the dashboard activity feed',
+    responses: {
+        200: { description: 'Recent activity list', content: { 'application/json': { schema: z.array(RecentActivityItemSchema) } } },
+    },
+});
+
+// ── Bank Reconciliation (Sprint 8 / G-10) ────────────────────────────────────
+const BankStatementSchema = registry.register(
+    'BankStatement',
+    z.object({
+        id: z.number().int(),
+        name: z.string(),
+        journalId: z.number().int().nullable().optional(),
+        dateStart: z.string().datetime().nullable().optional(),
+        dateEnd: z.string().datetime().nullable().optional(),
+        balance: z.number(),
+        state: z.enum(['open', 'reconciled']),
+        createdAt: z.string().datetime(),
+    }).openapi('BankStatement'),
+);
+
+const BankStatementLineSchema = registry.register(
+    'BankStatementLine',
+    z.object({
+        id: z.number().int(),
+        statementId: z.number().int(),
+        date: z.string().datetime(),
+        paymentRef: z.string().nullable().optional(),
+        partnerId: z.string().nullable().optional(),
+        amount: z.number(),
+        reconciled: z.boolean(),
+        accountMoveId: z.number().int().nullable().optional(),
+    }).openapi('BankStatementLine'),
+);
+
+registry.registerPath({
+    method: 'get',
+    path: '/api/accounting/bank/statements',
+    tags: ['Accounting'],
+    security: [{ bearerAuth: [] }],
+    summary: 'List bank statements (paginated)',
+    request: { query: z.object({ page: z.coerce.number().optional(), limit: z.coerce.number().optional() }) },
+    responses: {
+        200: { description: 'Paginated bank statements', content: { 'application/json': { schema: paginatedSchema(BankStatementSchema) } } },
+    },
+});
+
+registry.registerPath({
+    method: 'post',
+    path: '/api/accounting/bank/statements',
+    tags: ['Accounting'],
+    security: [{ bearerAuth: [] }],
+    summary: 'Create a new bank statement',
+    request: { body: { content: { 'application/json': { schema: z.object({ name: z.string(), journalId: z.number().int().optional(), dateStart: z.string().optional(), dateEnd: z.string().optional(), balance: z.number().optional() }) } } } },
+    responses: {
+        201: { description: 'Created bank statement', content: { 'application/json': { schema: BankStatementSchema } } },
+        422: { description: 'Validation error', content: { 'application/json': { schema: ErrorSchema } } },
+    },
+});
+
+registry.registerPath({
+    method: 'get',
+    path: '/api/accounting/bank/statements/{id}',
+    tags: ['Accounting'],
+    security: [{ bearerAuth: [] }],
+    summary: 'Get bank statement with lines',
+    request: { params: z.object({ id: z.coerce.number().int() }) },
+    responses: {
+        200: { description: 'Bank statement detail with lines', content: { 'application/json': { schema: BankStatementSchema.extend({ lines: z.array(BankStatementLineSchema) }) } } },
+        404: { description: 'Not found', content: { 'application/json': { schema: ErrorSchema } } },
+    },
+});
+
+registry.registerPath({
+    method: 'post',
+    path: '/api/accounting/bank/statements/{id}/match',
+    tags: ['Accounting'],
+    security: [{ bearerAuth: [] }],
+    summary: 'Match a bank statement line to an AccountMove payment',
+    request: {
+        params: z.object({ id: z.coerce.number().int() }),
+        body: { content: { 'application/json': { schema: z.object({ lineId: z.number().int(), moveId: z.number().int() }) } } },
+    },
+    responses: {
+        200: { description: 'Reconciled line', content: { 'application/json': { schema: BankStatementLineSchema } } },
+        404: { description: 'Line or move not found', content: { 'application/json': { schema: ErrorSchema } } },
+    },
+});
+
+registry.registerPath({
+    method: 'delete',
+    path: '/api/accounting/bank/statements/{id}/match/{lineId}',
+    tags: ['Accounting'],
+    security: [{ bearerAuth: [] }],
+    summary: 'Unmatch (unreconcile) a bank statement line',
+    request: { params: z.object({ id: z.coerce.number().int(), lineId: z.coerce.number().int() }) },
+    responses: {
+        200: { description: 'Unreconciled line', content: { 'application/json': { schema: BankStatementLineSchema } } },
+    },
+});
+
+registry.registerPath({
+    method: 'get',
+    path: '/api/accounting/bank/statements/{id}/suggestions',
+    tags: ['Accounting'],
+    security: [{ bearerAuth: [] }],
+    summary: 'Get AI-suggested AccountMove matches for unreconciled lines',
+    request: {
+        params: z.object({ id: z.coerce.number().int() }),
+        query: z.object({ lineId: z.coerce.number().int().optional() }),
+    },
+    responses: {
+        200: { description: 'Suggested matches scored by similarity', content: { 'application/json': { schema: z.object({ suggestions: z.array(z.object({ lineId: z.number().int(), moveId: z.number().int(), moveName: z.string(), amount: z.number(), score: z.number() })) }) } } },
+    },
+});
+
 // ── Generate spec ────────────────────────────────────────────────────────────
 export function generateOpenApiSpec() {
     const generator = new OpenApiGeneratorV31(registry.definitions);
@@ -379,7 +512,8 @@ export function generateOpenApiSpec() {
             { name: 'Partners', description: 'Partner (customer/vendor/employee) management' },
             { name: 'CRM', description: 'Lead and opportunity management' },
             { name: 'Sales', description: 'Quotations and sale orders' },
-            { name: 'Accounting', description: 'Invoices, bills, journal entries, and payments' },
+            { name: 'Accounting', description: 'Invoices, bills, journal entries, payments, and bank reconciliation' },
+            { name: 'Dashboard', description: 'Live KPI dashboard data' },
             { name: 'AI', description: 'AI agent execution and action approval workflow' },
             { name: 'GDPR', description: 'Data export and erasure' },
         ],

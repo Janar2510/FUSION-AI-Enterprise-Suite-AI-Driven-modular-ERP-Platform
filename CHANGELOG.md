@@ -3,6 +3,29 @@
 All notable changes to FusionAI Enterprise Suite will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+
+## [Unreleased] — Sprint 9: Security hardening + Test suite green — 2026-05-10
+
+### Added
+- **Upload guard middleware** (`api/src/middleware/uploadGuard.ts`):
+  - Content-type allowlist (JPEG, PNG, GIF, WebP, SVG, PDF, XLSX, XLS, CSV).
+  - Magic-byte verification — confirms declared MIME matches actual file content, preventing MIME-spoofing attacks.
+  - Per-file size cap (10 MB default, configurable via `UPLOAD_MAX_BYTES`).
+  - ClamAV virus-scan stub: no-op by default; enable with `ENABLE_VIRUS_SCAN=true` and wire in `clamscan` (see comment in source).
+  - `multer` (memoryStorage) wraps all three: single/array/fields helpers exported.
+  - `handleMulterError` normalises `MulterError` into the standard error envelope (413 on size exceed).
+- **`infra/secrets/README.md`**: comprehensive reference listing all required/optional env variables for API + frontend, with generation commands (`openssl rand -hex 64`), rotation policy, and a pre-deploy checklist.
+- **11 security middleware tests** (`api/src/core/__tests__/security.middleware.test.ts`): CSRF bypass/block scenarios + upload guard accept/reject/spoof/size-limit cases.
+- **Test auth helper** (`api/src/__tests__/helpers.ts`): `authHeader()` generates a signed test JWT for supertest requests.
+
+### Fixed
+- **248/248 tests green**: `flows.integration.test.ts` and `partners.profile.test.ts` were returning 401 because `requireAuth` was active. Both files now `jest.mock('../core/auth')` to bypass auth in unit/integration tests that already mock Prisma.
+
+### Changed
+- Express body limits tightened: `express.json({ limit: '1mb' })` (was 10 MB), `express.urlencoded({ limit: '256kb' })` (was unlimited).
+- OpenAPI 3.1 spec extended for Sprint 8 endpoints: `GET /api/dashboard/recent-activity`, `GET/POST /api/accounting/bank/statements`, match/unmatch/suggestions endpoints; **Dashboard** tag added.
+
+---
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] — Sprint 8: Live Dashboard + Bank Reconciliation — 2026-05-10

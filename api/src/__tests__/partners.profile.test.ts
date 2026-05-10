@@ -10,6 +10,12 @@ import request from 'supertest';
 import express from 'express';
 import { partnerRoutes } from '../routes/partners';
 
+// ── Bypass requireAuth for unit/integration tests that use mocked Prisma ──────
+jest.mock('../core/auth', () => ({
+    requireAuth: (_req: any, _res: any, next: any) => next(),
+    requirePermission: () => (_req: any, _res: any, next: any) => next(),
+}));
+
 // ── Mock Prisma ──────────────────────────────────────────────────────────────
 jest.mock('../lib/prisma', () => {
   const mockPartner = {

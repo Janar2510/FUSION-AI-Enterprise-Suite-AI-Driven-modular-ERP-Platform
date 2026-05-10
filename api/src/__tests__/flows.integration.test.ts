@@ -20,6 +20,15 @@ import { accountingRoutes } from '../routes/accounting';
 import { purchaseRoutes } from '../routes/purchases';
 import { helpdeskRoutes } from '../routes/helpdesk';
 import { errorHandler } from '../core/errors';
+import { authHeader } from './helpers';
+
+// ── Bypass requireAuth for unit/integration tests that use mocked Prisma ──────
+// The auth middleware reads a real JWT; we stub it out here so these tests can
+// focus on business logic rather than token management.
+jest.mock('../core/auth', () => ({
+    requireAuth: (_req: any, _res: any, next: any) => next(),
+    requirePermission: () => (_req: any, _res: any, next: any) => next(),
+}));
 
 // ── Mock Prisma ───────────────────────────────────────────────────────────────
 jest.mock('../lib/prisma', () => {
