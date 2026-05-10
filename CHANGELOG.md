@@ -5,6 +5,14 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Sprint 7 Hotfix: Amber/Orange Design Token Alignment — 2026-05-10
+
+### Fixed
+- **Full UI design consistency**: remapped Tailwind `primary` palette from purple (#7c3aed) to amber (#f59e0b) and `secondary` from pink to orange (#f97316), aligning with `tokens.css` CSS custom properties already used by `TopBar` and `SubNav`. Every module using `text-primary-*`, `bg-primary-*`, gradient buttons, and glow shadows now renders in amber/orange instead of purple/pink.
+- **`dark-900`** updated from `#0f172a` → `#0a0f1e` to match `--bg-base` in `tokens.css`.
+- **`glass.active`** updated to `rgba(245,158,11,0.15)` (amber), eliminating residual purple active states.
+- **`boxShadow.glow*`** and **`keyframes.glow`** updated to amber rgba values.
+
 ## [Unreleased] — Sprint 7: Settings UI & Users API — 2026-05-10
 
 ### Added
