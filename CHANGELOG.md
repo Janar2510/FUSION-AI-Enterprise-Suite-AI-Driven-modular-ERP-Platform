@@ -5,6 +5,18 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Sprint 6: Bug Fixes & New Entities — 2026-05-10
+
+### Added
+- **CRM Activities** (`crm_activities` table): new Prisma model `CrmActivity` with full CRUD endpoints (`GET/POST /api/crm/leads/:id/activities`, `PATCH /api/crm/activities/:id/done`, `DELETE /api/crm/activities/:id`).
+- **Payment Terms API** (`/api/payment-terms`): full CRUD for `PaymentTerm` and nested `PaymentTermLine` records; protected by `requireAuth`.
+- **Pricelists API** (`/api/pricelists`): full CRUD for `Pricelist` and `PricelistLine` records, plus `POST /api/pricelists/:id/compute` endpoint for live price calculation.
+
+### Fixed
+- **B-03 Timesheets privacy**: `GET /api/hr/timesheets` now filters by optional `employee_id` and `project_id` query parameters, preventing exposure of all timesheet records.
+- **CRM routes type safety**: replaced `(prisma as any).activity` workaround with correctly-typed `prisma.crmActivity` calls after adding the model to schema.
+- **payment-terms.ts build**: fixed duplicate `OR` key in Prisma `where` clause (TS1117); restructured into a single `AND` array.
+
 ## [Unreleased] — Sprint 5: P2 Module Completions — 2026-05-10
 
 ### Added

@@ -390,9 +390,14 @@ hrRoutes.delete('/expense-sheets/:id', asyncHandler(async (req, res) => {
 
 hrRoutes.get('/timesheets', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
+    const employeeId = req.query.employee_id ? parseInt(req.query.employee_id as string) : undefined;
+    const projectId = req.query.project_id ? parseInt(req.query.project_id as string) : undefined;
+    const where: any = {};
+    if (employeeId) where.employeeId = employeeId;
+    if (projectId) where.projectId = projectId;
     const [data, total] = await Promise.all([
-        prisma.hrTimesheet.findMany({ skip, take: limit, orderBy: { date: 'desc' }, include: { employee: true, project: true, task: true } }),
-        prisma.hrTimesheet.count(),
+        prisma.hrTimesheet.findMany({ where, skip, take: limit, orderBy: { date: 'desc' }, include: { employee: true, project: true, task: true } }),
+        prisma.hrTimesheet.count({ where }),
     ]);
     res.json(paginatedResponse(data, total, page, limit));
 }));

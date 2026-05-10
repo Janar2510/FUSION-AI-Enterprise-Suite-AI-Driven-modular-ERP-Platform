@@ -380,11 +380,32 @@ model CrmLead {
   partner         Partner?    @relation(fields: [partnerId], references: [id])
   stage           CrmStage    @relation(fields: [stageId], references: [id])
   saleOrders      SaleOrder[]
-  tags            CrmTag[]    @relation("CrmLeadToCrmTag")
+  tags            CrmTag[]        @relation("CrmLeadToCrmTag")
+  activities      CrmActivity[]
 
   @@index([organizationId])
   @@index([userId])
   @@map("crm_leads")
+}
+
+// CRM Activities (calls, meetings, emails, deadlines)
+model CrmActivity {
+  id             Int       @id @default(autoincrement())
+  leadId         Int
+  lead           CrmLead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  type           String    // call | email | meeting | deadline | todo
+  summary        String
+  body           String?
+  dueAt          DateTime?
+  doneAt         DateTime?
+  organizationId String?
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([leadId])
+  @@index([organizationId])
+  @@map("crm_activities")
 }
 
 model SaleOrder {

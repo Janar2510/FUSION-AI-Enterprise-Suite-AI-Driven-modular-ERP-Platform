@@ -51,6 +51,7 @@ import { authRoutes } from './routes/auth';
 import { partnerRoutes } from './routes/partners';
 import { crmRoutes } from './routes/crm';
 import { saleRoutes } from './routes/sales';
+import { paymentTermRoutes, pricelistRoutes } from './routes/payment-terms';
 import { purchaseRoutes } from './routes/purchases';
 import { productRoutes } from './routes/products';
 import { inventoryRoutes } from './routes/inventory';
@@ -202,6 +203,8 @@ app.use('/api', requireAuth);
 
 app.use('/api/partners', partnerRoutes);
 app.use('/api/crm', crmRoutes);
+app.use('/api/payment-terms', paymentTermRoutes);
+app.use('/api/pricelists', pricelistRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/products', productRoutes);

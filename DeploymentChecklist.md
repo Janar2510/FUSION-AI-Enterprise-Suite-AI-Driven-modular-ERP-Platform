@@ -1,5 +1,24 @@
 # FusionAI Enterprise Suite - Deployment Checklist
 
+## Sprint 6 — Bug Fixes & New Entities: Pre-Deployment Notes (2026-05-10)
+
+### Required Database Migration
+- [ ] `cd api && npx prisma migrate dev --name sprint6_crm_payment_pricelist`
+  - Adds `crm_activities` table with FK to `crm_leads`
+  - No destructive changes to existing tables
+- [ ] `npx prisma generate` — regenerate client (already done in dev)
+
+### New API Endpoints (smoke-test after deploy)
+- [ ] `GET /api/crm/leads/:id/activities` → 200 (empty array OK)
+- [ ] `GET /api/payment-terms` → 200 paginated list
+- [ ] `GET /api/pricelists` → 200 paginated list
+- [ ] `POST /api/pricelists/:id/compute` with `{ productId, qty }` → 200 with `price`
+
+### Notes
+- `GET /api/hr/timesheets` now accepts `employee_id` and `project_id` query params — no breaking change for existing callers.
+
+---
+
 ## Phase 1 — Canonical Data Spine: Pre-Migration Checklist (2026-05-06)
 
 > Run these steps **before** deploying Phase 1 to any environment.

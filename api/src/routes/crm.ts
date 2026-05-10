@@ -96,31 +96,28 @@ crmRoutes.get('/pipeline', asyncHandler(async (_req, res) => {
 }));
 
 // ── CRM Activities (calls, emails, meetings) ────────────────────────────────
-// Activities are polymorphic — stored in the Activity model with ownerType='CrmLead'
-
 crmRoutes.get('/leads/:id/activities', asyncHandler(async (req, res) => {
-    const leadId = req.params.id;
-    const activities = await (prisma as any).activity?.findMany?.({
-        where: { ownerType: 'CrmLead', ownerId: leadId },
+    const leadId = parseInt(req.params.id);
+    const activities = await prisma.crmActivity.findMany({
+        where: { leadId },
         orderBy: [{ doneAt: 'asc' }, { dueAt: 'asc' }],
-    }) ?? [];
+    });
     res.json(activities);
 }));
 
 crmRoutes.post('/leads/:id/activities', asyncHandler(async (req, res) => {
-    const leadId = req.params.id;
+    const leadId = parseInt(req.params.id);
     const { type, summary, body, dueAt } = req.body as {
         type: string; summary: string; body?: string; dueAt?: string;
     };
 
     // Validate lead exists
-    const lead = await prisma.crmLead.findUnique({ where: { id: parseInt(leadId) } });
+    const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
     if (!lead) { res.status(404).json({ error: 'Lead not found' }); return; }
 
-    const activity = await (prisma as any).activity?.create?.({
+    const activity = await prisma.crmActivity.create({
         data: {
-            ownerType: 'CrmLead',
-            ownerId: leadId,
+            leadId,
             organizationId: (req as any).user?.orgId ?? 'default',
             createdById: (req as any).user?.sub ?? 'system',
             type,
@@ -133,15 +130,15 @@ crmRoutes.post('/leads/:id/activities', asyncHandler(async (req, res) => {
 }));
 
 crmRoutes.patch('/activities/:id/done', asyncHandler(async (req, res) => {
-    const activity = await (prisma as any).activity?.update?.({
-        where: { id: req.params.id },
+    const activity = await prisma.crmActivity.update({
+        where: { id: parseInt(req.params.id) },
         data: { doneAt: new Date() },
     });
     res.json(activity);
 }));
 
 crmRoutes.delete('/activities/:id', asyncHandler(async (req, res) => {
-    await (prisma as any).activity?.delete?.({ where: { id: req.params.id } });
+    await prisma.crmActivity.delete({ where: { id: parseInt(req.params.id) } });
     res.status(204).send();
 }));
 
