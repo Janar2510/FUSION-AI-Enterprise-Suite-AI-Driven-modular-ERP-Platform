@@ -1668,6 +1668,7 @@ model Note {
   stage     String   @default("new")
   color     Int      @default(0)
   sequence  Int      @default(10)
+  tags      String[] @default([])
   userId    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1880,6 +1881,8 @@ model QualityPoint {
   id           Int            @id @default(autoincrement())
   name         String
   testType     String         @default("passfail")
+  toleranceMin Float?
+  toleranceMax Float?
   productId    String?
   workcenterId Int?
   teamId       String?

@@ -1,6 +1,6 @@
 import { Router, Request } from 'express';
 import prisma from '../lib/prisma';
-import { requireAuth } from '../core/auth';
+import { requireAuth, requirePermission } from '../core/auth';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 
 export const hrRoutes = Router();
@@ -15,6 +15,16 @@ hrRoutes.get('/departments', asyncHandler(async (_req, res) => {
 hrRoutes.post('/departments', asyncHandler(async (req, res) => {
     const dept = await prisma.hrDepartment.create({ data: req.body });
     res.status(201).json(dept);
+}));
+
+hrRoutes.put('/departments/:id', asyncHandler(async (req, res) => {
+    const dept = await prisma.hrDepartment.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    res.json(dept);
+}));
+
+hrRoutes.delete('/departments/:id', asyncHandler(async (req, res) => {
+    await prisma.hrDepartment.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
+    res.status(204).send();
 }));
 
 // Jobs
@@ -61,6 +71,35 @@ hrRoutes.patch('/employees/:id/archive', asyncHandler(async (req, res) => {
 hrRoutes.patch('/employees/:id/unarchive', asyncHandler(async (req, res) => {
     const emp = await prisma.hrEmployee.update({ where: { id: parseInt(req.params.id) }, data: { active: true } });
     res.json(emp);
+}));
+
+// Employee private info tab — returns sensitive fields; requires hr.read permission
+hrRoutes.get('/employees/:id/private', requirePermission('hr.read'), asyncHandler(async (req: Request, res) => {
+    const emp = await prisma.hrEmployee.findUnique({
+        where: { id: parseInt(req.params.id) },
+        select: {
+            id: true,
+            gender: true,
+            birthday: true,
+            maritalStatus: true,
+            emergencyContact: true,
+            emergencyPhone: true,
+            workEmail: true,
+            workPhone: true,
+            mobilePhone: true,
+        },
+    });
+    if (!emp) { res.status(404).json({ error: 'Employee not found' }); return; }
+    res.json(emp);
+}));
+
+hrRoutes.put('/employees/:id/private', requirePermission('hr.read'), asyncHandler(async (req: Request, res) => {
+    const { gender, birthday, maritalStatus, emergencyContact, emergencyPhone } = req.body;
+    const emp = await prisma.hrEmployee.update({
+        where: { id: parseInt(req.params.id) },
+        data: { gender, birthday: birthday ? new Date(birthday) : undefined, maritalStatus, emergencyContact, emergencyPhone },
+    });
+    res.json({ id: emp.id, gender: emp.gender, maritalStatus: emp.maritalStatus });
 }));
 
 // Leaves
@@ -388,12 +427,23 @@ hrRoutes.delete('/expense-sheets/:id', asyncHandler(async (req, res) => {
     res.json({ success: true });
 }));
 
-hrRoutes.get('/timesheets', asyncHandler(async (req, res) => {
+hrRoutes.get('/timesheets', asyncHandler(async (req: Request, res) => {
     const { skip, page, limit } = getPagination(req.query);
     const employeeId = req.query.employee_id ? parseInt(req.query.employee_id as string) : undefined;
     const projectId = req.query.project_id ? parseInt(req.query.project_id as string) : undefined;
     const where: any = {};
-    if (employeeId) where.employeeId = employeeId;
+
+    if (employeeId) {
+        where.employeeId = employeeId;
+    } else {
+        // Privacy guard: must have hr.read to list all timesheets without employee_id filter
+        const permissions: string[] = (req.user as any)?.permissions ?? [];
+        if (!permissions.includes('hr.read')) {
+            res.status(403).json({ error: 'Provide employee_id or request hr.read permission' });
+            return;
+        }
+    }
+
     if (projectId) where.projectId = projectId;
     const [data, total] = await Promise.all([
         prisma.hrTimesheet.findMany({ where, skip, take: limit, orderBy: { date: 'desc' }, include: { employee: true, project: true, task: true } }),
@@ -405,6 +455,53 @@ hrRoutes.get('/timesheets', asyncHandler(async (req, res) => {
 hrRoutes.post('/timesheets', asyncHandler(async (req, res) => {
     const ts = await prisma.hrTimesheet.create({ data: req.body });
     res.status(201).json(ts);
+}));
+
+hrRoutes.put('/timesheets/:id', asyncHandler(async (req, res) => {
+    const ts = await prisma.hrTimesheet.update({
+        where: { id: parseInt(req.params.id) },
+        data: req.body,
+    });
+    res.json(ts);
+}));
+
+hrRoutes.delete('/timesheets/:id', asyncHandler(async (req, res) => {
+    await prisma.hrTimesheet.delete({ where: { id: parseInt(req.params.id) } });
+    res.status(204).send();
+}));
+
+// Weekly grid: returns timesheet hours grouped by employee × day for a given ISO week
+// Query: ?weekStart=2026-05-04 (Monday of the desired week)
+hrRoutes.get('/timesheets/weekly', asyncHandler(async (req: Request, res) => {
+    const weekStartStr = req.query.weekStart as string | undefined;
+    const weekStart = weekStartStr ? new Date(weekStartStr) : (() => {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Monday
+        return d;
+    })();
+    const weekEnd = new Date(weekStart.getTime() + 7 * 86_400_000);
+
+    const rows = await prisma.hrTimesheet.findMany({
+        where: { date: { gte: weekStart, lt: weekEnd } },
+        include: { employee: { select: { id: true, name: true } }, project: { select: { id: true, name: true } } },
+    });
+
+    // Group by employee → day
+    const grid: Record<number, { employee: { id: number; name: string }; days: Record<string, number> }> = {};
+    for (const r of rows) {
+        const dayKey = r.date.toISOString().split('T')[0];
+        if (!grid[r.employeeId]) {
+            grid[r.employeeId] = { employee: r.employee, days: {} };
+        }
+        grid[r.employeeId].days[dayKey] = (grid[r.employeeId].days[dayKey] ?? 0) + r.unitAmount;
+    }
+
+    res.json({
+        weekStart: weekStart.toISOString().split('T')[0],
+        weekEnd: weekEnd.toISOString().split('T')[0],
+        rows: Object.values(grid),
+    });
 }));
 
 // Attendance

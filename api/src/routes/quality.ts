@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
+import { requireAuth } from '../core/auth';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 
 export const qualityRoutes = Router();
+qualityRoutes.use(requireAuth);
 
 // --- Quality Points ---
 qualityRoutes.get('/points', asyncHandler(async (req, res) => {
@@ -63,6 +65,32 @@ qualityRoutes.put('/checks/:id', asyncHandler(async (req, res) => {
 qualityRoutes.delete('/checks/:id', asyncHandler(async (req, res) => {
     await prisma.qualityCheck.delete({ where: { id: parseInt(req.params.id) } });
     res.json({ success: true });
+}));
+
+// Auto-evaluate measure checks against tolerance bounds from the quality point
+qualityRoutes.patch('/checks/:id/measure', asyncHandler(async (req, res) => {
+    const { measureValue } = req.body as { measureValue: number };
+    const id = parseInt(req.params.id);
+
+    const existing = await prisma.qualityCheck.findUnique({
+        where: { id },
+        include: { point: { select: { toleranceMin: true, toleranceMax: true } } },
+    });
+    if (!existing) { res.status(404).json({ error: 'Check not found' }); return; }
+
+    // Determine pass/fail from tolerance bounds
+    let state = 'pass';
+    if (existing.point) {
+        const { toleranceMin, toleranceMax } = existing.point;
+        if (toleranceMin !== null && measureValue < toleranceMin) state = 'fail';
+        if (toleranceMax !== null && measureValue > toleranceMax) state = 'fail';
+    }
+
+    const check = await prisma.qualityCheck.update({
+        where: { id },
+        data: { measureValue, state },
+    });
+    res.json(check);
 }));
 
 // --- Quality Alerts ---
