@@ -19,6 +19,7 @@ import { Server as HttpServer } from 'http';
 import { Server as SocketServer, Socket } from 'socket.io';
 import { verifyAccessToken } from '../auth';
 import { logger } from '../logger';
+import prisma from '../../lib/prisma';
 
 let io: SocketServer | null = null;
 
@@ -60,9 +61,25 @@ export function initWebSocket(httpServer: HttpServer): SocketServer {
         socket.on('message', async ({ channelId, content }: { channelId: number; content: string }) => {
             if (!content?.trim()) return;
 
-            // Broadcast to everyone in the channel room (including sender for confirmation)
+            // Persist to DB then broadcast so all clients get a consistent ID
+            let msgId: number | undefined;
+            try {
+                const saved = await prisma.mailMessage.create({
+                    data: {
+                        body: content.trim(),
+                        authorName: user?.email ?? 'Unknown',
+                        authorId: user?.sub,
+                        channelId,
+                    },
+                });
+                msgId = saved.id;
+            } catch (err) {
+                logger.warn({ err }, 'WS message persist failed');
+            }
+
             io!.to(`channel:${channelId}`).emit('message', {
                 type: 'message',
+                id: msgId,
                 channelId,
                 senderId: user?.sub,
                 senderName: user?.email ?? 'Unknown',

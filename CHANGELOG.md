@@ -5,6 +5,24 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Sprint 5: P2 Module Completions — 2026-05-10
+
+### Added
+- **Schema (Prisma)** — 5 new models: `HelpdeskTeam`, `AppraisalGoal`, `MrpEcoLine`, `MailMessageReaction`, `HrRecruitmentStage`; back-relations added to `HelpdeskTicket`, `HrAppraisal`, `MrpEco`, `MrpBomLine`, `MailMessage`, `HrApplicant`, `HrEmployee`, `Product`
+- **Discuss** — `useDiscussSocket` hook (`frontend/src/modules/discuss/hooks/useDiscussSocket.ts`) wires socket.io client to store; WS server now persists each message to `MailMessage` before broadcasting; reaction add/remove now calls `POST/DELETE /api/messaging/channels/:id/messages/:messageId/reactions`
+- **Attendance** — `requireAuth` added; `POST /check-in` (guards double check-in), `POST /check-out` (computes `workedHours`), `GET /status/:employeeId`, `GET /analytics/overtime` (worked vs standard hours per period)
+- **Helpdesk** — `HelpdeskTeam` CRUD (`GET/POST/PUT/DELETE /api/helpdesk/teams`); `GET /tickets` and `/stages` now accept `teamId` filter; `PATCH /tickets/:id/sla-reset` endpoint
+- **Appraisals** — `requireAuth` added; `PATCH /:id/confirm` and `PATCH /:id/done` state transitions; full `AppraisalGoal` CRUD nested under appraisals (`GET/POST/PUT/DELETE /:id/goals/:goalId`)
+- **PLM** — ECO `PUT /:id` now implements real BoM mutation when `stage=done`: iterates `ecoLines` and creates/deletes/updates `MrpBomLine` records; `PATCH /:id/approve` and `PATCH /:id/reject`; full `MrpEcoLine` CRUD (`GET/POST/PUT/DELETE /:id/lines`)
+- **Recruitment** — `HrRecruitmentStage` CRUD; `GET /pipeline` for Kanban view; `PATCH /:id/stage` with `publishEvent` outbox hook; `PATCH /:id/resume` to store resume URL; applicants list now filterable by `stageId`
+- **Surveys** — Public routes (no auth): `GET /public/:id` and `POST /public/:id/submit`; `PATCH /:id/publish` and `PATCH /:id/close`; `SurveyQuestion` CRUD with nested `SurveyAnswer` creation; `DELETE /questions/:qId`, `DELETE /answers/:aId`; `GET /:id/results` analytics endpoint
+- **Calendar** — `CalendarGrid.tsx` component replaces stub: real month/week/day grid, current-time indicator, event chips, today highlighting, amber accent design tokens; `CalendarModule.tsx` wired to grid with create-at-slot support and list/form views preserved
+
+### Fixed
+- `publishEvent` call in recruitment route now includes `organizationId` from `req.user.orgId` (was missing required param)
+
+---
+
 ## [Unreleased] — Phase 4c: Sales + Accounting Flow Integration — 2026-05-07
 
 ### Added

@@ -386,11 +386,20 @@ export const discussApi = {
   listChannels: () =>
     api.get('/api/messaging/channels'),
 
+  createChannel: (data: { name: string; channelType?: string; description?: string }) =>
+    api.post('/api/messaging/channels', data),
+
   getMessages: (channelId: number, params?: Record<string, unknown>) =>
     api.get(`/api/messaging/channels/${channelId}/messages`, { params }),
 
   postMessage: (channelId: number, body: string) =>
     api.post(`/api/messaging/channels/${channelId}/messages`, { body, messageType: 'comment' }),
+
+  addReaction: (channelId: number, messageId: number, emoji: string) =>
+    api.post(`/api/messaging/channels/${channelId}/messages/${messageId}/reactions`, { emoji }),
+
+  removeReaction: (channelId: number, messageId: number, emoji: string) =>
+    api.delete(`/api/messaging/channels/${channelId}/messages/${messageId}/reactions/${encodeURIComponent(emoji)}`),
 }
 
 // ── AI Actions (Phase 5) ──────────────────────────────────────────────────────

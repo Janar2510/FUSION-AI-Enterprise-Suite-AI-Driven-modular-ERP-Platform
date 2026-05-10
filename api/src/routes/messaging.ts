@@ -66,15 +66,52 @@ messagingRoutes.get('/channels/:id/messages', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
     const channelId = parseInt(req.params.id);
     const [data, total] = await Promise.all([
-        prisma.mailMessage.findMany({ where: { channelId }, skip, take: limit, orderBy: { date: 'desc' } }),
+        prisma.mailMessage.findMany({
+            where: { channelId },
+            skip,
+            take: limit,
+            orderBy: { date: 'asc' },
+            include: { reactions: true },
+        }),
         prisma.mailMessage.count({ where: { channelId } }),
     ]);
     res.json(paginatedResponse(data, total, page, limit));
 }));
 
 messagingRoutes.post('/channels/:id/messages', asyncHandler(async (req, res) => {
-    const msg = await prisma.mailMessage.create({ data: { ...req.body, channelId: parseInt(req.params.id) } });
+    const { body, authorName } = req.body;
+    const msg = await prisma.mailMessage.create({
+        data: {
+            body,
+            authorName: authorName ?? req.user?.email ?? 'Unknown',
+            authorId: req.user?.sub,
+            channelId: parseInt(req.params.id),
+        },
+        include: { reactions: true },
+    });
     res.status(201).json(msg);
+}));
+
+// Reactions on a channel message
+messagingRoutes.post('/channels/:channelId/messages/:msgId/reactions', asyncHandler(async (req, res) => {
+    const messageId = parseInt(req.params.msgId);
+    const { emoji } = req.body;
+    if (!emoji) { res.status(400).json({ error: 'emoji required' }); return; }
+    const reaction = await prisma.mailMessageReaction.upsert({
+        where: { messageId_emoji_authorId: { messageId, emoji, authorId: req.user?.sub ?? '' } },
+        create: { messageId, emoji, authorId: req.user?.sub },
+        update: {},
+    });
+    res.status(201).json(reaction);
+}));
+
+messagingRoutes.delete('/channels/:channelId/messages/:msgId/reactions/:emoji', asyncHandler(async (req, res) => {
+    const messageId = parseInt(req.params.msgId);
+    const { emoji } = req.params;
+    await prisma.mailMessageReaction.deleteMany({
+        where: { messageId, emoji, authorId: req.user?.sub ?? '' },
+    });
+    res.json({ success: true });
 }));
 
 // Activity messages on any record (polymorphic)

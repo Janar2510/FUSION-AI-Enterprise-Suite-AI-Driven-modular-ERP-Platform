@@ -135,6 +135,11 @@ export const useDiscussStore = create<DiscussState>((set, get) => ({
           : msg
       ),
     }));
+    // Persist to API — find channelId from current message
+    const msg = get().messages.find(m => m.id === messageId);
+    if (msg?.channel_id) {
+      discussApi.addReaction(msg.channel_id, messageId, emoji).catch(() => { /* optimistic — ignore */ });
+    }
   },
 
   removeReaction: (messageId, emoji) => {
@@ -150,6 +155,10 @@ export const useDiscussStore = create<DiscussState>((set, get) => ({
           : msg
       ),
     }));
+    const msg = get().messages.find(m => m.id === messageId);
+    if (msg?.channel_id) {
+      discussApi.removeReaction(msg.channel_id, messageId, emoji).catch(() => { /* optimistic — ignore */ });
+    }
   },
 
   loadMessages: async (channelId) => {

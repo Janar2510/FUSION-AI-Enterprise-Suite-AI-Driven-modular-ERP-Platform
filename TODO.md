@@ -229,6 +229,38 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 
 ---
 
+## Sprint 5 — P2 Module Completions (2026-05-10)
+
+All items below were implemented in commit `feat(sprint5)`.
+
+### Schema
+- [x] `HelpdeskTeam` model + `teamId` FK on `HelpdeskTicket`
+- [x] `AppraisalGoal` model + `goals` relation on `HrAppraisal` + `appraisalGoals` on `HrEmployee`
+- [x] `MrpEcoLine` model + `ecoLines` relation on `MrpEco` + `bomLine` back-ref on `MrpBomLine`
+- [x] `MailMessageReaction` model + `reactions` relation on `MailMessage`
+- [x] `HrRecruitmentStage` model + `stageId`/`resumeUrl` on `HrApplicant`
+- [x] `npx prisma generate` succeeds (client regenerated)
+- [ ] `npx prisma migrate dev --name sprint5_p2_modules` (requires local DB)
+
+### API
+- [x] **Discuss**: WS persists messages to DB before broadcast; reaction add/remove endpoints
+- [x] **Attendance**: `requireAuth`, `POST /check-in`, `POST /check-out`, `GET /status/:id`, `GET /analytics/overtime`
+- [x] **Helpdesk**: `HelpdeskTeam` CRUD (`GET/POST/PUT/DELETE /teams`); `PATCH /tickets/:id/sla-reset`
+- [x] **Appraisals**: `requireAuth`; `PATCH /:id/confirm`, `PATCH /:id/done`; `AppraisalGoal` CRUD
+- [x] **PLM**: `requireAuth`; actual BoM line mutation on `stage=done`; `PATCH /:id/approve/reject`; `MrpEcoLine` CRUD
+- [x] **Recruitment**: `requireAuth`; `HrRecruitmentStage` CRUD; `GET /pipeline`; `PATCH /:id/stage` + outbox event; `PATCH /:id/resume`
+- [x] **Surveys**: public `GET /public/:id` + `POST /public/:id/submit` (no auth); `PATCH /:id/publish/close`; question/answer CRUD; `GET /:id/results`
+
+### Frontend
+- [x] `useDiscussSocket.ts` hook: WS connect, join/leave, deduplicated message injection into store
+- [x] `discussStore`: `addReaction`/`removeReaction` persists via `discussApi`
+- [x] `CalendarGrid` component: month/week/day views, navigation, event rendering, new-event click
+- [x] `CalendarModule` wires in `CalendarGrid` (replaces stub `renderDashboard`)
+- [x] Frontend `tsc --noEmit` exits 0
+- [x] API `npm run build` exits 0
+
+---
+
 ## Deployment-Ready Checklist
 
 See Section 12 of `CLAUDE_CODE_BUILD_PLAN.md` for the full definition.

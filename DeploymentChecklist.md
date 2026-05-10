@@ -411,6 +411,37 @@
 
 ---
 
+---
+
+## Sprint 5 — P2 Module Completions (2026-05-10)
+
+### Database Migration (Sprint 5 schema additions)
+- [ ] Run: `cd api && npx prisma migrate dev --name sprint5_p2_modules`
+- [ ] Verify migration applied: `npx prisma migrate status`
+- [ ] Confirm new tables created: `helpdesk_teams`, `appraisal_goals`, `mrp_eco_lines`, `mail_message_reactions`, `hr_recruitment_stages`
+
+### API Verification
+- [ ] `cd api && npm run build` exits 0 ✅ (verified)
+- [ ] `cd frontend && npx tsc --noEmit` exits 0 ✅ (verified)
+- [ ] `GET /api/attendance/analytics/overtime` returns JSON with `data` array
+- [ ] `POST /api/attendance/check-in` creates open record; second call returns 409
+- [ ] `POST /api/attendance/check-out` closes record and sets `workedHours`
+- [ ] `GET /api/helpdesk/teams` returns team list
+- [ ] `GET /api/appraisals/:id/goals` returns goal list
+- [ ] `GET /api/plm/:id/lines` returns ECO lines; applying `stage=done` mutates BoM
+- [ ] `GET /api/recruitment/stages` returns stages; `GET /api/recruitment/pipeline` returns Kanban
+- [ ] `GET /api/surveys/public/:id` returns survey without auth (state must be `open`)
+- [ ] `GET /api/surveys/:id/results` returns analytics (requires auth)
+
+### Frontend Verification
+- [ ] Calendar module renders month grid on load (not stub)
+- [ ] Week/day view switching works; current-time line visible
+- [ ] Clicking a day/slot opens New Event form pre-populated with date
+- [ ] Discuss: real-time messages appear without page reload (WS active)
+- [ ] Discuss: adding a reaction persists after reload
+
+### Environment Variables (no new vars required for Sprint 5)
+
 **Deployment Status**: ⏳ In Progress / ✅ Complete / ❌ Failed
 
 **Notes**: 

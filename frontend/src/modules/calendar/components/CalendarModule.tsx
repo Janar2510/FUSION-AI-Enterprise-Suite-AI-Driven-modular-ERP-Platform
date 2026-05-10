@@ -1,196 +1,241 @@
 import React, { useEffect, useState } from 'react';
-import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
-import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
+import { OdooListBase } from '@/components/views/OdooListBase';
 import { useCalendarStore, CalendarEvent } from '../stores/calendarStore';
-import { Calendar as CalendarIcon, Users, MapPin } from 'lucide-react';
+import { CalendarGrid } from './CalendarGrid';
+import { Calendar as CalendarIcon, List, Users, MapPin, LayoutGrid } from 'lucide-react';
+
+type AppView = 'grid' | 'list' | 'form';
 
 export const CalendarModule: React.FC = () => {
-    const {
-        events,
-        fetchEvents,
-        createEvent,
-        updateEvent,
-        deleteEvent
-    } = useCalendarStore();
+    const { events, loading, fetchEvents, createEvent, updateEvent, deleteEvent } = useCalendarStore();
 
-    const [currentView, setCurrentView] = useState<ViewType>('kanban');
+    const [currentView, setCurrentView] = useState<AppView>('grid');
     const [searchTerm, setSearchTerm] = useState('');
-
     const [activeRecord, setActiveRecord] = useState<CalendarEvent | null>(null);
     const [formData, setFormData] = useState<Partial<CalendarEvent>>({
         allday: false,
         start: new Date().toISOString(),
-        stop: new Date(Date.now() + 3600000).toISOString()
+        stop: new Date(Date.now() + 3_600_000).toISOString(),
     });
 
-    useEffect(() => {
-        fetchEvents();
-    }, []);
+    useEffect(() => { fetchEvents(); }, []);
 
-    const handleNew = () => {
+    const handleNew = (start?: string) => {
         setActiveRecord(null);
         setFormData({
             allday: false,
-            start: new Date().toISOString(),
-            stop: new Date(Date.now() + 3600000).toISOString(),
-            name: 'New Event'
+            name: 'New Event',
+            start: start ?? new Date().toISOString(),
+            stop: new Date((start ? new Date(start).getTime() : Date.now()) + 3_600_000).toISOString(),
         });
         setCurrentView('form');
     };
 
-    const handleRowClick = (record: CalendarEvent) => {
-        setActiveRecord(record);
-        setFormData(record);
+    const handleEventClick = (event: CalendarEvent) => {
+        setActiveRecord(event);
+        setFormData(event);
         setCurrentView('form');
     };
+
+    const handleRowClick = handleEventClick;
 
     const handleSave = async () => {
         if (activeRecord) {
             await updateEvent(activeRecord.id, formData);
         } else {
-            const ev = await createEvent(formData);
-            if (ev) setActiveRecord(ev);
+            await createEvent(formData);
         }
-        setCurrentView('list');
+        setCurrentView('grid');
     };
 
     const handleDelete = async () => {
         if (!activeRecord) return;
-        if (window.confirm("Are you sure you want to delete this event?")) {
+        if (window.confirm('Are you sure you want to delete this event?')) {
             await deleteEvent(activeRecord.id);
-            setCurrentView('list');
+            setCurrentView('grid');
         }
     };
 
-    const filteredEvents = events.filter(e => e.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filteredEvents = events.filter(e =>
+        e.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-    const renderDashboard = () => (
-        <div className="bg-white/5 border border-white/10 p-8 rounded-xl flex flex-col items-center justify-center h-64">
-            <CalendarIcon className="w-12 h-12 text-white/30 mb-4" />
-            <h3 className="text-xl font-medium text-white/60 mb-2">Calendar View is in List Format</h3>
-            <p className="text-white/40 text-sm">Switch to the List view to see upcoming events or create new ones.</p>
+    // ── View switcher toolbar ───────────────────────────────────────────────
+
+    const renderTopBar = () => (
+        <div
+            className="flex items-center justify-between px-4 py-3 border-b shrink-0"
+            style={{ borderColor: 'var(--border-default)', background: 'var(--bg-surface)' }}
+        >
+            <div className="flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5" style={{ color: 'var(--accent-text)' }} />
+                <h1 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Calendar</h1>
+            </div>
+            <div className="flex items-center gap-2">
+                {/* Search */}
+                {currentView !== 'form' && (
+                    <input
+                        type="text"
+                        placeholder="Search events…"
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        className="text-xs px-3 py-1.5 rounded-lg outline-none"
+                        style={{
+                            background: 'var(--bg-input)',
+                            border: '1px solid var(--border-default)',
+                            color: 'var(--text-primary)',
+                            width: 180,
+                        }}
+                    />
+                )}
+                {/* View buttons */}
+                {currentView !== 'form' && (
+                    <>
+                        <button
+                            onClick={() => setCurrentView('grid')}
+                            className="p-1.5 rounded-lg transition-colors"
+                            title="Calendar grid"
+                            style={currentView === 'grid' ? { background: 'var(--accent-muted)', color: 'var(--accent-text)' } : { color: 'var(--text-tertiary)' }}
+                        >
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setCurrentView('list')}
+                            className="p-1.5 rounded-lg transition-colors"
+                            title="List view"
+                            style={currentView === 'list' ? { background: 'var(--accent-muted)', color: 'var(--accent-text)' } : { color: 'var(--text-tertiary)' }}
+                        >
+                            <List className="w-4 h-4" />
+                        </button>
+                    </>
+                )}
+                {/* Back / New */}
+                {currentView === 'form' ? (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setCurrentView('grid')}
+                            className="px-3 py-1.5 rounded-lg text-xs transition-colors"
+                            style={{ background: 'var(--bg-surface-hover)', color: 'var(--text-secondary)' }}
+                        >
+                            ← Back
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                            style={{ background: 'var(--accent-gradient)', color: '#000' }}
+                        >
+                            Save
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => handleNew()}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                        style={{ background: 'var(--accent-gradient)', color: '#000' }}
+                    >
+                        + New Event
+                    </button>
+                )}
+            </div>
         </div>
     );
 
-    const renderList = () => (
-        <OdooListBase
-            data={filteredEvents}
-            onRowClick={handleRowClick}
-            keyExtractor={(t) => t.id.toString()}
-            columns={[
-                { key: 'name', label: 'Subject', render: (t) => <span className="font-bold">{t.name}</span> },
-                { key: 'start', label: 'Start Date', render: (t) => new Date(t.start).toLocaleString() },
-                { key: 'stop', label: 'End Date', render: (t) => new Date(t.stop).toLocaleString() },
-                { key: 'attendees', label: 'Attendees', render: (t) => t.attendees?.length || 0 },
-                { key: 'location', label: 'Location', render: (t) => t.location || '-' },
-            ]}
-        />
-    );
+    // ── Form view ──────────────────────────────────────────────────────────
 
     const renderForm = () => (
         <OdooFormBase
             statusRibbon={
-                <div className="flex justify-between w-full">
-                    <div className="flex gap-2">
-                        {activeRecord && (
-                            <button onClick={handleDelete} className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-1.5 rounded text-sm transition-colors border border-red-500/30">
-                                Delete Event
-                            </button>
-                        )}
-                    </div>
-                </div>
+                activeRecord ? (
+                    <button
+                        onClick={handleDelete}
+                        className="px-4 py-1.5 rounded text-sm transition-colors"
+                        style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.3)' }}
+                    >
+                        Delete
+                    </button>
+                ) : null
             }
             headerContent={
-                <div className="flex flex-col gap-2">
-                    <input
-                        type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
-                        placeholder="Meeting Subject..."
-                        value={formData.name || ''}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    />
-                </div>
+                <input
+                    type="text"
+                    className="text-4xl font-bold bg-transparent border-b border-transparent placeholder-white/30 outline-none focus:border-amber-400 transition-all w-full"
+                    style={{ color: 'var(--text-primary)' }}
+                    placeholder="Event Subject…"
+                    value={formData.name || ''}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                />
             }
             leftPanels={
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                         <div className="space-y-2">
-                            <label className="text-white/60 text-sm font-medium">Starting at</label>
+                            <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Start</label>
                             <input
-                                type={formData.allday ? "date" : "datetime-local"}
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                type={formData.allday ? 'date' : 'datetime-local'}
+                                className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', color: 'var(--text-primary)' }}
                                 value={formData.start ? formData.start.slice(0, formData.allday ? 10 : 16) : ''}
-                                onChange={(e) => setFormData({ ...formData, start: new Date(e.target.value).toISOString() })}
+                                onChange={e => setFormData({ ...formData, start: new Date(e.target.value).toISOString() })}
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-white/60 text-sm font-medium">Ending at</label>
+                            <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>End</label>
                             <input
-                                type={formData.allday ? "date" : "datetime-local"}
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                type={formData.allday ? 'date' : 'datetime-local'}
+                                className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-all"
+                                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', color: 'var(--text-primary)' }}
                                 value={formData.stop ? formData.stop.slice(0, formData.allday ? 10 : 16) : ''}
-                                onChange={(e) => setFormData({ ...formData, stop: new Date(e.target.value).toISOString() })}
+                                onChange={e => setFormData({ ...formData, stop: new Date(e.target.value).toISOString() })}
                             />
                         </div>
-                        <div className="space-y-2 col-span-2">
-                            <label className="flex items-center gap-2 text-white/80 text-sm cursor-pointer">
+                        <div className="col-span-2">
+                            <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: 'var(--text-secondary)' }}>
                                 <input
                                     type="checkbox"
-                                    className="rounded border-white/20 bg-white/5 text-primary-purple focus:ring-primary-purple focus:ring-offset-gray-900"
                                     checked={formData.allday || false}
-                                    onChange={(e) => setFormData({ ...formData, allday: e.target.checked })}
+                                    onChange={e => setFormData({ ...formData, allday: e.target.checked })}
+                                    className="rounded"
                                 />
                                 All Day
                             </label>
                         </div>
                     </div>
-
-                    <div className="space-y-2 pt-4 border-t border-white/10">
-                        <label className="text-white/60 text-sm font-medium">Description</label>
+                    <div className="space-y-2 pt-4 border-t" style={{ borderColor: 'var(--border-subtle)' }}>
+                        <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Description</label>
                         <textarea
-                            className="w-full h-32 bg-white/5 border border-white/10 rounded-md px-4 py-3 text-white text-sm outline-none focus:border-primary-purple transition-all resize-none"
-                            placeholder="Add meeting agenda or notes here..."
+                            className="w-full h-32 rounded-lg px-4 py-3 text-sm outline-none resize-none transition-all"
+                            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', color: 'var(--text-primary)' }}
+                            placeholder="Add meeting agenda or notes…"
                             value={formData.description || ''}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
                 </div>
             }
             rightPanels={
                 <div className="space-y-6">
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                        <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-red-400" />
+                    <div className="rounded-xl p-6" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
+                        <h3 className="text-sm font-medium mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                            <MapPin className="w-4 h-4" style={{ color: '#f87171' }} />
                             Location
                         </h3>
-                        <div className="space-y-2">
-                            <input
-                                type="text"
-                                className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary-purple transition-all text-sm"
-                                placeholder="E.g. Conference Room A, or Zoom Link"
-                                value={formData.location || ''}
-                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                            />
-                        </div>
+                        <input
+                            type="text"
+                            className="w-full rounded px-3 py-2 text-sm outline-none"
+                            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', color: 'var(--text-primary)' }}
+                            placeholder="Conference Room A…"
+                            value={formData.location || ''}
+                            onChange={e => setFormData({ ...formData, location: e.target.value })}
+                        />
                     </div>
-
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                        <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-                            <Users className="w-5 h-5 text-blue-400" />
+                    <div className="rounded-xl p-6" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
+                        <h3 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                            <Users className="w-4 h-4" style={{ color: '#93c5fd' }} />
                             Attendees
                         </h3>
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center text-sm border-b border-white/10 pb-2 mb-2">
-                                <span className="text-white/60">Total Invited</span>
-                                <span className="text-white font-bold">{formData.attendees?.length || 0}</span>
-                            </div>
-                            {formData.attendees?.map(a => (
-                                <div key={a.id} className="text-sm bg-white/5 px-3 py-2 rounded flex justify-between">
-                                    <span>{a.partner?.name || 'Unknown'}</span>
-                                    <span className="text-white/40 capitalize">{a.status}</span>
-                                </div>
-                            ))}
+                        <div className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                            {formData.attendees?.length ?? 0} attendee(s) — manage after saving
                         </div>
                     </div>
                 </div>
@@ -198,21 +243,46 @@ export const CalendarModule: React.FC = () => {
         />
     );
 
+    // ── List view ──────────────────────────────────────────────────────────
+
+    const renderList = () => (
+        <OdooListBase
+            data={filteredEvents}
+            onRowClick={handleRowClick}
+            keyExtractor={e => e.id.toString()}
+            columns={[
+                { key: 'name',      label: 'Subject',   render: e => <span className="font-semibold">{e.name}</span> },
+                { key: 'start',     label: 'Start',     render: e => new Date(e.start).toLocaleString() },
+                { key: 'stop',      label: 'End',       render: e => new Date(e.stop).toLocaleString() },
+                { key: 'attendees', label: 'Attendees', render: e => e.attendees?.length ?? 0 },
+                { key: 'location',  label: 'Location',  render: e => e.location || '—' },
+            ]}
+        />
+    );
+
+    // ── Root ───────────────────────────────────────────────────────────────
+
     return (
-        <OdooViewManager
-            title="Calendar"
-            currentView={currentView}
-            onViewChange={setCurrentView}
-            onNew={handleNew}
-            onSave={handleSave}
-            onDiscard={() => setCurrentView('list')}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            viewsAvailable={['kanban', 'list', 'form']}
-        >
-            {currentView === 'kanban' && renderDashboard()}
-            {currentView === 'list' && renderList()}
-            {currentView === 'form' && renderForm()}
-        </OdooViewManager>
+        <div className="flex flex-col h-full" style={{ background: 'var(--bg-base)' }}>
+            {renderTopBar()}
+            <div className="flex-1 p-4 min-h-0">
+                {loading && currentView !== 'form' && (
+                    <div className="flex items-center justify-center h-32 text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                        Loading events…
+                    </div>
+                )}
+                {!loading && currentView === 'grid' && (
+                    <div className="h-full" style={{ minHeight: 560 }}>
+                        <CalendarGrid
+                            events={filteredEvents}
+                            onNewAt={handleNew}
+                            onEventClick={handleEventClick}
+                        />
+                    </div>
+                )}
+                {currentView === 'list' && renderList()}
+                {currentView === 'form' && renderForm()}
+            </div>
+        </div>
     );
 };

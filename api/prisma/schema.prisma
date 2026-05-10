@@ -532,6 +532,7 @@ model Product {
   qualityPoints   QualityPoint[]
   qualityAlerts   QualityAlert[]
   mrpEcos         MrpEco[]
+  mrpEcoLines     MrpEcoLine[]   @relation("EcoLineProduct")
   mrpScraps         MrpScrap[]
   subscriptionLines SubscriptionLine[]
   webCartItems    WebCartItem[]
@@ -969,6 +970,7 @@ model HrEmployee {
   skills           HrEmployeeSkill[]
   planningSlots    PlanningSlot[]
   timesheets       HrTimesheet[]
+  appraisalGoals   AppraisalGoal[]
 
   @@map("hr_employees")
 }
@@ -1197,20 +1199,25 @@ model HelpdeskTicket {
   kanbanState     String        @default("normal")
   active          Boolean       @default(true)
   stageId         Int
+  teamId          Int?
   userId          String?       // assigned agent (SpineUser.id)
   partnerId       String?
   projectId       Int?
   projectTaskId   Int?          @unique
   saleOrderId     Int?
   dateDeadline    DateTime?
+  slaDeadline     DateTime?
+  slaExceeded     Boolean       @default(false)
   dateClosed      DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   partner         Partner?      @relation(fields: [partnerId], references: [id])
   stage           HelpdeskStage @relation(fields: [stageId], references: [id])
+  team            HelpdeskTeam? @relation("TeamTickets", fields: [teamId], references: [id])
   projectTask     ProjectTask?  @relation("TicketTask", fields: [projectTaskId], references: [id])
 
   @@index([userId])
+  @@index([teamId])
   @@map("helpdesk_tickets")
 }
 
@@ -1290,12 +1297,13 @@ model MrpRoutingOperation {
 }
 
 model MrpBomLine {
-  id         Int     @id @default(autoincrement())
-  productQty Float   @default(1)
+  id         Int          @id @default(autoincrement())
+  productQty Float        @default(1)
   bomId      Int
   productId  String
-  product    Product @relation(fields: [productId], references: [id])
-  bom        MrpBom  @relation(fields: [bomId], references: [id], onDelete: Cascade)
+  product    Product      @relation(fields: [productId], references: [id])
+  bom        MrpBom       @relation(fields: [bomId], references: [id], onDelete: Cascade)
+  ecoLines   MrpEcoLine[]
 
   @@map("mrp_bom_lines")
 }
@@ -1449,15 +1457,17 @@ model MailChannel {
 }
 
 model MailMessage {
-  id          Int          @id @default(autoincrement())
+  id          Int                   @id @default(autoincrement())
   body        String
-  messageType String       @default("comment")
+  messageType String                @default("comment")
   authorName  String?
-  date        DateTime     @default(now())
+  authorId    String?
+  date        DateTime              @default(now())
   channelId   Int?
   resModel    String?
   resId       Int?
-  channel     MailChannel? @relation(fields: [channelId], references: [id])
+  channel     MailChannel?          @relation(fields: [channelId], references: [id])
+  reactions   MailMessageReaction[]
 
   @@map("mail_messages")
 }
@@ -1774,23 +1784,26 @@ model SocialPost {
 }
 
 model HrApplicant {
-  id           Int           @id @default(autoincrement())
+  id           Int                  @id @default(autoincrement())
   name         String
   partnerName  String?
   email        String?
   phone        String?
-  stage        String        @default("new")
-  priority     Int           @default(0)
-  salary       Float         @default(0)
+  stage        String               @default("new")
+  stageId      Int?
+  priority     Int                  @default(0)
+  salary       Float                @default(0)
   source       String?
   description  String?
+  resumeUrl    String?
   jobId        Int?
   departmentId Int?
-  active       Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  department   HrDepartment? @relation(fields: [departmentId], references: [id])
-  job          HrJob?        @relation(fields: [jobId], references: [id])
+  active       Boolean              @default(true)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  department   HrDepartment?        @relation(fields: [departmentId], references: [id])
+  job          HrJob?               @relation(fields: [jobId], references: [id])
+  recruitStage HrRecruitmentStage?  @relation("StageApplicants", fields: [stageId], references: [id])
 
   @@map("hr_applicants")
 }
@@ -1826,17 +1839,18 @@ model HrPayslip {
 }
 
 model HrAppraisal {
-  id               Int        @id @default(autoincrement())
-  state            String     @default("new")
+  id               Int             @id @default(autoincrement())
+  state            String          @default("new")
   deadline         DateTime?
   finalInterview   DateTime?
   managerFeedback  String?
   employeeFeedback String?
-  overallRating    Int        @default(0)
+  overallRating    Int             @default(0)
   employeeId       Int
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
-  employee         HrEmployee @relation(fields: [employeeId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  employee         HrEmployee      @relation(fields: [employeeId], references: [id])
+  goals            AppraisalGoal[]
 
   @@map("hr_appraisals")
 }
@@ -1908,20 +1922,21 @@ model QualityAlert {
 }
 
 model MrpEco {
-  id              Int       @id @default(autoincrement())
+  id              Int          @id @default(autoincrement())
   name            String
-  stage           String    @default("draft") // draft, confirmed, progress, done
-  type            String    @default("product") // product, bom, routing
+  stage           String       @default("draft") // draft, confirmed, progress, done
+  type            String       @default("product") // product, bom, routing
   description     String?
-  effectivity     String?   // as_soon_as_possible, date
+  effectivity     String?      // as_soon_as_possible, date
   effectivityDate DateTime?
-  approvalState   String    @default("none") // none, approved, rejected
+  approvalState   String       @default("none") // none, approved, rejected
   productId       String?
   bomId           Int?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  product         Product?  @relation(fields: [productId], references: [id])
-  bom             MrpBom?   @relation(fields: [bomId], references: [id])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  product         Product?     @relation(fields: [productId], references: [id])
+  bom             MrpBom?      @relation(fields: [bomId], references: [id])
+  ecoLines        MrpEcoLine[]
 
   @@map("mrp_ecos")
 }
@@ -2263,5 +2278,77 @@ enum AiActionStatus {
   REJECTED
   APPLIED
   ROLLED_BACK
+}
+
+// ── Sprint 5 additions ────────────────────────────────────────────────────────
+
+model HelpdeskTeam {
+  id          Int              @id @default(autoincrement())
+  name        String
+  description String?
+  active      Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  tickets     HelpdeskTicket[] @relation("TeamTickets")
+
+  @@map("helpdesk_teams")
+}
+
+model AppraisalGoal {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  weight      Float        @default(1)
+  deadline    DateTime?
+  progress    Int          @default(0)
+  tag         String?
+  appraisalId Int
+  employeeId  Int
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  appraisal   HrAppraisal  @relation(fields: [appraisalId], references: [id], onDelete: Cascade)
+  employee    HrEmployee   @relation(fields: [employeeId], references: [id])
+
+  @@map("appraisal_goals")
+}
+
+model MrpEcoLine {
+  id          Int        @id @default(autoincrement())
+  ecoId       Int
+  action      String     @default("change") // add | remove | change
+  productId   String
+  newQty      Float      @default(1)
+  bomLineId   Int?
+  createdAt   DateTime   @default(now())
+  eco         MrpEco     @relation(fields: [ecoId], references: [id], onDelete: Cascade)
+  product     Product    @relation("EcoLineProduct", fields: [productId], references: [id])
+  bomLine     MrpBomLine? @relation(fields: [bomLineId], references: [id])
+
+  @@map("mrp_eco_lines")
+}
+
+model MailMessageReaction {
+  id         Int         @id @default(autoincrement())
+  emoji      String
+  authorId   String?
+  messageId  Int
+  createdAt  DateTime    @default(now())
+  message    MailMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, emoji, authorId])
+  @@map("mail_message_reactions")
+}
+
+model HrRecruitmentStage {
+  id           Int           @id @default(autoincrement())
+  name         String
+  sequence     Int           @default(10)
+  requirements String?
+  foldedKanban Boolean       @default(false)
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  applicants   HrApplicant[] @relation("StageApplicants")
+
+  @@map("hr_recruitment_stages")
 }
 
