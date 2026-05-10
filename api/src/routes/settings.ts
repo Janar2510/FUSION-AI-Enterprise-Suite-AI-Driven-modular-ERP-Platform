@@ -62,6 +62,22 @@ router.post('/', async (req: Request, res: Response) => {
     }
 });
 
+// ── Admin: list platform users ─────────────────────────────────────────────────
+// NOTE: must be registered BEFORE /:module or the path is swallowed by that param.
+
+router.get('/users', async (req: Request, res: Response) => {
+    try {
+        const users = await (prisma as any).spineUser?.findMany?.({
+            select: { id: true, name: true, email: true, active: true },
+            orderBy: { name: 'asc' },
+        }) ?? [];
+        res.json(users);
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Failed to fetch users' });
+    }
+});
+
 // ── Module-scoped settings ─────────────────────────────────────────────────────
 
 /**
@@ -116,21 +132,6 @@ router.put('/:module', requirePermission('settings.write'), async (req: Request,
     } catch (error) {
         console.error(`Error saving ${req.params.module} settings:`, error);
         res.status(500).json({ error: 'Failed to save module settings' });
-    }
-});
-
-// ── Admin: list platform users ─────────────────────────────────────────────────
-
-router.get('/users', async (req: Request, res: Response) => {
-    try {
-        const users = await (prisma as any).spineUser?.findMany?.({
-            select: { id: true, name: true, email: true, active: true },
-            orderBy: { name: 'asc' },
-        }) ?? [];
-        res.json(users);
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).json({ error: 'Failed to fetch users' });
     }
 });
 

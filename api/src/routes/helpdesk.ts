@@ -109,6 +109,22 @@ helpdeskRoutes.patch('/tickets/:id/team', asyncHandler(async (req, res) => {
     res.json(ticket);
 }));
 
+helpdeskRoutes.patch('/tickets/:id/sla-reset', asyncHandler(async (req, res) => {
+    const { slaHours } = req.body;
+    if (!slaHours || isNaN(Number(slaHours))) {
+        res.status(400).json({ error: 'slaHours is required' });
+        return;
+    }
+    const ticket = await prisma.helpdeskTicket.update({
+        where: { id: parseInt(req.params.id) },
+        data: {
+            slaDeadline: new Date(Date.now() + Number(slaHours) * 3_600_000),
+            slaExceeded: false,
+        },
+    });
+    res.json(ticket);
+}));
+
 helpdeskRoutes.delete('/tickets/:id', asyncHandler(async (req, res) => {
     await prisma.helpdeskTicket.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
     res.json({ success: true });

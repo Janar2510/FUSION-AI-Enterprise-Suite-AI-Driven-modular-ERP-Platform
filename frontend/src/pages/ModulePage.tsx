@@ -47,6 +47,7 @@ import { PlmModule } from '@/modules/plm/components/PlmModule'
 import { SpreadsheetModule } from '@/modules/spreadsheet/components/SpreadsheetModule'
 import { AutomationModule } from '@/modules/automation/components/AutomationModule'
 import SupplyChainModule from '@/modules/supply-chain/components/SupplyChainModule'
+import InvoicingDashboard from '@/modules/invoicing/components/InvoicingDashboard'
 
 const ModulePage: React.FC = () => {
   const { moduleName } = useParams<{ moduleName: string }>()
@@ -139,6 +140,8 @@ const ModulePage: React.FC = () => {
         return <AutomationModule />
       case 'supply_chain':
         return <SupplyChainModule />
+      case 'invoicing':
+        return <InvoicingDashboard />
       default:
         return (
           <GlassCard className="p-8">
