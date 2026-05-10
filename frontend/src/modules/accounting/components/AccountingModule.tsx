@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
@@ -7,7 +8,7 @@ import { OdooDataGrid } from '@/components/shared/OdooDataGrid';
 import { useAccountingStore, AccountMove, AccountMoveLine } from '../stores/accountingStore';
 import { usePartnerStore } from '@/stores/partnerStore';
 import { useInventoryStore } from '@/modules/inventory/stores/inventoryStore';
-import { ChevronRight, TrendingUp, TrendingDown, DollarSign, FileText, BookOpen, PackageOpen, BarChart3 } from 'lucide-react';
+import { ChevronRight, TrendingUp, TrendingDown, DollarSign, FileText, BookOpen, PackageOpen, BarChart3, Landmark, CheckCircle2, XCircle, RefreshCw, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { MetricGrid } from '@/components/shared/MetricCard';
 import { GlassCard } from '@/components/shared/GlassCard';
@@ -16,7 +17,7 @@ import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
 
-type AccountingTab = 'out_invoice' | 'in_invoice' | 'entry' | 'reports';
+type AccountingTab = 'out_invoice' | 'in_invoice' | 'entry' | 'reports' | 'bank';
 
 export const AccountingModule: React.FC = () => {
     const {
@@ -260,6 +261,7 @@ export const AccountingModule: React.FC = () => {
                         { id: 'in_invoice', label: 'Vendor Bills' },
                         { id: 'entry', label: 'Journal Entries' },
                         { id: 'reports', label: '📊 Reports' },
+                        { id: 'bank', label: '🏦 Bank' },
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -581,6 +583,9 @@ export const AccountingModule: React.FC = () => {
 
             {/* ── Financial Reports Panel ─────────────────────────────── */}
             {activeTab === 'reports' && <AccountingReports />}
+
+            {/* ── Bank Reconciliation Panel ────────────────────────────── */}
+            {activeTab === 'bank' && <BankReconciliationPanel />}
         </OdooViewManager>
     );
 };
@@ -819,6 +824,326 @@ const AccountingReports: React.FC = () => {
             {!loading && data && data.rows?.length === 0 && data.income?.lines?.length === 0 && (
                 <div className="text-center text-white/40 py-12">No posted entries found for this period. Post some invoices or journal entries first.</div>
             )}
+        </div>
+    );
+};
+
+// ── Bank Reconciliation Panel ────────────────────────────────────────────────
+
+interface BankStatement {
+    id: number;
+    name: string;
+    dateStart: string | null;
+    dateEnd: string | null;
+    balance: number;
+    state: 'open' | 'reconciled';
+    createdAt: string;
+    _count?: { lines: number };
+}
+
+interface BankStatementLine {
+    id: number;
+    date: string;
+    paymentRef: string | null;
+    partnerId: string | null;
+    amount: number;
+    reconciled: boolean;
+    accountMoveId: number | null;
+}
+
+interface BankSuggestion {
+    lineId: number;
+    moveId: number;
+    moveName: string;
+    amount: number;
+    score: number;
+}
+
+const BankReconciliationPanel: React.FC = () => {
+    const qc = useQueryClient();
+    const [selectedStmt, setSelectedStmt] = useState<number | null>(null);
+    const [showNewForm, setShowNewForm] = useState(false);
+    const [newName, setNewName] = useState('');
+    const [expandedLine, setExpandedLine] = useState<number | null>(null);
+
+    const fmt = (n: number) =>
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(n);
+
+    // List statements
+    const { data: stmtsData, isLoading: stmtsLoading } = useQuery({
+        queryKey: ['bank-statements'],
+        queryFn: () =>
+            axios.get(`${API_BASE}/api/accounting/bank/statements`).then(r => r.data),
+    });
+    const statements: BankStatement[] = stmtsData?.data ?? [];
+
+    // Lines for selected statement
+    const { data: stmtDetail, isLoading: linesLoading } = useQuery({
+        queryKey: ['bank-statement', selectedStmt],
+        queryFn: () =>
+            axios.get(`${API_BASE}/api/accounting/bank/statements/${selectedStmt}`).then(r => r.data),
+        enabled: !!selectedStmt,
+    });
+    const lines: BankStatementLine[] = stmtDetail?.lines ?? [];
+
+    // Suggestions for an expanded line
+    const { data: suggestionsData } = useQuery({
+        queryKey: ['bank-suggestions', selectedStmt, expandedLine],
+        queryFn: () =>
+            axios
+                .get(`${API_BASE}/api/accounting/bank/statements/${selectedStmt}/suggestions`, {
+                    params: { lineId: expandedLine },
+                })
+                .then(r => r.data),
+        enabled: !!selectedStmt && !!expandedLine,
+    });
+    const suggestions: BankSuggestion[] = suggestionsData?.suggestions ?? [];
+
+    // Create statement
+    const createStmt = useMutation({
+        mutationFn: () =>
+            axios.post(`${API_BASE}/api/accounting/bank/statements`, { name: newName }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['bank-statements'] });
+            setShowNewForm(false);
+            setNewName('');
+            toast.success('Bank statement created');
+        },
+        onError: () => toast.error('Failed to create statement'),
+    });
+
+    // Match line to move
+    const matchLine = useMutation({
+        mutationFn: ({ lineId, moveId }: { lineId: number; moveId: number }) =>
+            axios.post(
+                `${API_BASE}/api/accounting/bank/statements/${selectedStmt}/match`,
+                { lineId, moveId },
+            ),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['bank-statement', selectedStmt] });
+            qc.invalidateQueries({ queryKey: ['bank-statements'] });
+            setExpandedLine(null);
+            toast.success('Line reconciled');
+        },
+        onError: () => toast.error('Failed to reconcile line'),
+    });
+
+    // Unmatch line
+    const unmatchLine = useMutation({
+        mutationFn: (lineId: number) =>
+            axios.delete(
+                `${API_BASE}/api/accounting/bank/statements/${selectedStmt}/match/${lineId}`,
+            ),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['bank-statement', selectedStmt] });
+            qc.invalidateQueries({ queryKey: ['bank-statements'] });
+            toast.success('Line unreconciled');
+        },
+        onError: () => toast.error('Failed to unreconcile line'),
+    });
+
+    const reconciledCount = lines.filter(l => l.reconciled).length;
+    const progress = lines.length > 0 ? Math.round((reconciledCount / lines.length) * 100) : 0;
+
+    return (
+        <div className="grid grid-cols-3 gap-6 h-full">
+            {/* ── Left: Statement list ─────────────────────────────── */}
+            <div className="col-span-1 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-white font-semibold flex items-center gap-2">
+                        <Landmark size={16} className="text-primary-purple" />
+                        Bank Statements
+                    </h3>
+                    <button
+                        onClick={() => setShowNewForm(v => !v)}
+                        className="p-1.5 rounded-lg bg-primary-purple/20 hover:bg-primary-purple/30 text-primary-purple transition-colors"
+                    >
+                        <Plus size={14} />
+                    </button>
+                </div>
+
+                {showNewForm && (
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex gap-2">
+                        <input
+                            value={newName}
+                            onChange={e => setNewName(e.target.value)}
+                            placeholder="Statement name…"
+                            className="flex-1 bg-transparent text-white text-sm border-b border-white/20 focus:border-primary-purple outline-none"
+                            onKeyDown={e => e.key === 'Enter' && newName && createStmt.mutate()}
+                        />
+                        <button
+                            disabled={!newName || createStmt.isPending}
+                            onClick={() => createStmt.mutate()}
+                            className="text-xs px-2 py-1 bg-primary-purple rounded text-white disabled:opacity-50"
+                        >
+                            Add
+                        </button>
+                    </div>
+                )}
+
+                {stmtsLoading ? (
+                    <div className="text-white/40 text-sm text-center py-6 animate-pulse">Loading…</div>
+                ) : statements.length === 0 ? (
+                    <div className="text-white/40 text-sm text-center py-10">
+                        No statements yet. Create one to start reconciling.
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-2 overflow-y-auto">
+                        {statements.map(s => (
+                            <button
+                                key={s.id}
+                                onClick={() => setSelectedStmt(s.id)}
+                                className={`text-left p-3 rounded-xl border transition-colors ${
+                                    selectedStmt === s.id
+                                        ? 'border-primary-purple/60 bg-primary-purple/10'
+                                        : 'border-white/10 bg-white/5 hover:bg-white/8'
+                                }`}
+                            >
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="text-white text-sm font-medium truncate">{s.name}</span>
+                                    <span
+                                        className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                            s.state === 'reconciled'
+                                                ? 'bg-green-500/20 text-green-400'
+                                                : 'bg-yellow-500/20 text-yellow-400'
+                                        }`}
+                                    >
+                                        {s.state}
+                                    </span>
+                                </div>
+                                <div className="text-white/50 text-xs">{fmt(s.balance)} · {s._count?.lines ?? 0} lines</div>
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* ── Right: Lines ─────────────────────────────────────── */}
+            <div className="col-span-2 flex flex-col gap-4">
+                {!selectedStmt ? (
+                    <div className="flex flex-col items-center justify-center h-full text-white/30 gap-3">
+                        <Landmark size={40} />
+                        <span>Select a statement to reconcile</span>
+                    </div>
+                ) : linesLoading ? (
+                    <div className="text-white/40 text-sm text-center py-12 animate-pulse">Loading lines…</div>
+                ) : (
+                    <>
+                        {/* Progress bar */}
+                        <div>
+                            <div className="flex items-center justify-between text-xs text-white/50 mb-1">
+                                <span>{reconciledCount}/{lines.length} lines reconciled</span>
+                                <span>{progress}%</span>
+                            </div>
+                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-green-400 rounded-full transition-all"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {lines.length === 0 ? (
+                            <div className="text-white/40 text-center py-10 text-sm">No lines in this statement.</div>
+                        ) : (
+                            <div className="flex flex-col gap-2 overflow-y-auto">
+                                {lines.map(line => (
+                                    <div
+                                        key={line.id}
+                                        className={`border rounded-xl transition-colors ${
+                                            line.reconciled
+                                                ? 'border-green-500/20 bg-green-500/5'
+                                                : 'border-white/10 bg-white/5'
+                                        }`}
+                                    >
+                                        {/* Line header */}
+                                        <div className="flex items-center gap-3 p-3">
+                                            {line.reconciled ? (
+                                                <CheckCircle2 size={16} className="text-green-400 shrink-0" />
+                                            ) : (
+                                                <XCircle size={16} className="text-white/30 shrink-0" />
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-white text-sm truncate">
+                                                    {line.paymentRef ?? 'No reference'}
+                                                </div>
+                                                <div className="text-white/40 text-xs">
+                                                    {new Date(line.date).toLocaleDateString()}
+                                                    {line.partnerId && ` · ${line.partnerId}`}
+                                                </div>
+                                            </div>
+                                            <span
+                                                className={`font-mono text-sm font-medium ${
+                                                    line.amount >= 0 ? 'text-green-400' : 'text-red-400'
+                                                }`}
+                                            >
+                                                {fmt(line.amount)}
+                                            </span>
+                                            {line.reconciled ? (
+                                                <button
+                                                    onClick={() => unmatchLine.mutate(line.id)}
+                                                    title="Unreconcile"
+                                                    className="p-1 text-white/30 hover:text-red-400 transition-colors"
+                                                >
+                                                    <RefreshCw size={13} />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() =>
+                                                        setExpandedLine(
+                                                            expandedLine === line.id ? null : line.id,
+                                                        )
+                                                    }
+                                                    className="p-1 text-white/30 hover:text-primary-purple transition-colors"
+                                                >
+                                                    {expandedLine === line.id ? (
+                                                        <ChevronUp size={13} />
+                                                    ) : (
+                                                        <ChevronDown size={13} />
+                                                    )}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Suggestions drawer */}
+                                        {expandedLine === line.id && !line.reconciled && (
+                                            <div className="border-t border-white/10 px-3 pb-3 pt-2">
+                                                <div className="text-white/50 text-xs mb-2">Suggested matches</div>
+                                                {suggestions.length === 0 ? (
+                                                    <div className="text-white/30 text-xs">No matching payments found.</div>
+                                                ) : (
+                                                    <div className="flex flex-col gap-1">
+                                                        {suggestions.map(s => (
+                                                            <button
+                                                                key={s.moveId}
+                                                                onClick={() =>
+                                                                    matchLine.mutate({
+                                                                        lineId: line.id,
+                                                                        moveId: s.moveId,
+                                                                    })
+                                                                }
+                                                                className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-primary-purple/20 border border-white/10 hover:border-primary-purple/40 transition-colors text-sm"
+                                                            >
+                                                                <span className="text-white/70">{s.moveName}</span>
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="font-mono text-white/60">{fmt(s.amount)}</span>
+                                                                    <span className="text-xs text-primary-purple bg-primary-purple/10 px-1.5 py-0.5 rounded">
+                                                                        {Math.round(s.score * 100)}% match
+                                                                    </span>
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
         </div>
     );
 };

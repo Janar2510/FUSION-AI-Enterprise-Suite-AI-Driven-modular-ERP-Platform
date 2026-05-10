@@ -229,6 +229,16 @@ Per-module DoD (copy to `docs/module-checklists/<module>.md`):
 
 ---
 
+## Sprint 8 — Live Dashboard + Bank Reconciliation G-10 (2026-05-10)
+
+- [x] **S8A** — Dashboard live KPIs: replaced hardcoded stats in `Dashboard.tsx` with `useQuery` calling `GET /api/dashboard`; added secondary KPI row + Top Opportunities card.
+- [x] **S8B** — Dashboard recent activity: added `GET /api/dashboard/recent-activity` endpoint (last 15 `TimelineEvent`s); wired into Dashboard activity panel with time-ago + owner-type icons.
+- [x] **S8C** — Bank Reconciliation (G-10): `BankStatement` + `BankStatementLine` Prisma models; full REST API at `/api/accounting/bank`; `BankReconciliationPanel` UI tab in `AccountingModule.tsx`.
+- [x] `npx prisma generate` regenerated client after schema additions.
+- [x] API `tsc --noEmit` exits 0; Frontend `tsc --noEmit` exits 0.
+
+---
+
 ## Sprint 5 — P2 Module Completions (2026-05-10)
 
 All items below were implemented in commit `feat(sprint5)`.

@@ -5,6 +5,17 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — Sprint 8: Live Dashboard + Bank Reconciliation — 2026-05-10
+
+### Added
+- **Dashboard live KPIs** (`Dashboard.tsx`): replaced hardcoded stats with real data from `GET /api/dashboard`; added secondary KPI row (Leads, Invoices, Purchase Orders, Projects) and a Top Opportunities card.
+- **Dashboard recent activity** (`GET /api/dashboard/recent-activity`): new endpoint returning the last 15 `TimelineEvent` records; wired into the Dashboard activity panel with owner-type icons and time-ago formatting.
+- **Bank Reconciliation** (architectural gap G-10):
+  - Prisma models `BankStatement` and `BankStatementLine` in `schema.prisma` (mapped to `bank_statements` / `bank_statement_lines`).
+  - REST API `api/src/routes/bank-reconciliation.ts` mounted at `/api/accounting/bank`: full CRUD for statements (`GET/POST/GET/:id/DELETE/:id`), line matching (`POST /statements/:id/match`), unmatching (`DELETE /statements/:id/match/:lineId`), and AI-assisted match suggestions (`GET /statements/:id/suggestions`).
+  - **Bank tab** in `AccountingModule.tsx`: two-panel `BankReconciliationPanel` component — left column lists statements, right column shows lines with green/red reconciliation status, per-line suggestion drawer, match/unmatch actions, and a progress bar.
+- Prisma client regenerated after schema changes.
+
 ## [Unreleased] — Sprint 7 Hotfix: Amber/Orange Design Token Alignment — 2026-05-10
 
 ### Fixed

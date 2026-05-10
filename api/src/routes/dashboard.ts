@@ -4,6 +4,16 @@ import { asyncHandler } from '../lib/utils';
 
 export const dashboardRoutes = Router();
 
+// Recent activity feed (last 15 timeline events)
+dashboardRoutes.get('/recent-activity', asyncHandler(async (_req, res) => {
+    const events = await prisma.timelineEvent.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 15,
+        select: { id: true, summary: true, ownerType: true, ownerId: true, createdAt: true },
+    });
+    res.json(events);
+}));
+
 // Get dashboard KPIs across all modules
 dashboardRoutes.get('/', asyncHandler(async (_req, res) => {
     const [

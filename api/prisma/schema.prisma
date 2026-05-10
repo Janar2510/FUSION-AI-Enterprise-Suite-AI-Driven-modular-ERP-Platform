@@ -2226,6 +2226,46 @@ model AccountingPeriod {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SPRINT 8 — Bank Reconciliation (G-10)
+// BankStatement holds imported bank transactions; lines are matched to
+// AccountMove payments via the /match endpoint.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model BankStatement {
+  id             Int                @id @default(autoincrement())
+  name           String                              // e.g. "IBAN FR76... Jan 2026"
+  journalId      Int?
+  organizationId String?
+  dateStart      DateTime?
+  dateEnd        DateTime?
+  balance        Decimal            @default(0) @db.Decimal(18,2)
+  state          String             @default("open") // open | reconciled
+  lines          BankStatementLine[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([organizationId])
+  @@map("bank_statements")
+}
+
+model BankStatementLine {
+  id               Int           @id @default(autoincrement())
+  statementId      Int
+  statement        BankStatement @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  date             DateTime
+  paymentRef       String?                          // bank reference / description
+  partnerId        String?
+  amount           Decimal       @db.Decimal(18,2) // positive = credit, negative = debit
+  accountMoveId    Int?                             // matched AccountMove (payment)
+  reconciled       Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+
+  @@index([statementId])
+  @@index([accountMoveId])
+  @@map("bank_statement_lines")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PHASE 5b — ERP Foundation: Document Sequences
 // Every document type gets a sequential number (SO-0001, INV-0001, etc.)
 // nextval() in core/sequence uses SELECT FOR UPDATE to ensure atomicity.
