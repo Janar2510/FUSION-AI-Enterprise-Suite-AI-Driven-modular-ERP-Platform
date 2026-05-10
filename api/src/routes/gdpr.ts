@@ -13,7 +13,8 @@
 
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { requireAuth } from '../core/auth';
+import { requireAuth, requirePermission } from '../core/auth';
+import { PERMISSIONS } from '../core/auth/roles';
 import { AppError } from '../core/errors';
 import { audit } from '../core/audit';
 import prisma from '../lib/prisma';
@@ -105,7 +106,7 @@ const EraseSchema = z.object({
     userId: z.string().optional(),
 });
 
-gdprRoutes.post('/erase', requireAuth, async (req: Request, res: Response) => {
+gdprRoutes.post('/erase', requireAuth, requirePermission(PERMISSIONS.GDPR_ERASE), async (req: Request, res: Response) => {
     const parsed = EraseSchema.safeParse(req.body);
     if (!parsed.success) {
         throw AppError.badRequest('Send { confirm: true } to confirm erasure');

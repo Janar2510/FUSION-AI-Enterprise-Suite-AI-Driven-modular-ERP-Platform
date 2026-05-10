@@ -1,5 +1,42 @@
 # FusionAI Enterprise Suite - Deployment Checklist
 
+## Sprint 10 — Shared Infrastructure Layer: Pre-Deployment Notes (2026-05-10)
+
+### Database Steps
+- [ ] Run roles seed: `cd api && npx ts-node scripts/seed-roles.ts`
+  - Idempotent upsert of all roles, permissions, and role-permission links.
+- [ ] No schema migration needed — `SpineRole`, `SpinePermission`, `SystemConfig`, `ChatterMessage` models already exist.
+
+### Environment Variables
+- Ensure `ANTHROPIC_API_KEY` is set — 4 new AI agents call Claude directly.
+
+### New API Endpoints (smoke-test after deploy)
+- [ ] `GET /api/settings/crm` → 200 JSON object (module settings namespace)
+- [ ] `PUT /api/settings/crm` with `{ "lead_expiry_days": 30 }` → 200 `{ module, saved }`
+- [ ] `GET /api/sales/:id/messages` → 200 array
+- [ ] `POST /api/sales/:id/messages` with `{ "body": "test" }` → 201
+- [ ] `GET /api/helpdesk/:id/messages` → 200 array
+- [ ] New AI agents available via `POST /api/ai/run`:
+  - `{ "agentKey": "appraisal-coach", ... }`
+  - `{ "agentKey": "recruitment-ranker", ... }`
+  - `{ "agentKey": "attendance-anomaly", ... }`
+  - `{ "agentKey": "planning-optimizer", ... }`
+
+### Permission Guards Added
+- `accounting.post` — required to post journal entries
+- `accounting.pay` — required to register payments
+- `payroll.write` — required to create payslips
+- `payroll.delete` — required to delete payslips
+- `gdpr.erase` — required to trigger GDPR erasure
+- `settings.write` — required to update module settings
+- Ensure users have appropriate roles seeded before upgrading to prevent lockout.
+
+### Chatter Endpoints Added to Modules
+crm, sales, purchases, invoicing, hr, projects, maintenance, manufacturing, inventory, helpdesk
+— each now has `GET|POST /api/<module>/:id/messages`
+
+---
+
 ## Sprint 7 — Settings UI & Users API: Pre-Deployment Notes (2026-05-10)
 
 ### No Database Migration Required

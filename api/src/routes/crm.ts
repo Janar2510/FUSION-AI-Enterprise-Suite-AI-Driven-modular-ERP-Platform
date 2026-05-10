@@ -173,3 +173,7 @@ crmRoutes.get('/analytics', asyncHandler(async (_req, res) => {
         })),
     });
 }));
+
+// ── Chatter (shared thread) ────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+crmRoutes.use('/', createChatterRouter('crm.lead'));

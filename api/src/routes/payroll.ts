@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
-import { requireAuth } from '../core/auth';
+import { requireAuth, requirePermission } from '../core/auth';
+import { PERMISSIONS } from '../core/auth/roles';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 
 export const payrollRoutes = Router();
@@ -25,7 +26,7 @@ payrollRoutes.get('/:id', asyncHandler(async (req, res) => {
     res.json(p);
 }));
 
-payrollRoutes.post('/', asyncHandler(async (req, res) => {
+payrollRoutes.post('/', requirePermission(PERMISSIONS.PAYROLL_WRITE), asyncHandler(async (req, res) => {
     const body = req.body;
 
     // Auto-populate wage fields from the employee's active contract
@@ -55,7 +56,7 @@ payrollRoutes.patch('/:id/confirm', asyncHandler(async (req, res) => {
     res.json(p);
 }));
 
-payrollRoutes.delete('/:id', asyncHandler(async (req, res) => {
+payrollRoutes.delete('/:id', requirePermission(PERMISSIONS.PAYROLL_DELETE), asyncHandler(async (req, res) => {
     await prisma.hrPayslip.delete({ where: { id: parseInt(req.params.id) } });
     res.json({ success: true });
 }));

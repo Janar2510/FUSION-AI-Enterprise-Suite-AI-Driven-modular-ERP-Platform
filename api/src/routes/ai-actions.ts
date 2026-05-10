@@ -32,6 +32,10 @@ import '../core/ai/agents/documentIntelligence';
 import '../core/ai/agents/partnerDedup';
 import '../core/ai/agents/nextBestAction';
 import '../core/ai/agents/quoteDrafter';
+import '../core/ai/agents/appraisalCoach';
+import '../core/ai/agents/recruitmentRanker';
+import '../core/ai/agents/attendanceAnomaly';
+import '../core/ai/agents/planningOptimizer';
 
 import prisma from '../lib/prisma';
 

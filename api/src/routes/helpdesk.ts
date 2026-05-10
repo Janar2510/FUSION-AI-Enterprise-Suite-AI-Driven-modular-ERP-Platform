@@ -151,3 +151,7 @@ helpdeskRoutes.get('/pipeline', asyncHandler(async (_req, res) => {
     });
     res.json(stages);
 }));
+
+// ── Chatter (shared thread per ticket) ────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+helpdeskRoutes.use('/', createChatterRouter('helpdesk.ticket'));

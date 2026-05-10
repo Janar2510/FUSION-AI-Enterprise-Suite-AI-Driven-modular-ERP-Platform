@@ -319,3 +319,7 @@ inventoryRoutes.get('/locations', asyncHandler(async (req, res) => {
     });
     res.json(locations);
 }));
+
+// ── Chatter ─────────────────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+inventoryRoutes.use('/', createChatterRouter('stock.picking'));

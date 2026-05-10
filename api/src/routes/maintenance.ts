@@ -161,3 +161,7 @@ maintenanceRoutes.get('/analytics', asyncHandler(async (_req, res) => {
         overduePreventive: overdue,
     });
 }));
+
+// ── Chatter ─────────────────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+maintenanceRoutes.use('/', createChatterRouter('maintenance.request'));

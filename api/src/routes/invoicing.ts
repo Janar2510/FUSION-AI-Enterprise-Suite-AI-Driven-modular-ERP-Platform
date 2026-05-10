@@ -242,3 +242,7 @@ invoicingRoutes.get('/analytics/invoice', asyncHandler(async (req, res) => {
     ]);
     res.json({ total, paid, overdue, outstanding: total - paid });
 }));
+
+// ── Chatter ─────────────────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+invoicingRoutes.use('/', createChatterRouter('account.move'));

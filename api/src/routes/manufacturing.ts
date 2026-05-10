@@ -441,3 +441,7 @@ manufacturingRoutes.get('/ai/oee-analysis/:wcId', asyncHandler(async (req, res) 
         maintenanceRecommendation: wc.active ? 'No immediate action' : 'Inspection Required'
     });
 }));
+
+// ── Chatter ─────────────────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+manufacturingRoutes.use('/', createChatterRouter('mrp.production'));

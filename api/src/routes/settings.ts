@@ -1,8 +1,11 @@
 import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { requirePermission } from '../core/auth';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// ── Flat settings (legacy) ─────────────────────────────────────────────────────
 
 // Get all settings or a specific set of settings
 router.get('/', async (req: Request, res: Response) => {
@@ -20,7 +23,6 @@ router.get('/', async (req: Request, res: Response) => {
         }
 
         const settings = await prisma.systemConfig.findMany(query);
-        // Convert array of {key, value} to a key-value object
         const settingsMap = settings.reduce((acc: Record<string, string>, curr: { key: string; value: string }) => {
             acc[curr.key] = curr.value;
             return acc;
@@ -36,7 +38,7 @@ router.get('/', async (req: Request, res: Response) => {
 // Update or create settings
 router.post('/', async (req: Request, res: Response) => {
     try {
-        const settings = req.body; // Expects an object like { "crm.qualification_rule": "strict", ... }
+        const settings = req.body;
 
         if (!settings || typeof settings !== 'object') {
             res.status(400).json({ error: 'Invalid settings payload' });
@@ -53,7 +55,6 @@ router.post('/', async (req: Request, res: Response) => {
         });
 
         await prisma.$transaction(updates);
-
         res.json({ message: 'Settings updated successfully' });
     } catch (error) {
         console.error('Error saving settings:', error);
@@ -61,7 +62,65 @@ router.post('/', async (req: Request, res: Response) => {
     }
 });
 
-// List platform users (admin-level endpoint)
+// ── Module-scoped settings ─────────────────────────────────────────────────────
+
+/**
+ * GET /api/settings/:module
+ * Returns all settings whose keys are prefixed with `<module>.`
+ * e.g. GET /api/settings/crm  → { lead_expiry_days: "30", auto_assign: "true" }
+ */
+router.get('/:module', async (req: Request, res: Response) => {
+    const prefix = `${req.params.module}.`;
+    try {
+        const rows = await prisma.systemConfig.findMany({
+            where: { key: { startsWith: prefix } },
+        });
+        const result = rows.reduce((acc: Record<string, unknown>, row) => {
+            const shortKey = row.key.slice(prefix.length);
+            try { acc[shortKey] = JSON.parse(row.value); } catch { acc[shortKey] = row.value; }
+            return acc;
+        }, {});
+        res.json(result);
+    } catch (error) {
+        console.error(`Error fetching ${req.params.module} settings:`, error);
+        res.status(500).json({ error: 'Failed to fetch module settings' });
+    }
+});
+
+/**
+ * PUT /api/settings/:module
+ * Upserts settings under the `<module>.` namespace.
+ * Body: { lead_expiry_days: 30, auto_assign: true }
+ * Requires SETTINGS_WRITE permission.
+ */
+router.put('/:module', requirePermission('settings.write'), async (req: Request, res: Response) => {
+    const prefix = `${req.params.module}.`;
+    const body = req.body;
+
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+        return res.status(400).json({ error: 'Body must be a key-value object' });
+    }
+
+    try {
+        const ops = Object.entries(body).map(([k, v]) => {
+            const key = `${prefix}${k}`;
+            const value = typeof v === 'string' ? v : JSON.stringify(v);
+            return prisma.systemConfig.upsert({
+                where: { key },
+                update: { value },
+                create: { key, value },
+            });
+        });
+        await prisma.$transaction(ops);
+        res.json({ module: req.params.module, saved: Object.keys(body).length });
+    } catch (error) {
+        console.error(`Error saving ${req.params.module} settings:`, error);
+        res.status(500).json({ error: 'Failed to save module settings' });
+    }
+});
+
+// ── Admin: list platform users ─────────────────────────────────────────────────
+
 router.get('/users', async (req: Request, res: Response) => {
     try {
         const users = await (prisma as any).spineUser?.findMany?.({

@@ -287,3 +287,7 @@ saleRoutes.get('/analytics', asyncHandler(async (_req: Request, res: Response) =
         topPartners,
     });
 }));
+
+// ── Chatter ─────────────────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+saleRoutes.use('/', createChatterRouter('sale.order'));

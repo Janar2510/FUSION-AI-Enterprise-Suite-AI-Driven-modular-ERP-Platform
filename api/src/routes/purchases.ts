@@ -216,3 +216,7 @@ purchaseRoutes.get('/stats/lead-time', asyncHandler(async (_req, res) => {
 
     res.json({ avgLeadTime, sampleSize: diffs.length });
 }));
+
+// ── Chatter ─────────────────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+purchaseRoutes.use('/', createChatterRouter('purchase.order'));

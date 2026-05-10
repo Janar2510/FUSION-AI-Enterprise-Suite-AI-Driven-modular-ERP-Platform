@@ -78,3 +78,7 @@ projectRoutes.patch('/tasks/:id/stage', asyncHandler(async (req, res) => {
     const task = await prisma.projectTask.update({ where: { id: parseInt(req.params.id) }, data: { stageId: req.body.stageId } });
     res.json(task);
 }));
+
+// ── Chatter ─────────────────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+projectRoutes.use('/', createChatterRouter('project.task'));

@@ -4,7 +4,8 @@ import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { Prisma } from '@prisma/client';
 import { postInvoice, registerPayment } from '../core/flow.service';
 import { AppError } from '../core/errors';
-import { requireAuth } from '../core/auth';
+import { requireAuth, requirePermission } from '../core/auth';
+import { PERMISSIONS } from '../core/auth/roles';
 import { generateInvoicePdf } from '../core/pdf';
 import { nextval } from '../core/sequence';
 
@@ -184,7 +185,7 @@ accountingRoutes.put('/moves/:id', asyncHandler(async (req: Request, res: Respon
 // ==========================================
 // Posting & Validation (Double-Entry Core)
 // ==========================================
-accountingRoutes.post('/moves/:id/post', asyncHandler(async (req: Request, res: Response) => {
+accountingRoutes.post('/moves/:id/post', requirePermission(PERMISSIONS.ACCOUNTING_POST), asyncHandler(async (req: Request, res: Response) => {
     const moveId = parseInt(req.params.id);
 
     // 1. Fetch move and lines
@@ -228,7 +229,7 @@ accountingRoutes.post('/moves/:id/post', asyncHandler(async (req: Request, res: 
 }));
 
 // Flow C – Register payment against a posted invoice (idempotent)
-accountingRoutes.post('/moves/:id/pay', asyncHandler(async (req: Request, res: Response) => {
+accountingRoutes.post('/moves/:id/pay', requirePermission(PERMISSIONS.ACCOUNTING_PAY), asyncHandler(async (req: Request, res: Response) => {
     const { amount, journalId, memo, idempotencyKey } = req.body;
     if (!amount || amount <= 0) {
         throw AppError.validation('Payment amount must be greater than 0');

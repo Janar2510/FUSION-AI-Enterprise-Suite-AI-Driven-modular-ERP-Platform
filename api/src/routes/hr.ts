@@ -470,3 +470,7 @@ hrRoutes.delete('/applicants/:id', asyncHandler(async (req, res) => {
     await prisma.hrApplicant.delete({ where: { id: parseInt(req.params.id) } });
     res.json({ success: true });
 }));
+
+// ── Chatter ─────────────────────────────────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+hrRoutes.use('/', createChatterRouter('hr.applicant'));

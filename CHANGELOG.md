@@ -4,6 +4,29 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+## [Unreleased] — Sprint 10: Shared Infrastructure Layer — 2026-05-10
+
+### Added
+- **RBAC permission catalogue** (`api/src/core/auth/roles.ts`): canonical `ROLES` and `PERMISSIONS` constants covering all 20+ modules; `DEFAULT_ROLE_PERMISSIONS` mapping used by seed script.
+- **Database seed script** (`api/scripts/seed-roles.ts`): idempotent upsert of `SpineRole`, `SpinePermission`, and `SpineRolePermission` join rows.
+- **Permission guards on sensitive routes**:
+  - Accounting: `POST /moves/:id/post`, `POST /moves/:id/pay` → `accounting.post` / `accounting.pay`.
+  - Payroll: `POST /` → `payroll.write`, `DELETE /:id` → `payroll.delete`.
+  - GDPR: `POST /erase` → `gdpr.erase`.
+  - Settings: `PUT /api/settings/:module` → `settings.write`.
+- **AI agents** (registered in `ai-actions.ts`):
+  - `appraisalCoach` — performance summary + development plan from appraisal data.
+  - `recruitmentRanker` — ranked candidate shortlist from JD + CVs.
+  - `attendanceAnomaly` — pattern detection on attendance records.
+  - `planningOptimizer` — shift coverage optimisation against demand forecast.
+- **Shared Chatter factory** (`api/src/core/chatter/index.ts`): `createChatterRouter(ownerType)` generates `GET /:id/messages` + `POST /:id/messages` sub-router.
+- **Chatter wired to 10 modules**: helpdesk, crm, sales, purchases, invoicing, hr, projects, maintenance, manufacturing, inventory — each gains `GET|POST /api/<module>/:id/messages`.
+- **Module-scoped settings API** (`GET /api/settings/:module`, `PUT /api/settings/:module`): reads/writes `SystemConfig` rows prefixed `<module>.<key>` with JSON auto-parse.
+
+### Changed
+- `settings.ts` now imports `requirePermission` for the `PUT /:module` endpoint.
+- `ai-actions.ts` imports 4 new AI agents at startup.
+
 ## [Unreleased] — Sprint 9: Security hardening + Test suite green — 2026-05-10
 
 ### Added
