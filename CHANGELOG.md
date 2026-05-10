@@ -4,6 +4,30 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+## [Unreleased] — Sprint 11: Security Fixes & Module Completions — 2026-05-10
+
+### Security
+- **Invoicing routes**: added `requireAuth` to all `/api/invoicing/*` endpoints (previously fully unauthenticated)
+- **Quality routes**: added `requireAuth` to all `/api/quality/*` endpoints
+- **HR Timesheets privacy**: `GET /api/hr/timesheets` now requires `hr.read` permission for full list; callers without that permission must supply `employee_id` — prevents cross-employee data leaks
+
+### Added
+- **Invoicing — Products endpoint**: `GET /api/invoicing/products` for catalog line-item selection
+- **Invoicing — Payments CRUD**: `POST /PUT /DELETE /api/invoicing/payments` with auto-upsert of default BNK journal
+- **Invoicing — Credit Notes CRUD**: `GET /POST /PUT /api/invoicing/credit-notes`
+- **HR — Department CRUD**: `PUT /DELETE /api/hr/departments/:id`
+- **HR — Employee private info**: `GET /PUT /api/hr/employees/:id/private` (gated behind `hr.read` permission) exposing gender, birthday, marital status, emergency contact, work/mobile phone
+- **HR — Timesheets weekly grid**: `GET /api/hr/timesheets/weekly?weekStart=` — aggregates hours per employee per day
+- **HR — Timesheets update/delete**: `PUT /DELETE /api/hr/timesheets/:id`
+- **Quality — Measure auto-evaluation**: `PATCH /api/quality/checks/:id/measure` evaluates pass/fail against `QualityPoint.toleranceMin/Max`
+
+### Schema (migration `20260510052915_sprint11_schema_additions`)
+- `quality_points`: added `toleranceMin DOUBLE PRECISION`, `toleranceMax DOUBLE PRECISION`
+- `notes`: added `tags TEXT[] DEFAULT '{}'`
+- `bank_statements` + `bank_statement_lines` tables created
+
+---
+
 ## [Unreleased] — Sprint 10: Shared Infrastructure Layer — 2026-05-10
 
 ### Added

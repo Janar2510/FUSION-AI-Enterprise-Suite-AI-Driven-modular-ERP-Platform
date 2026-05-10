@@ -1,5 +1,32 @@
 # FusionAI Enterprise Suite - Deployment Checklist
 
+## Sprint 11 — Security Fixes & Module Completions: Pre-Deployment Notes (2026-05-10)
+
+### ⚠️ Critical Security Notes
+- Invoicing and Quality routes were **unauthenticated** before this sprint — all existing sessions remain valid; no user action needed.
+- HR timesheet endpoint now enforces `hr.read` permission for full-list access. Ensure HR managers have this permission in the DB before deploying.
+
+### Database Steps
+- [ ] Apply migration: `cd api && npx prisma migrate deploy`
+  - Adds `toleranceMin/toleranceMax` to `quality_points`
+  - Adds `tags TEXT[]` to `notes`
+  - Creates `bank_statements` and `bank_statement_lines` tables
+- [ ] Confirm migration applied: `cd api && npx prisma migrate status`
+
+### New API Endpoints (smoke-test after deploy)
+- [ ] `GET /api/invoicing/products` → 200 paginated product list
+- [ ] `POST /api/invoicing/payments` `{ invoiceId, amount, paymentDate }` → 201
+- [ ] `GET /api/invoicing/credit-notes` → 200 paginated list
+- [ ] `GET /api/hr/employees/:id/private` (requires `hr.read` token) → 200
+- [ ] `GET /api/hr/timesheets/weekly?weekStart=2026-05-05` → 200 grid
+- [ ] `PUT /api/hr/departments/:id` `{ name: "Engineering" }` → 200
+- [ ] `PATCH /api/quality/checks/:id/measure` `{ measureValue: 5.2 }` → 200 with state=pass/fail
+
+### Permissions Required
+- `hr.read` — grants access to full employee private info and unrestricted timesheet listing
+
+---
+
 ## Sprint 10 — Shared Infrastructure Layer: Pre-Deployment Notes (2026-05-10)
 
 ### Database Steps
