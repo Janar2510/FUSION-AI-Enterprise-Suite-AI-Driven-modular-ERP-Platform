@@ -22,6 +22,9 @@ build/
 # IDE
 .cursor/
 
+# Claude Code local overrides (API keys, machine-specific env)
+.claude/settings.local.json
+
 # TypeScript build info
 *.tsbuildinfo
 .superpowers/

@@ -1,4 +1,10 @@
 {
+  "autoUpdatesChannel": "latest",
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://opencode.ai/zen",
+    "ANTHROPIC_MODEL": "minimax-m2.5-free",
+    "ENABLE_TOOL_SEARCH": "true"
+  },
   "permissions": {
     "allow": [
       "Bash(npx jest *)"
