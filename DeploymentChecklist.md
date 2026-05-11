@@ -6,19 +6,35 @@
 - [ ] Apply migration: `cd api && npx prisma migrate deploy`
   - Creates `campaign_activities` table with FK to `marketing_campaigns`
   - Creates `campaign_participants` table with FK to `marketing_campaigns`
+  - Migration `20260511120000_marketing_workflow_engine`: adds `next_action_at` on `campaign_participants`, composite index on `(state, next_action_at)`, creates `campaign_traces` with FKs to campaigns, activities, and participants
 - [ ] Confirm migration applied: `cd api && npx prisma migrate status`
+
+### Runtime / ops
+- [ ] API process runs with **`api/src/jobs/index.ts`** job bootstrap (includes **`campaignWorkflowRunner`** cron ~30s); without it, launched campaigns will not advance past scheduled `nextActionAt`.
+- [ ] **SMTP / outbox** — marketing email uses the same transactional outbox + relay as bulk mail; ensure SMTP (or configured provider) is valid in the target environment or traces will show failures.
 
 ### New API Endpoints (smoke-test after deploy)
 - [ ] `GET /api/campaigns/:id/activities` (auth required) → 200 activity list
 - [ ] `POST /api/campaigns/:id/activities` `{ name, type, sequence, delayValue, delayUnit }` → 201
 - [ ] `PUT /api/campaigns/:id/activities/:activityId` → 200
 - [ ] `DELETE /api/campaigns/:id/activities/:activityId` → 200 `{ success: true }`
+- [ ] `POST /api/campaigns/:id/activities/:activityId/compose` with `{ "templateMailingId": 1 }` → 200 activity with imported `subject`, `body`, `templateRef`
+- [ ] `POST /api/campaigns/:id/activities/:activityId/compose` with `{ "subject": "Welcome", "bodyHtml": "<p>Hello</p>" }` → 200 activity with custom content
 - [ ] `GET /api/campaigns/:id/participants` (auth required) → 200 participant list
 - [ ] `POST /api/campaigns/:id/participants/resolve` with `targetModel: "partner"` → 201
 - [ ] `POST /api/campaigns/:id/participants/resolve` with `targetModel: "crm_lead"` → 201
+- [ ] `POST /api/campaigns/:id/launch` on a `draft` campaign with ≥1 activity → 200 with `state: "active"` and a populated `startDate`
+- [ ] `POST /api/campaigns/:id/launch` on a campaign with zero activities → 422 `{ "error": "Cannot launch a campaign with no activities" }`
+- [ ] `POST /api/campaigns/:id/launch` on an already `active` or `completed` campaign → 409 (no state change)
+- [ ] `POST /api/campaigns/:id/launch` on an unknown id → 404
+- [ ] `POST /api/campaigns/:id/launch` on a `paused` campaign with activities → 200 with `state: "active"` (resume path)
+
+### Workflow runner (after deploy, optional DB checks)
+- [ ] Launch a campaign with an **email** activity and resolved participants → participants get `nextActionAt` (or `null` for immediate first step per product rules); after cron + outbox relay, `campaign_traces` rows exist and activity counters move when SMTP succeeds.
 
 ### Verification
 - [x] Focused test: `npm --prefix api test -- --testPathPatterns=campaigns.activities`
+- [x] Focused test: `npm --prefix api test -- --testPathPatterns=campaigns.workflow`
 - [x] API TypeScript check: `npm --prefix api run lint`
 
 ## Sprint 20 — AI Rollout + Production Hardening (2026-05-10)

@@ -2096,8 +2096,9 @@ model MarketingCampaign {
   description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  activities  CampaignActivity[]
+  activities   CampaignActivity[]
   participants CampaignParticipant[]
+  traces       CampaignTrace[]
 
   @@map("marketing_campaigns")
 }
@@ -2120,6 +2121,7 @@ model CampaignActivity {
   rejectedCount Int               @default(0)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+  traces        CampaignTrace[]
 
   @@index([campaignId, sequence])
   @@index([type])
@@ -2136,15 +2138,40 @@ model CampaignParticipant {
   email         String?
   phone         String?
   state         String            @default("queued")
-  metadata      Json?
+  metadata       Json?
   lastActivityId Int?
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  nextActionAt   DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  traces         CampaignTrace[]
 
   @@unique([campaignId, targetModel, targetId])
   @@index([campaignId, state])
+  @@index([state, nextActionAt])
   @@index([targetModel, targetId])
   @@map("campaign_participants")
+}
+
+model CampaignTrace {
+  id            Int                 @id @default(autoincrement())
+  campaignId    Int
+  campaign      MarketingCampaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  activityId    Int
+  activity      CampaignActivity    @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  participantId Int
+  participant   CampaignParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  status        String              @default("pending")
+  reason        String?
+  scheduledAt   DateTime
+  dispatchedAt  DateTime?
+  outboxEventId String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([campaignId, status])
+  @@index([participantId])
+  @@index([activityId])
+  @@map("campaign_traces")
 }
 
 model PartnerToPartnerTag {

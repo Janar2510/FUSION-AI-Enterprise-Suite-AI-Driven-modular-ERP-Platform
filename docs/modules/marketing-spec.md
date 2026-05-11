@@ -1,4 +1,4 @@
-konntinue# Marketing Automation — Gap Analysis
+# Marketing Automation — Gap Analysis
 **Odoo 17 docs:** https://www.odoo.com/documentation/17.0/applications/marketing/marketing_automation.html
 **FusionAI status:** Stub
 **Effort to complete:** XL
@@ -12,19 +12,19 @@ konntinue# Marketing Automation — Gap Analysis
 #### Campaign Management
 - [ ] Campaign creation (from scratch) — ✅ Done (CRUD with name, type, state, budget, dates, description)
 - [ ] Campaign creation from templates — ❌ Missing (Odoo has 6 pre-built templates; FusionAI has no templates)
-- [ ] Campaign lifecycle states (Draft → Active → Paused → Completed) — ✅ Done (state machine with Launch/Pause/Complete actions)
+- [ ] Campaign lifecycle states (Draft → Active → Paused → Completed) — ✅ Done (state machine with Launch/Pause/Complete actions; dedicated `POST /api/campaigns/:id/launch` enforces `draft|paused → active` with activity guard; stamps `nextActionAt` on participants from first activity delay)
 - [ ] Campaign budget tracking — ✅ Done (budget + spent fields with progress bar)
 - [ ] Campaign description — ✅ Done
 
 #### Automation Workflow Engine
 - [ ] Visual workflow builder (activity chain) — ❌ Missing (no workflow canvas)
-- [ ] Email activity — ❌ Missing (campaign type "email" exists but no email composition or dispatch)
-- [ ] SMS activity — ❌ Missing
-- [ ] Server action activity (internal DB operation) — ❌ Missing
-- [ ] Multi-activity chaining (sequential + parallel) — ❌ Missing
-- [ ] Timed / delayed activity execution — ❌ Missing
+- [ ] Email activity — 🟡 Partial (composition API + real dispatch via transactional `OutboxEvent` / `email.send`, template `marketing-campaign`; relay marks trace `delivered` and increments activity `successCount` on success)
+- [ ] SMS activity — 🟡 Partial (`sms.send` outbox path; no provider — relay marks traces `rejected` / `no_sms_provider` and increments `rejectedCount`)
+- [ ] Server action activity (internal DB operation) — 🟡 Partial (`campaignServerActions` registry in `campaignWorkflowRunner.ts`; empty by default — unknown actions → trace `rejected` / `unsupported_action`)
+- [ ] Multi-activity chaining (sequential + parallel) — 🟡 Partial (sequential chain by `sequence` then `id` in `runCampaignWorkflowTick`; parallel branches not supported)
+- [ ] Timed / delayed activity execution — ✅ Done (per-activity `delayValue`/`delayUnit`; `CampaignParticipant.nextActionAt`; cron runner every 30s)
 - [ ] Trigger-based execution (on record change, on interaction) — ❌ Missing
-- [ ] Activity duration / interval configuration — ❌ Missing
+- [ ] Activity duration / interval configuration — 🟡 Partial (delay before next step only; no duration window)
 - [ ] Conditional branching based on participant interaction — ❌ Missing
 
 #### Target Audience
@@ -46,7 +46,7 @@ konntinue# Marketing Automation — Gap Analysis
 - [ ] Link tracker / click metrics — ❌ Missing
 - [ ] Traces dashboard (per-activity results) — ❌ Missing
 - [ ] Participants report — ❌ Missing
-- [ ] Activity success / rejection statistics — ❌ Missing
+- [ ] Activity success / rejection statistics — 🟡 Partial (per-activity counters + `CampaignTrace` rows; dashboard wiring still pending)
 - [ ] Campaign performance aggregation — 🟡 Partial (leads, conversions, conversion rate, ROI shown in form right panel and dashboard KPIs)
 - [ ] Revenue attribution — ❌ Missing
 
@@ -75,8 +75,8 @@ konntinue# Marketing Automation — Gap Analysis
 - [ ] Campaign tag management — ❌ Missing
 
 ### Integrations
-- [ ] Email Marketing module (required dependency in Odoo) — ❌ Missing (FusionAI has separate email-marketing module but no link to campaign automation)
-- [ ] CRM (lead/opportunity targeting) — ❌ Missing
+- [ ] Email Marketing module (required dependency in Odoo) — 🟡 Partial (`POST /api/campaigns/:id/activities/:activityId/compose` can import `MassMailing` subject/body into campaign activities)
+- [ ] CRM (lead/opportunity targeting) — 🟡 Partial (CRM Lead audience resolution supported; conversion triggers still missing)
 - [ ] SMS Marketing — ❌ Missing
 - [ ] Calendar (schedule campaign activities) — ❌ Missing
 - [ ] Automation / server actions — ❌ Missing
@@ -89,9 +89,12 @@ konntinue# Marketing Automation — Gap Analysis
 - [ ] `POST /api/campaigns` — ✅ Done
 - [ ] `PUT /api/campaigns/:id` — ✅ Done
 - [ ] `DELETE /api/campaigns/:id` — ✅ Done
-- [ ] `GET /api/campaigns/:id/activities` — ❌ Missing
-- [ ] `POST /api/campaigns/:id/activities` — ❌ Missing
-- [ ] `POST /api/campaigns/:id/launch` — ❌ Missing (currently merged into PUT state change)
+- [ ] `GET /api/campaigns/:id/activities` — ✅ Done
+- [ ] `POST /api/campaigns/:id/activities` — ✅ Done
+- [ ] `PUT /api/campaigns/:id/activities/:activityId` — ✅ Done
+- [ ] `DELETE /api/campaigns/:id/activities/:activityId` — ✅ Done
+- [ ] `POST /api/campaigns/:id/activities/:activityId/compose` — ✅ Done (custom subject/body or existing `MassMailing` import)
+- [x] `POST /api/campaigns/:id/launch` — ✅ Done (state-machine: `draft|paused → active`, 422 on empty campaign, 409 on `active|completed`, 404 on unknown id; stamps `startDate` if unset; sets `nextActionAt` on participants from first activity delay)
 - [ ] `GET /api/campaigns/:id/participants` — ✅ Done
 - [ ] `POST /api/campaigns/:id/participants/resolve` — ✅ Done (allowlisted Partner/CRM Lead targeting filters)
 - [ ] `GET /api/campaigns/:id/traces` — ❌ Missing
@@ -104,25 +107,25 @@ konntinue# Marketing Automation — Gap Analysis
 
 | Category | Missing |
 |---|---|
-| Workflow Engine | The core of the module — visual builder, activities, triggers, timed execution, branching |
-| Target Audience | Domain filters, record-type targeting, participant tracking |
-| Communication | Email composition/dispatch, SMS, server actions |
+| Workflow Engine | Visual builder, triggers, conditional branching, parallel branches |
+| Target Audience | Domain filters, Events targeting (participant tracking ✅) |
+| Communication | SMS provider integration; real server-action library |
 | Templates | All 6 Odoo pre-built templates |
-| Reporting | Link tracker, traces dashboard, per-activity stats, revenue attribution |
-| Integrations | Email Marketing, CRM, SMS, Events, Claude AI |
+| Reporting | Link tracker, `GET /traces` API + dashboard, revenue attribution (per-activity counters + `CampaignTrace` ✅) |
+| Integrations | Email Marketing (dispatch ✅ compose ✅), CRM, SMS, Events, Claude AI |
 | RBAC | All roles |
 | Config | Sender settings, unsubscribe handling, provider setup |
 | Campaign UX | Kanban view, test mode, smart buttons |
 
-**Current state:** A basic campaign ledger — create/edit/delete campaigns with name, type (email/social/multi-channel/content), lifecycle state, budget, spend, leads, and conversions. The conversion rate and ROI are calculated client-side from manually entered numbers. There is no automation engine, no email sending, no audience targeting, and no link tracking. This is a campaign tracking spreadsheet, not a marketing automation platform.
+**Current state:** Campaigns support activities, audience resolution, email composition, launch with participant `nextActionAt` scheduling, and a **workflow runner** (`campaignWorkflowRunner`) that processes due participants on a cron, writes **`CampaignTrace`** audit rows, dispatches marketing email through the existing **outbox relay** (real SMTP when configured), and stubs SMS via `sms.send` (no provider yet). Odoo-style visual workflow, triggers, parallel branches, and `GET /api/campaigns/:id/traces` are still out of scope for this slice.
 
 ---
 ## Recommended Build Order
 
 1. **Activity model** — `CampaignActivity` (type: email|sms|server_action, timing offset, template ref); CRUD endpoints
 2. **Audience targeting** — 🟡 Partial (`CampaignParticipant` model + allowlisted Partner/CRM Lead filters complete; full domain DSL and Events targeting remain)
-3. **Email composition** — integrate with Email Marketing module's template system; compose per-activity email
-4. **Workflow execution engine** — background job (Bull/Agenda) that advances participants through activity chain on timer
+3. **Email composition** — ✅ API Done (`MassMailing` import + custom subject/body stored on email activities; frontend editor/preview still pending)
+4. **Workflow execution engine** — ✅ Done (`node-cron` runner `api/src/jobs/campaignWorkflowRunner.ts`, `CampaignParticipant.nextActionAt`, `CampaignTrace` persistence, outbox `email.send` / `sms.send`; not Bull/Agenda — uses existing transactional outbox pattern)
 5. **Trigger-based branching** — conditional next-activity selection based on open/click/bounce events
 6. **Campaign templates** — seed 6 Odoo-equivalent templates (Welcome Flow, Double Opt-in, etc.)
 7. **Link tracker** — UTM injection + click-through webhook; persist to `LinkClick` table

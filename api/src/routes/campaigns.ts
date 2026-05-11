@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
+import { firstStepScheduledAt } from '../lib/marketingWorkflow';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { requireAuth } from '../core/auth';
 
@@ -26,6 +27,13 @@ const CampaignActivityCreateSchema = z.object({
 
 const CampaignActivityUpdateSchema = CampaignActivityCreateSchema.partial();
 const IdSchema = z.coerce.number().int().positive();
+const EmailCompositionSchema = z.object({
+    templateMailingId: z.coerce.number().int().positive().optional(),
+    subject: z.string().trim().min(1).optional(),
+    bodyHtml: z.string().trim().min(1).optional(),
+}).refine((value) => value.templateMailingId || (value.subject && value.bodyHtml), {
+    message: 'Provide templateMailingId or both subject and bodyHtml',
+});
 
 const PartnerAudienceFiltersSchema = z.object({
     consentMarketing: z.coerce.boolean().optional(),
@@ -55,6 +63,8 @@ const AudienceResolveSchema = z.discriminatedUnion('targetModel', [
         limit: z.coerce.number().int().positive().max(500).default(500),
     }),
 ]);
+
+const LAUNCHABLE_CAMPAIGN_STATES = new Set(['draft', 'paused']);
 
 function parseId(value: string): number {
     return IdSchema.parse(value);
@@ -151,6 +161,70 @@ campaignRoutes.put('/:id/activities/:activityId', asyncHandler(async (req, res) 
         data: parsed.data,
     });
     res.json(activity);
+}));
+
+campaignRoutes.post('/:id/activities/:activityId/compose', asyncHandler(async (req, res) => {
+    const campaignId = parseId(req.params.id);
+    const activityId = parseId(req.params.activityId);
+    if (!(await ensureCampaignExists(campaignId))) {
+        res.status(404).json({ error: 'Campaign not found' });
+        return;
+    }
+
+    const parsed = EmailCompositionSchema.safeParse(req.body);
+    if (!parsed.success) {
+        validationError(res, parsed.error);
+        return;
+    }
+
+    const activity = await prisma.campaignActivity.findFirst({
+        where: { id: activityId, campaignId },
+    });
+    if (!activity) {
+        res.status(404).json({ error: 'Activity not found' });
+        return;
+    }
+    if (activity.type !== 'email') {
+        res.status(422).json({ error: 'Only email activities support email composition' });
+        return;
+    }
+
+    let templateSubject: string | undefined;
+    let templateBody: string | undefined;
+    let templateRef: string | undefined;
+    if (parsed.data.templateMailingId) {
+        const template = await prisma.massMailing.findUnique({
+            where: { id: parsed.data.templateMailingId },
+        });
+        if (!template) {
+            res.status(404).json({ error: 'Email template not found' });
+            return;
+        }
+        templateSubject = template.subject;
+        templateBody = template.bodyHtml || undefined;
+        templateRef = `mass_mailing:${template.id}`;
+    }
+
+    const subject = parsed.data.subject || templateSubject;
+    const body = parsed.data.bodyHtml || templateBody;
+    if (!subject || !body) {
+        res.status(422).json({ error: 'Email composition requires subject and body content' });
+        return;
+    }
+
+    const updated = await prisma.campaignActivity.update({
+        where: { id: activityId },
+        data: {
+            subject,
+            body,
+            templateRef,
+        },
+    });
+
+    res.json({
+        activity: updated,
+        mergeFields: ['name', 'email', 'phone'],
+    });
 }));
 
 campaignRoutes.delete('/:id/activities/:activityId', asyncHandler(async (req, res) => {
@@ -267,6 +341,55 @@ campaignRoutes.post('/:id/participants/resolve', asyncHandler(async (req, res) =
     });
     const totalParticipants = await prisma.campaignParticipant.count({ where: { campaignId } });
     res.status(201).json({ created: created.count, totalParticipants, targetModel: 'crm_lead' });
+}));
+
+campaignRoutes.post('/:id/launch', asyncHandler(async (req, res) => {
+    const campaignId = parseId(req.params.id);
+    const campaign = await prisma.marketingCampaign.findUnique({ where: { id: campaignId } });
+    if (!campaign) {
+        res.status(404).json({ error: 'Campaign not found' });
+        return;
+    }
+
+    if (!LAUNCHABLE_CAMPAIGN_STATES.has(campaign.state)) {
+        res.status(409).json({
+            error: `Campaign cannot be launched from state '${campaign.state}'`,
+            state: campaign.state,
+        });
+        return;
+    }
+
+    const activityCount = await prisma.campaignActivity.count({ where: { campaignId } });
+    if (activityCount === 0) {
+        res.status(422).json({ error: 'Cannot launch a campaign with no activities' });
+        return;
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+        const record = await tx.marketingCampaign.update({
+            where: { id: campaignId },
+            data: {
+                state: 'active',
+                startDate: campaign.startDate ?? new Date(),
+            },
+        });
+
+        const firstActivity = await tx.campaignActivity.findFirst({
+            where: { campaignId },
+            orderBy: [{ sequence: 'asc' }, { id: 'asc' }],
+        });
+
+        if (firstActivity) {
+            const nextAt = firstStepScheduledAt(firstActivity, new Date());
+            await tx.campaignParticipant.updateMany({
+                where: { campaignId, nextActionAt: null },
+                data: { nextActionAt: nextAt },
+            });
+        }
+
+        return record;
+    });
+    res.json(updated);
 }));
 
 campaignRoutes.post('/', asyncHandler(async (req, res) => {

@@ -104,6 +104,11 @@ const TEMPLATES: Record<string, { subject: string; html: string }> = {
   <hr/><p style="color:#888;font-size:12px">FusionAI Planning</p>
 </div>`,
     },
+    /** Raw HTML body for Marketing Campaign activities (vars: subjectLine, htmlBody). */
+    'marketing-campaign': {
+        subject: '{{subjectLine}}',
+        html: '{{htmlBody}}',
+    },
     'recruitment-stage-change': {
         subject: 'Application Update: {{jobName}} — {{stageName}}',
         html: `

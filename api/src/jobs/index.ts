@@ -6,10 +6,12 @@
 import { startOutboxRelay } from './outboxRelay';
 import { startSlaBreach } from './slaBreach';
 import { startSubscriptionRenewal } from './subscriptionRenewal';
+import { startCampaignWorkflowRunner } from './campaignWorkflowRunner';
 
 export function startBackgroundJobs() {
     startOutboxRelay();
     startSlaBreach();
     startSubscriptionRenewal();
+    startCampaignWorkflowRunner();
     console.log('[Jobs] All background jobs registered');
 }

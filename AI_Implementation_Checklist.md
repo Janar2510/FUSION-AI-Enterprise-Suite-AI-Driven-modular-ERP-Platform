@@ -472,6 +472,7 @@ This checklist ensures proper implementation and configuration of the AI-driven 
   - [ ] Proactive support suggestions
 
 ### ✅ Marketing Agent
+- [x] **Campaign workflow execution (platform backend, non-agent)** — `campaignWorkflowRunner` + `CampaignTrace` + outbox `email.send` for scheduled steps; API must run job bootstrap in production. AI campaign tools below remain separate.
 - [ ] **Core Capabilities**
   - [ ] Campaign optimization
   - [ ] Content generation

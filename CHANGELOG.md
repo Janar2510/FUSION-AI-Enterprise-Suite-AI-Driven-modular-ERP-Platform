@@ -18,11 +18,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - `GET /api/campaigns/:id/participants`
   - `POST /api/campaigns/:id/participants/resolve`
   - Supports allowlisted Partner filters (`consentMarketing`, `isCustomer`, `isCompany`, `city`, `search`) and CRM Lead filters (`active`, `type`, `minProbability`, `minExpectedRevenue`, `search`).
-- **Focused API tests** for campaign activity list/create validation and missing-campaign handling.
+- **Campaign email composition API** on `api/src/routes/campaigns.ts`:
+  - `POST /api/campaigns/:id/activities/:activityId/compose`
+  - Saves custom email subject/body content onto email activities, or imports subject/body from existing Email Marketing `MassMailing` records via `templateMailingId`.
+- **Campaign launch API** on `api/src/routes/campaigns.ts`:
+  - `POST /api/campaigns/:id/launch`
+  - Dedicated state-machine transition that flips a campaign from `draft` or `paused` to `active` and stamps `startDate` (preserved if already set).
+  - Returns `404` for unknown campaigns, `409` when the current state is not launchable (e.g. `active`, `completed`), and `422` when the campaign has no activities.
+- **Focused API tests** for campaign activity list/create validation, missing-campaign handling, and the launch state machine (draft→active, paused→active, no-activities 422, already-active 409, completed 409, not-found 404).
+- **Marketing workflow execution engine** — `CampaignParticipant.nextActionAt` (optional, indexed with `state` for due-participant queries) and **`CampaignTrace`** audit rows (campaign, activity, participant, outbox linkage, status/timestamps); shared delay/chain helpers in `api/src/lib/marketingWorkflow.ts`.
+- **`campaignWorkflowRunner`** (`api/src/jobs/campaignWorkflowRunner.ts`) registered from `api/src/jobs/index.ts` — node-cron tick (~30s) processes active campaigns whose participants are due, dispatches marketing email via transactional outbox (`email.send` with `marketing-campaign` template payload), stubs `sms.send` (no SMS provider yet), records unsupported `server_action` in traces; advances participant `lastActivityId` / `nextActionAt` / completion.
+- **Campaign launch scheduling** — successful launch, inside a DB transaction, sets participant `nextActionAt` from the first activity’s delay chain (`firstStepScheduledAt`).
+- **Outbox relay** — `api/src/jobs/outboxRelay.ts` updates `CampaignTrace` and activity counters when marketing email succeeds, fails, or dead-letters; SMS paths set trace status appropriately.
+- **Email template** — `marketing-campaign` in `api/src/core/email/index.ts` for campaign HTML mail (`subjectLine`, `htmlBody`).
+- **API tests** — `api/src/__tests__/campaigns.workflow.test.ts` (runner dispatch, chain order, server_action stub).
 
 ### Infrastructure
 - Added Prisma migration `20260511005000_marketing_campaign_activities`.
 - Added Prisma migration `20260511010000_marketing_campaign_participants`.
+- Added Prisma migration `20260511120000_marketing_workflow_engine` (`next_action_at` on `campaign_participants`, `campaign_traces` table, FKs and indexes).
+
+### Fixed
+- **AI agent golden-set tests** (`api/src/__tests__/ai/agents.eval.test.ts`) — Jest mock for `@anthropic-ai/sdk` uses a constructible class so `core/ai/index` can instantiate the client; test payloads and Prisma stubs aligned with agent implementations (`saleSubscription.findUnique`, `accountMove.findMany`, JSON field names).
 
 ## [Unreleased] — Design System Purge: Purple → Amber — 2026-05-11
 

@@ -9,7 +9,7 @@
  * and pass --runInBand so rate limits aren't hit.
  */
 
-import { getAgent } from '../../core/ai/index';
+import { anthropic, getAgent } from '../../core/ai/index';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -26,14 +26,14 @@ function assertValidOutput(output: any) {
 // ── Mock Anthropic + Prisma ───────────────────────────────────────────────────
 
 jest.mock('@anthropic-ai/sdk', () => {
-    const makeText = (text: string) => ({
-        messages: {
-            create: jest.fn().mockResolvedValue({
-                content: [{ type: 'text', text }],
-            }),
-        },
+    const create = jest.fn().mockResolvedValue({
+        content: [{ type: 'text', text: '{"confidence":0.85,"summary":"mock","suggestions":[]}' }],
     });
-    return { default: makeText };
+    class MockAnthropic {
+        messages = { create };
+        constructor(_opts?: unknown) {}
+    }
+    return { __esModule: true, default: MockAnthropic };
 });
 
 jest.mock('../../lib/prisma', () => ({
@@ -60,11 +60,15 @@ jest.mock('../../lib/prisma', () => ({
         },
         saleSubscription: {
             findMany: jest.fn().mockResolvedValue([]),
+            findUnique: jest.fn().mockResolvedValue(null),
         },
         resPartner: {
             findUnique: jest.fn().mockResolvedValue({ id: 1, name: 'ACME Corp' }),
         },
         purchaseOrder: {
+            findMany: jest.fn().mockResolvedValue([]),
+        },
+        accountMove: {
             findMany: jest.fn().mockResolvedValue([]),
         },
     },
@@ -79,8 +83,8 @@ jest.mock('../../lib/prisma', () => ({
 describe('AI Agent golden-set evals', () => {
     // Ensure mocked anthropic returns a predictable JSON blob for each agent.
     function mockClaudeReply(json: object) {
-        const sdk = require('@anthropic-ai/sdk').default;
-        sdk.messages.create.mockResolvedValueOnce({
+        const create = anthropic.messages.create as jest.Mock;
+        create.mockResolvedValueOnce({
             content: [{ type: 'text', text: JSON.stringify(json) }],
         });
     }
@@ -130,15 +134,15 @@ describe('AI Agent golden-set evals', () => {
             mockClaudeReply({
                 title: 'How to use FusionAI',
                 summary: 'An introduction to FusionAI.',
-                outline: ['Introduction', 'Setup', 'Usage'],
-                draft: '# How to use FusionAI\n\nIntroduction...',
+                body: '# How to use FusionAI\n\nIntroduction...',
                 tags: ['erp', 'guide'],
             });
             const agent = getAgent('knowledge-article-draft')!;
-            const output = await agent({ userId: 1, orgId: 1, context: { topic: 'FusionAI getting started' } });
+            const output = await agent({ userId: 1, orgId: 1, topic: 'FusionAI getting started' });
             assertValidOutput(output);
             expect(output.metadata).toBeDefined();
-            expect(output.metadata?.draft).toBeTruthy();
+            const bodySuggestion = output.suggestions.find((s) => s.field === 'body');
+            expect(String(bodySuggestion?.suggestedValue ?? '')).toContain('FusionAI');
         });
 
         it('uses context.articleId to fetch existing article for improvement', async () => {
@@ -149,8 +153,7 @@ describe('AI Agent golden-set evals', () => {
             mockClaudeReply({
                 title: 'Improved Article',
                 summary: 'Improved version.',
-                outline: [],
-                draft: '# Improved\n\nNew content.',
+                body: '# Improved\n\nNew content.',
                 tags: [],
             });
             const agent = getAgent('knowledge-article-draft')!;
@@ -189,16 +192,16 @@ describe('AI Agent golden-set evals', () => {
         it('returns performance analysis with rating', async () => {
             require('../../core/ai/agents/analyzePerformance');
             mockClaudeReply({
-                overallRating: 4.2,
-                summary: 'Employee is performing well.',
+                performanceScore: 0.84,
+                overallAssessment: 'Employee is performing well.',
                 strengths: ['punctuality', 'output quality'],
-                areasForImprovement: ['communication'],
-                recommendations: ['schedule 1-on-1 coaching'],
+                improvementAreas: [{ area: 'communication', suggestion: 'schedule 1-on-1 coaching' }],
+                managementActions: ['schedule 1-on-1 coaching'],
             });
             const agent = getAgent('analyze_performance')!;
             const output = await agent({ userId: 1, orgId: 1, context: { employeeId: 1 } });
             assertValidOutput(output);
-            expect(output.metadata?.overallRating).toBeDefined();
+            expect(output.metadata?.performanceScore).toBeDefined();
         });
     });
 
@@ -206,28 +209,37 @@ describe('AI Agent golden-set evals', () => {
     describe('predict_churn', () => {
         it('returns churn risk analysis', async () => {
             require('../../core/ai/agents/predictChurn');
+            const prismaMock = require('../../lib/prisma').default;
+            prismaMock.saleSubscription.findUnique.mockResolvedValueOnce({
+                id: 1,
+                partnerId: 1,
+                partner: { name: 'ACME', email: 'a@example.com' },
+                recurringPlan: 'Pro',
+                recurringTotal: 99,
+                stage: 'active',
+                dateStart: new Date(),
+            });
+            prismaMock.accountMove.findMany.mockResolvedValueOnce([]);
             mockClaudeReply({
-                overallChurnRisk: 'medium',
-                riskScore: 45,
+                churnRiskScore: 0.45,
+                riskLevel: 'medium',
+                churnReason: 'declining usage',
+                retentionActions: [{ action: 'send discount offer', urgency: 'this_week', expectedImpact: 'medium' }],
                 summary: 'Moderate churn risk detected.',
-                riskFactors: ['declining usage'],
-                retentionActions: ['send discount offer'],
-                highRiskSubscriptions: [],
             });
             const agent = getAgent('predict_churn')!;
-            const output = await agent({ userId: 1, orgId: 1, context: { partnerId: 1 } });
+            const output = await agent({ userId: 1, orgId: 1, entityId: 1, context: { partnerId: 1 } });
             assertValidOutput(output);
-            expect(output.metadata?.riskScore).toBeDefined();
+            expect(output.metadata?.churnRiskScore).toBeDefined();
         });
 
         it('confidence is low when no subscriptions data', async () => {
             mockClaudeReply({
-                overallChurnRisk: 'low',
-                riskScore: 10,
-                summary: 'No subscriptions found.',
-                riskFactors: [],
+                churnRiskScore: 0.1,
+                riskLevel: 'low',
+                churnReason: 'n/a',
                 retentionActions: [],
-                highRiskSubscriptions: [],
+                summary: 'No subscriptions found.',
             });
             const agent = getAgent('predict_churn')!;
             const output = await agent({ userId: 1, orgId: 1, context: {} });

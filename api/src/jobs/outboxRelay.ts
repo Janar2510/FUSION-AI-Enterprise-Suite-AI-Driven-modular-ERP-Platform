@@ -33,7 +33,44 @@ registerEventHandler('email.send', async (payload: any) => {
         templateKey: payload.templateKey,
         vars: payload.vars,
         attachments: payload.attachments,
+        subject: payload.subject,
     });
+
+    if (payload?.templateKey === 'marketing-campaign' && typeof payload.traceId === 'number') {
+        await prisma.campaignTrace.update({
+            where: { id: payload.traceId },
+            data: {
+                status: 'delivered',
+                reason: null,
+                dispatchedAt: new Date(),
+            },
+        });
+        if (typeof payload.activityId === 'number') {
+            await prisma.campaignActivity.update({
+                where: { id: payload.activityId },
+                data: { successCount: { increment: 1 } },
+            });
+        }
+    }
+});
+
+registerEventHandler('sms.send', async (payload: any) => {
+    if (typeof payload?.traceId === 'number') {
+        await prisma.campaignTrace.update({
+            where: { id: payload.traceId },
+            data: {
+                status: 'rejected',
+                reason: 'no_sms_provider',
+                dispatchedAt: new Date(),
+            },
+        });
+        if (typeof payload.activityId === 'number') {
+            await prisma.campaignActivity.update({
+                where: { id: payload.activityId },
+                data: { rejectedCount: { increment: 1 } },
+            });
+        }
+    }
 });
 
 registerEventHandler('timeline.emit', async (payload: any) => {
@@ -51,7 +88,7 @@ async function relay() {
     isRunning = true;
 
     try {
-        const events = await (prisma as any).outboxEvent?.findMany?.({
+        const events = await prisma.outboxEvent.findMany({
             where: {
                 publishedAt: null,
                 attempts: { lt: MAX_ATTEMPTS },
@@ -70,19 +107,32 @@ async function relay() {
                 } else {
                     console.warn(`[Outbox] No handler for event '${event.eventKey}' — marking done`);
                 }
-                await (prisma as any).outboxEvent?.update?.({
+                await prisma.outboxEvent.update({
                     where: { id: event.id },
                     data: { publishedAt: new Date(), lastError: null },
                 });
             } catch (err: any) {
                 const newAttempts = (event.attempts ?? 0) + 1;
-                await (prisma as any).outboxEvent?.update?.({
+                const dead = newAttempts >= MAX_ATTEMPTS;
+                const p = event.payload as any;
+                if (dead && p?.templateKey === 'marketing-campaign' && typeof p.traceId === 'number') {
+                    await prisma.campaignTrace.update({
+                        where: { id: p.traceId },
+                        data: { status: 'failed', reason: String(err?.message ?? err) },
+                    });
+                    if (typeof p.activityId === 'number') {
+                        await prisma.campaignActivity.update({
+                            where: { id: p.activityId },
+                            data: { rejectedCount: { increment: 1 } },
+                        });
+                    }
+                }
+                await prisma.outboxEvent.update({
                     where: { id: event.id },
                     data: {
                         attempts: newAttempts,
                         lastError: String(err?.message ?? err),
-                        // Dead-letter after max attempts
-                        ...(newAttempts >= MAX_ATTEMPTS ? { publishedAt: new Date() } : {}),
+                        ...(dead ? { publishedAt: new Date() } : {}),
                     },
                 });
                 console.error(`[Outbox] Handler failed for event '${event.eventKey}' (attempt ${newAttempts}):`, err?.message);
