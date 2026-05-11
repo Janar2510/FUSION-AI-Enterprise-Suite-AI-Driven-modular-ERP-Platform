@@ -6,6 +6,7 @@ import { requireAuth } from '../core/auth';
 import { nextval } from '../core/sequence';
 import { saleOrderFilter } from '../core/auth/recordRules';
 import { generateOrderPdf } from '../core/pdf';
+import { computeLinePrice } from '../core/pricelist.service';
 
 export const saleRoutes = Router();
 saleRoutes.use(requireAuth);
@@ -30,6 +31,50 @@ saleRoutes.get('/:id', asyncHandler(async (req, res) => {
     res.json(order);
 }));
 
+/**
+ * Compute order line totals, optionally resolving unit price from the pricelist engine.
+ */
+async function calculateTotalsWithPricelist(
+    lines: any[] = [],
+    partnerId?: string | null,
+    pricelistId?: number | null,
+): Promise<{ computedLines: any[]; amountUntaxed: number; amountTax: number; amountTotal: number }> {
+    let amountUntaxed = 0;
+
+    const computedLines = await Promise.all(
+        lines.map(async (line, index) => {
+            const qty = parseFloat(line.productQty) || 1;
+            const discount = parseFloat(line.discount) || 0;
+
+            let price: number;
+            if (line.priceUnit !== undefined && line.priceUnit !== null && line.priceUnit !== '') {
+                price = parseFloat(line.priceUnit) || 0;
+            } else if (line.productId) {
+                price = await computeLinePrice(line.productId, partnerId, qty, pricelistId);
+            } else {
+                price = 0;
+            }
+
+            const subtotal = qty * price * (1 - discount / 100);
+            amountUntaxed += subtotal;
+
+            return {
+                ...line,
+                sequence: line.sequence || (index + 1) * 10,
+                productQty: qty,
+                priceUnit: price,
+                discount,
+                priceSubtotal: subtotal,
+                priceTotal: subtotal * 1.2,
+            };
+        }),
+    );
+
+    const amountTax = amountUntaxed * 0.2;
+    const amountTotal = amountUntaxed + amountTax;
+    return { computedLines, amountUntaxed, amountTax, amountTotal };
+}
+
 function calculateTotals(lines: any[] = []) {
     let amountUntaxed = 0;
     const computedLines = lines.map((line, index) => {
@@ -38,21 +83,18 @@ function calculateTotals(lines: any[] = []) {
         const discount = parseFloat(line.discount) || 0;
         const subtotal = qty * price * (1 - discount / 100);
         amountUntaxed += subtotal;
-
         return {
             ...line,
             sequence: line.sequence || (index + 1) * 10,
             productQty: qty,
             priceUnit: price,
-            discount: discount,
+            discount,
             priceSubtotal: subtotal,
-            priceTotal: subtotal * 1.2, // Assuming 20% tax for simplicity
+            priceTotal: subtotal * 1.2,
         };
     });
-
     const amountTax = amountUntaxed * 0.2;
     const amountTotal = amountUntaxed + amountTax;
-
     return { computedLines, amountUntaxed, amountTax, amountTotal };
 }
 
@@ -60,7 +102,11 @@ saleRoutes.post('/', asyncHandler(async (req, res) => {
     const { lines = [], ...orderData } = req.body;
     const soName = await nextval('sale.order').catch(() => `SO-ERR`);
 
-    const { computedLines, amountUntaxed, amountTax, amountTotal } = calculateTotals(lines);
+    const { computedLines, amountUntaxed, amountTax, amountTotal } = await calculateTotalsWithPricelist(
+        lines,
+        orderData.partnerId,
+        orderData.pricelistId,
+    );
 
     const order = await prisma.saleOrder.create({
         data: {
@@ -82,7 +128,20 @@ saleRoutes.put('/:id', asyncHandler(async (req, res) => {
     let updateData: any = { ...orderData };
 
     if (lines) {
-        const { computedLines, amountUntaxed, amountTax, amountTotal } = calculateTotals(lines);
+        // Resolve partner + pricelist from body or existing order
+        let partnerId = orderData.partnerId;
+        let pricelistId = orderData.pricelistId;
+        if (!partnerId) {
+            const existing = await prisma.saleOrder.findUnique({ where: { id: parseInt(req.params.id) }, select: { partnerId: true, pricelistId: true } });
+            partnerId = existing?.partnerId;
+            pricelistId = pricelistId ?? existing?.pricelistId;
+        }
+
+        const { computedLines, amountUntaxed, amountTax, amountTotal } = await calculateTotalsWithPricelist(
+            lines,
+            partnerId,
+            pricelistId,
+        );
         updateData.amountUntaxed = amountUntaxed;
         updateData.amountTax = amountTax;
         updateData.amountTotal = amountTotal;
@@ -218,6 +277,35 @@ saleRoutes.get('/:id/pdf', asyncHandler(async (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.end(buffer);
+}));
+
+// ── Pricelist helpers ──────────────────────────────────────────────────────
+
+/** List active pricelists for the order-form header selector */
+saleRoutes.get('/pricelists', asyncHandler(async (_req, res) => {
+    const pricelists = await prisma.pricelist.findMany({
+        where: { active: true },
+        select: { id: true, name: true, currencyCode: true },
+        orderBy: { name: 'asc' },
+    });
+    res.json(pricelists);
+}));
+
+/**
+ * GET /api/sales/line-price?productId=&partnerId=&qty=&pricelistId=
+ * Returns the resolved unit price for a single line (used by the frontend
+ * to auto-fill priceUnit when a product is selected).
+ */
+saleRoutes.get('/line-price', asyncHandler(async (req, res) => {
+    const { productId, partnerId, qty, pricelistId } = req.query as Record<string, string>;
+    if (!productId) { res.status(400).json({ error: 'productId is required' }); return; }
+    const price = await computeLinePrice(
+        productId,
+        partnerId || null,
+        parseFloat(qty) || 1,
+        pricelistId ? parseInt(pricelistId) : null,
+    );
+    res.json({ price });
 }));
 
 // ── Sales Analytics Dashboard ──────────────────────────────────────────────

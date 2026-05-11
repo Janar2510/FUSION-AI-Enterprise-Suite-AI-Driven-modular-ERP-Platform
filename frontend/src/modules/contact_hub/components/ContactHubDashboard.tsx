@@ -67,14 +67,14 @@ export const ContactHubDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-purple to-secondary-purple p-6">
+    <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-purple p-6">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0">
           {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute rounded-full bg-gradient-to-r from-primary-purple/20 to-accent-pink/20 blur-3xl"
+              className="absolute rounded-full bg-gradient-to-r from-primary-500/20 to-accent-pink/20 blur-3xl"
               style={{
                 width: `${200 + i * 80}px`,
                 height: `${200 + i * 80}px`,
@@ -122,7 +122,7 @@ export const ContactHubDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowAIPanel(!showAIPanel)}
-                className="px-6 py-3 bg-gradient-to-r from-primary-purple to-accent-pink text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
               >
                 <Brain className="w-5 h-5" />
                 AI Assistant
@@ -153,15 +153,15 @@ export const ContactHubDashboard: React.FC = () => {
                 <h3 className="text-lg font-semibold text-white mb-4">Create New Contact</h3>
                 <form onSubmit={handleCreateContact} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <input name="name" required placeholder="Full Name *"
-                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-purple/50" />
+                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50" />
                   <input name="email" type="email" placeholder="Email"
-                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-purple/50" />
+                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50" />
                   <input name="phone" placeholder="Phone"
-                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-purple/50" />
+                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50" />
                   <input name="jobPosition" placeholder="Job Position"
-                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-purple/50" />
+                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50" />
                   <select name="isCompany"
-                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50">
+                    className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50">
                     <option value="false">Individual</option>
                     <option value="true">Company</option>
                   </select>
@@ -197,7 +197,7 @@ export const ContactHubDashboard: React.FC = () => {
                   placeholder="Search contacts, companies, emails..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
                 />
               </div>
             </div>
@@ -229,7 +229,7 @@ export const ContactHubDashboard: React.FC = () => {
                 title: "Customers",
                 value: partners.filter(p => p.isCustomer).length,
                 icon: Activity,
-                color: 'text-purple-400'
+                color: 'text-amber-400'
               },
               {
                 title: "Vendors",
@@ -260,7 +260,7 @@ export const ContactHubDashboard: React.FC = () => {
               {activeView === view && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-primary-purple/30 to-accent-pink/30 rounded-lg"
+                  className="absolute inset-0 bg-gradient-to-r from-primary-500/30 to-accent-pink/30 rounded-lg"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />

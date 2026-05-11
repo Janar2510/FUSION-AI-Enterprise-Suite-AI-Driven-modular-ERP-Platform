@@ -5,6 +5,8 @@ import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useAppraisalStore, HrAppraisal } from '../stores/appraisalStore';
 import { useHRStore } from '@/modules/hr/stores/hrStore';
 import { Star } from 'lucide-react';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 const STATE_LABELS: Record<string, { label: string; cls: string }> = {
     new: { label: 'New', cls: 'bg-gray-500/20 text-gray-400' },
@@ -64,7 +66,7 @@ export const AppraisalsModule: React.FC = () => {
                 <div className="flex items-center justify-between w-full">
                     <div className="flex gap-2">{Object.entries(STATE_LABELS).map(([k, v]) => (
                         <button key={k} onClick={() => { setFormData({ ...formData, state: k }); if (activeRecord) update(activeRecord.id, { state: k }); }}
-                            className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${formData.state === k ? 'bg-primary-purple text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>{v.label}</button>
+                            className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${formData.state === k ? 'bg-primary-500 text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>{v.label}</button>
                     ))}</div>
                     {activeRecord && <button onClick={handleDelete} className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-1.5 rounded text-sm transition-colors border border-red-500/30">Delete</button>}
                 </div>
@@ -81,7 +83,14 @@ export const AppraisalsModule: React.FC = () => {
                     <div className="space-y-2"><label className="text-white/60 text-sm">Employee Self-Evaluation</label><textarea className="w-full h-24 bg-white/5 border border-white/10 rounded-md px-4 py-3 text-white text-sm outline-none resize-none" value={formData.employeeFeedback || ''} onChange={e => setFormData({ ...formData, employeeFeedback: e.target.value })} /></div>
                 </div>
             }
-            rightPanels={null}
+            rightPanels={
+                activeRecord ? (
+                    <div className="space-y-4">
+                        <AiActionsPanel entityType="HrAppraisal" entityId={String(activeRecord.id)} />
+                        <ChatterPanel ownerType="HrAppraisal" ownerId={activeRecord.id} showTimeline />
+                    </div>
+                ) : null
+            }
         />
     );
 

@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { requireAuth } from '../core/auth';
 
 export const calendarRoutes = Router();
+calendarRoutes.use(requireAuth);
 
 calendarRoutes.get('/', asyncHandler(async (req, res) => {
     const start = req.query.start ? new Date(req.query.start as string) : new Date(new Date().setMonth(new Date().getMonth() - 1));
@@ -32,7 +34,12 @@ calendarRoutes.post('/', asyncHandler(async (req, res) => {
 }));
 
 calendarRoutes.put('/:id', asyncHandler(async (req, res) => {
-    const ev = await prisma.calendarEvent.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const { attendeeIds, ...data } = req.body;
+    const ev = await prisma.calendarEvent.update({
+        where: { id: parseInt(req.params.id) },
+        data,
+        include: { attendees: { include: { partner: true } } },
+    });
     res.json(ev);
 }));
 

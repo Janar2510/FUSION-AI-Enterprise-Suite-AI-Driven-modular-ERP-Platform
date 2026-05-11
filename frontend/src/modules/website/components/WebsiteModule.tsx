@@ -100,7 +100,7 @@ export const WebsiteModule: React.FC = () => {
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-6 flex-1 hover:border-white/20 transition-all">
                     <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400">
+                        <div className="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-400">
                             <FileText className="w-6 h-6" />
                         </div>
                         <div>
@@ -158,7 +158,7 @@ export const WebsiteModule: React.FC = () => {
                                 Unpublish
                             </button>
                         ) : (
-                            <button onClick={togglePublish} className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-1.5 rounded text-sm transition-colors shadow-[0_0_15px_rgba(147,51,234,0.3)] shadow-primary-purple/20">
+                            <button onClick={togglePublish} className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-1.5 rounded text-sm transition-colors shadow-[0_0_15px_rgba(147,51,234,0.3)] shadow-primary-500/20">
                                 Publish
                             </button>
                         )}
@@ -172,7 +172,7 @@ export const WebsiteModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Page Name..."
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -181,7 +181,7 @@ export const WebsiteModule: React.FC = () => {
                         <span className="text-white/40">fusionai.com</span>
                         <input
                             type="text"
-                            className="bg-transparent text-white/80 border-b border-white/20 outline-none focus:border-primary-purple transition-all text-sm font-mono w-64"
+                            className="bg-transparent text-white/80 border-b border-white/20 outline-none focus:border-primary-500 transition-all text-sm font-mono w-64"
                             placeholder="/your-url"
                             value={formData.url || ''}
                             onChange={(e) => setFormData({ ...formData, url: e.target.value.replace(/[^a-zA-Z0-9-/]/g, '').toLowerCase() })}
@@ -193,7 +193,7 @@ export const WebsiteModule: React.FC = () => {
                 <div className="space-y-6">
                     <div className="border border-white/10 rounded-xl overflow-hidden bg-white/5 p-6">
                         <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-                            <Monitor className="w-5 h-5 text-primary-purple" />
+                            <Monitor className="w-5 h-5 text-primary-500" />
                             Page Content
                         </h3>
                         <div className="flex items-center justify-center h-48 border border-white/10 border-dashed rounded bg-black/20 text-white/40 flex-col gap-3">
@@ -217,7 +217,7 @@ export const WebsiteModule: React.FC = () => {
                                 <label className="text-white/60 text-xs font-medium uppercase">SEO Title</label>
                                 <input
                                     type="text"
-                                    className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary-purple transition-all text-sm font-medium"
+                                    className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary-500 transition-all text-sm font-medium"
                                     value={formData.seoTitle || ''}
                                     placeholder={formData.name}
                                     onChange={(e) => setFormData({ ...formData, seoTitle: e.target.value })}
@@ -226,7 +226,7 @@ export const WebsiteModule: React.FC = () => {
                             <div className="space-y-2">
                                 <label className="text-white/60 text-xs font-medium uppercase">Meta Description</label>
                                 <textarea
-                                    className="w-full h-24 bg-black/20 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary-purple transition-all text-sm resize-none"
+                                    className="w-full h-24 bg-black/20 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary-500 transition-all text-sm resize-none"
                                     value={formData.seoDescription || ''}
                                     placeholder="Brief description for search engines..."
                                     onChange={(e) => setFormData({ ...formData, seoDescription: e.target.value })}

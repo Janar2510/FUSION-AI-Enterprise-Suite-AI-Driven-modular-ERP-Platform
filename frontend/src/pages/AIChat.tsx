@@ -109,14 +109,14 @@ const AIChat: React.FC = () => {
                     <div className={`flex items-start space-x-3 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         message.type === 'user' 
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
+                          ? 'bg-gradient-to-r from-amber-500 to-pink-500' 
                           : 'bg-gradient-to-r from-blue-500 to-cyan-500'
                       }`}>
                         {message.type === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
                       </div>
                       <div className={`rounded-lg px-4 py-2 ${
                         message.type === 'user' 
-                          ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30' 
+                          ? 'bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-amber-500/30' 
                           : 'bg-white/5 border border-white/10'
                       }`}>
                         <p className="text-white/90 text-sm">{message.content}</p>
@@ -159,7 +159,7 @@ const AIChat: React.FC = () => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask me anything about your business..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/50 focus:outline-none focus:border-purple-500/50"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/50 focus:outline-none focus:border-amber-500/50"
                   disabled={isTyping}
                 />
                 <GradientButton
@@ -188,7 +188,7 @@ const AIChat: React.FC = () => {
                   className="w-full p-3 bg-white/5 border border-white/10 rounded-lg text-left hover:bg-white/10 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <action.icon className="w-5 h-5 text-purple-400" />
+                    <action.icon className="w-5 h-5 text-amber-400" />
                     <span className="text-white/90 text-sm">{action.label}</span>
                   </div>
                 </motion.button>

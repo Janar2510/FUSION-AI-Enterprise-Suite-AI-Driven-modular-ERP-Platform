@@ -91,7 +91,7 @@ export const TimelineView: React.FC = () => {
     switch (type) {
       case 'email': return 'bg-blue-500/20 text-blue-400';
       case 'call': return 'bg-green-500/20 text-green-400';
-      case 'meeting': return 'bg-purple-500/20 text-purple-400';
+      case 'meeting': return 'bg-amber-500/20 text-amber-400';
       case 'invoice': return 'bg-yellow-500/20 text-yellow-400';
       case 'support': return 'bg-red-500/20 text-red-400';
       default: return 'bg-gray-500/20 text-gray-400';
@@ -122,14 +122,14 @@ export const TimelineView: React.FC = () => {
               placeholder="Search timeline events..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           >
             <option value="all">All Types</option>
             <option value="email">Email</option>
@@ -142,7 +142,7 @@ export const TimelineView: React.FC = () => {
           <select
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           >
             <option value="all">All Dates</option>
             <option value="today">Today</option>
@@ -197,7 +197,7 @@ export const TimelineView: React.FC = () => {
                         <Building className="w-3 h-3" />
                         {event.company}
                       </span>
-                      <span className="px-2 py-1 bg-gradient-to-r from-primary-purple/30 to-accent-pink/30 text-white text-xs rounded">
+                      <span className="px-2 py-1 bg-gradient-to-r from-primary-500/30 to-accent-pink/30 text-white text-xs rounded">
                         {event.app}
                       </span>
                     </div>

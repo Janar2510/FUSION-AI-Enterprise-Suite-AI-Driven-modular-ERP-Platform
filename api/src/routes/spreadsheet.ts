@@ -3,8 +3,10 @@ import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { Prisma } from '@prisma/client';
 import { FormulaService } from '../modules/spreadsheet/formulaService';
+import { requireAuth } from '../core/auth';
 
 export const spreadsheetRoutes = Router();
+spreadsheetRoutes.use(requireAuth);
 
 // ==========================================
 // Neural Spreadsheets (`analytical.buffer`)

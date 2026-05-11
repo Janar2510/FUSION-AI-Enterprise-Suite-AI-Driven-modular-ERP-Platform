@@ -72,6 +72,16 @@ crmRoutes.post('/leads/:id/mark-won', asyncHandler(async (req, res) => {
     res.json(lead);
 }));
 
+// Mark lead as lost with an optional reason
+crmRoutes.patch('/leads/:id/lost', asyncHandler(async (req, res) => {
+    const { lostReason } = req.body as { lostReason?: string };
+    const lead = await prisma.crmLead.update({
+        where: { id: parseInt(req.params.id) },
+        data: { active: false, ...(lostReason !== undefined && { lostReason }) },
+    });
+    res.json(lead);
+}));
+
 // Flow A – create a draft quotation (SaleOrder) from a lead/opportunity
 crmRoutes.post('/leads/:id/new-quotation', asyncHandler(async (req, res) => {
     const { lines, idempotencyKey } = req.body;

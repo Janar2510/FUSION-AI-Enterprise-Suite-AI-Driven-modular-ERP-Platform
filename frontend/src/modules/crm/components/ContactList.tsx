@@ -64,7 +64,7 @@ export const ContactList: React.FC<ContactListProps> = ({
       case 'new': return 'bg-blue-500/20 text-blue-400';
       case 'contacted': return 'bg-yellow-500/20 text-yellow-400';
       case 'qualified': return 'bg-green-500/20 text-green-400';
-      case 'proposal': return 'bg-purple-500/20 text-purple-400';
+      case 'proposal': return 'bg-amber-500/20 text-amber-400';
       case 'negotiation': return 'bg-orange-500/20 text-orange-400';
       default: return 'bg-gray-500/20 text-gray-400';
     }
@@ -106,7 +106,7 @@ export const ContactList: React.FC<ContactListProps> = ({
               placeholder="Search contacts, emails, companies..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
             />
           </div>
 
@@ -114,7 +114,7 @@ export const ContactList: React.FC<ContactListProps> = ({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           >
             <option value="lead_score">Lead Score</option>
             <option value="created_at">Date Added</option>
@@ -125,7 +125,7 @@ export const ContactList: React.FC<ContactListProps> = ({
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           >
             <option value="all">All Status</option>
             <option value="new">New</option>
@@ -136,7 +136,7 @@ export const ContactList: React.FC<ContactListProps> = ({
           </select>
 
           {/* Add Contact Button */}
-          <button className="px-6 py-3 bg-gradient-to-r from-primary-purple to-accent-pink text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">
+          <button className="px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">
             <Plus className="w-5 h-5" />
             Add Contact
           </button>
@@ -160,7 +160,7 @@ export const ContactList: React.FC<ContactListProps> = ({
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-purple to-accent-pink flex items-center justify-center text-white font-bold text-lg">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-bold text-lg">
                       {contact.first_name?.[0]}{contact.last_name?.[0]}
                     </div>
                     <div>
@@ -257,7 +257,7 @@ export const ContactList: React.FC<ContactListProps> = ({
               : 'Start by adding your first contact'
             }
           </p>
-          <button className="px-6 py-3 bg-gradient-to-r from-primary-purple to-accent-pink text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 mx-auto">
+          <button className="px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 mx-auto">
             <Plus className="w-5 h-5" />
             Add First Contact
           </button>

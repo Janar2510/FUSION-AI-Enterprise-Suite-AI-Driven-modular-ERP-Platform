@@ -1,5 +1,90 @@
 # FusionAI Enterprise Suite - Deployment Checklist
 
+## Marketing Automation Activities + Audience Targeting (2026-05-11)
+
+### Database Steps
+- [ ] Apply migration: `cd api && npx prisma migrate deploy`
+  - Creates `campaign_activities` table with FK to `marketing_campaigns`
+  - Creates `campaign_participants` table with FK to `marketing_campaigns`
+- [ ] Confirm migration applied: `cd api && npx prisma migrate status`
+
+### New API Endpoints (smoke-test after deploy)
+- [ ] `GET /api/campaigns/:id/activities` (auth required) → 200 activity list
+- [ ] `POST /api/campaigns/:id/activities` `{ name, type, sequence, delayValue, delayUnit }` → 201
+- [ ] `PUT /api/campaigns/:id/activities/:activityId` → 200
+- [ ] `DELETE /api/campaigns/:id/activities/:activityId` → 200 `{ success: true }`
+- [ ] `GET /api/campaigns/:id/participants` (auth required) → 200 participant list
+- [ ] `POST /api/campaigns/:id/participants/resolve` with `targetModel: "partner"` → 201
+- [ ] `POST /api/campaigns/:id/participants/resolve` with `targetModel: "crm_lead"` → 201
+
+### Verification
+- [x] Focused test: `npm --prefix api test -- --testPathPatterns=campaigns.activities`
+- [x] API TypeScript check: `npm --prefix api run lint`
+
+## Sprint 20 — AI Rollout + Production Hardening (2026-05-10)
+
+### AI Agents Wired (Sprint 20)
+- [x] `optimize_production` agent — Manufacturing module, registered in `ai-actions.ts`
+- [x] `knowledge-article-draft` agent — Knowledge module, registered in `ai-actions.ts`
+- [x] `recommend_training` agent — HR module, registered in `ai-actions.ts`
+- [x] `analyze_performance` agent — HR module, registered in `ai-actions.ts`
+- [x] `predict_churn` agent — Subscriptions module, registered in `ai-actions.ts`
+- [x] `evaluate_vendor` agent — Purchases module, registered in `ai-actions.ts`
+
+### RAG Permission Filter
+- [x] `api/src/core/rag/index.ts` — `RagService` enforces `userId`/`orgId` on all index and search operations
+- [x] `VectorAdapter` interface defined; `InMemoryVectorAdapter` provided for dev/test
+
+### Golden-Set AI Evals (CI Gate)
+- [x] `api/src/__tests__/ai/agents.eval.test.ts` — covers all 6 new agents with mocked Anthropic client
+- [ ] Run: `cd api && npx jest --testPathPattern=ai/agents.eval.test` — must exit 0 before deploy
+
+### Auth on Every Route (Sprint 20 Audit)
+Routes that now require `requireAuth` (added this sprint):
+- [x] `automation.ts` — `router.use(requireAuth)`
+- [x] `calendar.ts` — `router.use(requireAuth)`
+- [x] `campaigns.ts` — `router.use(requireAuth)`
+- [x] `dashboard.ts` — `router.use(requireAuth)`
+- [x] `ecommerce.ts` — AI endpoints only (`/ai/recommendations`, `/ai/cart-abandonment`, `/ai/cart-abandonment/recover`)
+- [x] `planning.ts` — `router.use(requireAuth)`
+- [x] `pos.ts` — `router.use(requireAuth)`
+- [x] `settings.ts` — `router.use(requireAuth)`
+- [x] `skills.ts` — `router.use(requireAuth)`
+- [x] `spreadsheet.ts` — `router.use(requireAuth)`
+
+### ChatterPanel + AiActionsPanel Wired (Sprint 20)
+- [x] Appraisals (`AppraisalsModule.tsx`)
+- [x] Fleet (`FleetModule.tsx`)
+- [x] Leaves (`LeavesModule.tsx`)
+- [x] Payroll (`PayrollModule.tsx`)
+- [x] Rental (`RentalModule.tsx`)
+- [x] Sign (`SignMain.tsx`)
+- PLM was wired in Sprint 18
+
+### Production Hardening — Still Required Before Go-Live
+- [ ] `prisma migrate reset && npx prisma db seed` — verified on clean DB (run before deploy)
+- [ ] Backup + restore drill executed (document result)
+- [ ] Branch protection on `main` enabled in GitHub repository settings
+- [ ] Playwright E2E suite passes all 5 critical flows:
+  1. Login → Dashboard → CRM lead create
+  2. Sales order → Invoice → Payment
+  3. Manufacturing order → Confirm → Produce
+  4. Helpdesk ticket → SLA breach alert
+  5. HR leave request → Approval workflow
+
+### New API Endpoints Added This Sprint (smoke-test after deploy)
+- [ ] `POST /api/ai/run` with `{ "agentKey": "optimize_production", ... }` → 200
+- [ ] `POST /api/ai/run` with `{ "agentKey": "knowledge-article-draft", ... }` → 200
+- [ ] `POST /api/ai/run` with `{ "agentKey": "recommend_training", ... }` → 200
+- [ ] `POST /api/ai/run` with `{ "agentKey": "analyze_performance", ... }` → 200
+- [ ] `POST /api/ai/run` with `{ "agentKey": "predict_churn", ... }` → 200
+- [ ] `POST /api/ai/run` with `{ "agentKey": "evaluate_vendor", ... }` → 200
+
+### Environment Variables Required
+- `ANTHROPIC_API_KEY` — required for all AI agents (was already required since Sprint 10)
+
+---
+
 ## Sprint 12 — Persistence & Frontend Wiring: Pre-Deployment Notes (2026-05-10)
 
 ### Database Steps

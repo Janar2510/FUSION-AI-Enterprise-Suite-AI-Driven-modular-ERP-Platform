@@ -105,15 +105,15 @@ export const HRModule: React.FC = () => {
                     <div
                         key={emp.id}
                         onClick={() => handleRowClick(emp)}
-                        className="bg-white/5 border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/10 hover:border-primary-purple/50 transition-all flex item-center gap-4 group shadow-sm backdrop-blur-md"
+                        className="bg-white/5 border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/10 hover:border-primary-500/50 transition-all flex item-center gap-4 group shadow-sm backdrop-blur-md"
                     >
                         {/* Avatar Placeholder */}
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-purple/40 to-indigo-500/40 border border-white/20 flex items-center justify-center flex-shrink-0 text-white font-bold text-xl shadow-inner">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500/40 to-orange-500/40 border border-white/20 flex items-center justify-center flex-shrink-0 text-white font-bold text-xl shadow-inner">
                             {emp.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                         </div>
 
                         <div className="flex flex-col justify-center flex-1 overflow-hidden">
-                            <h3 className="text-md font-bold text-white truncate group-hover:text-primary-purple transition-colors">{emp.name}</h3>
+                            <h3 className="text-md font-bold text-white truncate group-hover:text-primary-500 transition-colors">{emp.name}</h3>
                             <p className="text-xs text-white/50 truncate mb-2">{emp.job?.name || emp.jobId || 'No Job Position'}</p>
 
                             <div className="space-y-1 mt-auto">
@@ -172,7 +172,7 @@ export const HRModule: React.FC = () => {
                         )}
                     </div>
                     <div className="flex text-sm font-medium">
-                        <div className={`px-4 py-2 flex items-center pr-6 uppercase font-bold ${employeeFormData.active ? 'text-primary-purple' : 'text-white/40'}`}>
+                        <div className={`px-4 py-2 flex items-center pr-6 uppercase font-bold ${employeeFormData.active ? 'text-primary-500' : 'text-white/40'}`}>
                             {employeeFormData.active ? 'Active' : 'Archived'}
                         </div>
                     </div>
@@ -182,7 +182,7 @@ export const HRModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Employee's Name"
                         value={employeeFormData.name || ''}
                         onChange={(e) => setEmployeeFormData({ ...employeeFormData, name: e.target.value })}
@@ -197,7 +197,7 @@ export const HRModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Work Mobile</label>
                             <input
                                 type="text"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={employeeFormData.workPhone || ''}
                                 onChange={(e) => setEmployeeFormData({ ...employeeFormData, workPhone: e.target.value })}
                             />
@@ -206,7 +206,7 @@ export const HRModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Work Email</label>
                             <input
                                 type="email"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={employeeFormData.workEmail || ''}
                                 onChange={(e) => setEmployeeFormData({ ...employeeFormData, workEmail: e.target.value })}
                             />
@@ -215,7 +215,7 @@ export const HRModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Department</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={employeeFormData.departmentId || ''}
                                 onChange={(e) => setEmployeeFormData({ ...employeeFormData, departmentId: parseInt(e.target.value) })}
                             >
@@ -228,7 +228,7 @@ export const HRModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Job Position</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={employeeFormData.jobId || ''}
                                 onChange={(e) => setEmployeeFormData({ ...employeeFormData, jobId: parseInt(e.target.value) })}
                             >
@@ -242,7 +242,7 @@ export const HRModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Manager</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={employeeFormData.managerId || ''}
                                 onChange={(e) => setEmployeeFormData({ ...employeeFormData, managerId: parseInt(e.target.value) })}
                             >
@@ -255,7 +255,7 @@ export const HRModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Coach</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={employeeFormData.coachId || ''}
                                 onChange={(e) => setEmployeeFormData({ ...employeeFormData, coachId: parseInt(e.target.value) })}
                             >
@@ -297,8 +297,8 @@ export const HRModule: React.FC = () => {
                                     onClick={() => navigate('/module/attendance')}
                                     className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all flex flex-col items-center justify-center gap-1 group relative overflow-hidden"
                                 >
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-indigo-400/50"></div>
-                                    <Clock4 className="w-5 h-5 text-indigo-400 mb-1" />
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-amber-400/50"></div>
+                                    <Clock4 className="w-5 h-5 text-amber-400 mb-1" />
                                     <span className="text-2xl font-bold text-white leading-none">{empAttendance.length}</span>
                                     <span className="text-[10px] text-white/50 uppercase tracking-wide">Attendances</span>
                                 </button>
@@ -353,11 +353,11 @@ export const HRModule: React.FC = () => {
                     <div
                         key={dept.id}
                         onClick={() => handleRowClick(dept)}
-                        className="bg-white/5 border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/10 hover:border-primary-purple/50 transition-all flex flex-col gap-4 group shadow-sm backdrop-blur-md relative overflow-hidden"
+                        className="bg-white/5 border border-white/10 rounded-xl p-5 cursor-pointer hover:bg-white/10 hover:border-primary-500/50 transition-all flex flex-col gap-4 group shadow-sm backdrop-blur-md relative overflow-hidden"
                     >
-                        <div className="absolute top-0 left-0 w-1 h-full bg-primary-purple/50"></div>
+                        <div className="absolute top-0 left-0 w-1 h-full bg-primary-500/50"></div>
                         <div className="flex justify-between items-start">
-                            <h3 className="text-lg font-bold text-white group-hover:text-primary-purple transition-colors truncate">{dept.name}</h3>
+                            <h3 className="text-lg font-bold text-white group-hover:text-primary-500 transition-colors truncate">{dept.name}</h3>
                             <div className="bg-white/10 text-white/80 text-xs px-2 py-1 rounded">
                                 {dept._count?.employees || 0} Employees
                             </div>
@@ -397,7 +397,7 @@ export const HRModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Department Name"
                         value={departmentFormData.name || ''}
                         onChange={(e) => setDepartmentFormData({ ...departmentFormData, name: e.target.value })}
@@ -410,7 +410,7 @@ export const HRModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Parent Department</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={departmentFormData.parentId || ''}
                                 onChange={(e) => setDepartmentFormData({ ...departmentFormData, parentId: parseInt(e.target.value) })}
                             >
@@ -423,7 +423,7 @@ export const HRModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Manager</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={departmentFormData.managerId || ''}
                                 onChange={(e) => setDepartmentFormData({ ...departmentFormData, managerId: parseInt(e.target.value) })}
                             >
@@ -464,7 +464,7 @@ export const HRModule: React.FC = () => {
                             { icon: <Mail className="w-3 h-3" />, text: emp.workEmail || 'No Email' },
                             { icon: <Building className="w-3 h-3" />, text: emp.department?.name || 'No Dept' }
                         ],
-                        color: emp.department?.id === 1 ? '#a855f7' : emp.department?.id === 2 ? '#3b82f6' : '#10b981',
+                        color: emp.department?.id === 1 ? '#f97316' : emp.department?.id === 2 ? '#3b82f6' : '#10b981',
                         children: buildEmployeeTree(emp.id)
                     }));
             };
@@ -484,7 +484,7 @@ export const HRModule: React.FC = () => {
                             { icon: <Briefcase className="w-3 h-3" />, text: dept.manager?.name || 'No Manager' },
                             { icon: <MapPin className="w-3 h-3" />, text: 'HQ Global' }
                         ],
-                        color: '#6366f1',
+                        color: '#f59e0b',
                         children: buildDeptTree(dept.id)
                     }));
             };
@@ -513,7 +513,7 @@ export const HRModule: React.FC = () => {
                 ].map(tab => (
                     <button
                         key={tab.id}
-                        className={`pb-3 px-2 font-medium transition-colors border-b-2 ${activeTab === tab.id ? 'border-primary-purple text-primary-purple' : 'border-transparent text-white/60 hover:text-white'
+                        className={`pb-3 px-2 font-medium transition-colors border-b-2 ${activeTab === tab.id ? 'border-primary-500 text-primary-500' : 'border-transparent text-white/60 hover:text-white'
                             }`}
                         onClick={() => {
                             setActiveTab(tab.id as any);

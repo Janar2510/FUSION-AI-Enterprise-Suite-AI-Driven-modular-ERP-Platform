@@ -256,7 +256,7 @@ export const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
   [OrderStatus.PENDING]: 'bg-gray-100 text-gray-800',
   [OrderStatus.CONFIRMED]: 'bg-blue-100 text-blue-800',
   [OrderStatus.PROCESSING]: 'bg-yellow-100 text-yellow-800',
-  [OrderStatus.SHIPPED]: 'bg-purple-100 text-purple-800',
+  [OrderStatus.SHIPPED]: 'bg-amber-100 text-amber-800',
   [OrderStatus.DELIVERED]: 'bg-green-100 text-green-800',
   [OrderStatus.CANCELLED]: 'bg-red-100 text-red-800',
   [OrderStatus.RETURNED]: 'bg-orange-100 text-orange-800'

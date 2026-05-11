@@ -11,7 +11,7 @@ export const ContactHub: React.FC = () => {
         <GlassCard className="p-8">
           <div className="flex items-center justify-center">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-purple mb-4"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500 mb-4"></div>
               <p className="text-white">Loading Contact Hub...</p>
             </div>
           </div>

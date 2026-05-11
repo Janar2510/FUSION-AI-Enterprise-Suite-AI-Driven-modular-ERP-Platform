@@ -265,7 +265,7 @@ export const AccountingModule: React.FC = () => {
                     ].map(tab => (
                         <button
                             key={tab.id}
-                            className={`pb - 3 px - 2 font - medium transition - colors border - b - 2 ${activeTab === tab.id ? 'border-primary-purple text-primary-purple' : 'border-transparent text-white/60 hover:text-white'
+                            className={`pb - 3 px - 2 font - medium transition - colors border - b - 2 ${activeTab === tab.id ? 'border-primary-500 text-primary-500' : 'border-transparent text-white/60 hover:text-white'
                                 } `}
                             onClick={() => {
                                 setActiveTab(tab.id as AccountingTab);
@@ -349,11 +349,11 @@ export const AccountingModule: React.FC = () => {
                                     <h3 className="heading-3 text-white font-bold text-xl">Miscellaneous Operations</h3>
                                     <p className="text-white/60 text-sm mt-1">{moves.filter(m => m.moveType === 'entry').length} journal entries</p>
                                 </div>
-                                <div className="p-3 bg-purple-500/20 rounded-lg">
-                                    <BookOpen className="w-6 h-6 text-purple-400" />
+                                <div className="p-3 bg-amber-500/20 rounded-lg">
+                                    <BookOpen className="w-6 h-6 text-amber-400" />
                                 </div>
                             </div>
-                            <div className="flex items-center text-purple-400 text-sm font-medium mt-4">
+                            <div className="flex items-center text-amber-400 text-sm font-medium mt-4">
                                 View Operations <ChevronRight className="w-4 h-4 ml-1" />
                             </div>
                         </GlassCard>
@@ -410,7 +410,7 @@ export const AccountingModule: React.FC = () => {
                                 {formData.state === 'draft' && activeRecord && (
                                     <button
                                         onClick={handlePost}
-                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-md shadow-lg"
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white font-bold rounded-md shadow-lg"
                                     >
                                         Post
                                     </button>
@@ -441,7 +441,7 @@ export const AccountingModule: React.FC = () => {
                                     return (
                                         <div key={state} className="flex items-center relative">
                                             <div className={`px-4 py-2 flex items-center pr-6 uppercase
-                                                ${isActive ? 'text-primary-purple font-bold' : isPast ? 'text-white/80' : 'text-white/40'}
+                                                ${isActive ? 'text-primary-500 font-bold' : isPast ? 'text-white/80' : 'text-white/40'}
                                             `}>
                                                 {state === 'paid' ? 'In Payment' : state}
                                             </div>
@@ -468,7 +468,7 @@ export const AccountingModule: React.FC = () => {
                                             {activeTab === 'out_invoice' ? 'Customer' : 'Vendor'}
                                         </label>
                                         <select
-                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                             value={formData.partnerId || ''}
                                             onChange={(e) => setFormData({ ...formData, partnerId: parseInt(e.target.value) })}
                                         >
@@ -483,7 +483,7 @@ export const AccountingModule: React.FC = () => {
                                     <label className="text-white/60 text-sm font-medium">Accounting Date</label>
                                     <input
                                         type="date"
-                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.date?.split('T')[0] || new Date().toISOString().split('T')[0]}
                                         onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toISOString() })}
                                     />
@@ -491,7 +491,7 @@ export const AccountingModule: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-white/60 text-sm font-medium">Journal</label>
                                     <select
-                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.journalId || ''}
                                         onChange={(e) => setFormData({ ...formData, journalId: parseInt(e.target.value) })}
                                     >
@@ -637,7 +637,7 @@ const AccountingReports: React.FC = () => {
             <div className="flex gap-2 flex-wrap">
                 {reports.map(r => (
                     <button key={r.id} onClick={() => setActiveReport(r.id)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeReport === r.id ? 'bg-primary-purple text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeReport === r.id ? 'bg-primary-500 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}`}>
                         {r.label}
                     </button>
                 ))}
@@ -649,22 +649,22 @@ const AccountingReports: React.FC = () => {
                     <label className="flex items-center gap-2 text-white/60 text-sm">
                         As of:
                         <input type="date" value={asOf} onChange={e => setAsOf(e.target.value)}
-                            className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                            className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-500 [&::-webkit-calendar-picker-indicator]:filter-invert" />
                     </label>
                 ) : activeReport !== 'aged-receivable' ? (
                     <>
                         <label className="flex items-center gap-2 text-white/60 text-sm">
                             From: <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-                                className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                                className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-500 [&::-webkit-calendar-picker-indicator]:filter-invert" />
                         </label>
                         <label className="flex items-center gap-2 text-white/60 text-sm">
                             To: <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-                                className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                                className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-500 [&::-webkit-calendar-picker-indicator]:filter-invert" />
                         </label>
                     </>
                 ) : null}
                 <button onClick={fetchReport} disabled={loading}
-                    className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-40">
+                    className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-40">
                     {loading ? 'Loading…' : 'Refresh'}
                 </button>
             </div>
@@ -951,12 +951,12 @@ const BankReconciliationPanel: React.FC = () => {
             <div className="col-span-1 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                     <h3 className="text-white font-semibold flex items-center gap-2">
-                        <Landmark size={16} className="text-primary-purple" />
+                        <Landmark size={16} className="text-primary-500" />
                         Bank Statements
                     </h3>
                     <button
                         onClick={() => setShowNewForm(v => !v)}
-                        className="p-1.5 rounded-lg bg-primary-purple/20 hover:bg-primary-purple/30 text-primary-purple transition-colors"
+                        className="p-1.5 rounded-lg bg-primary-500/20 hover:bg-primary-500/30 text-primary-500 transition-colors"
                     >
                         <Plus size={14} />
                     </button>
@@ -968,13 +968,13 @@ const BankReconciliationPanel: React.FC = () => {
                             value={newName}
                             onChange={e => setNewName(e.target.value)}
                             placeholder="Statement name…"
-                            className="flex-1 bg-transparent text-white text-sm border-b border-white/20 focus:border-primary-purple outline-none"
+                            className="flex-1 bg-transparent text-white text-sm border-b border-white/20 focus:border-primary-500 outline-none"
                             onKeyDown={e => e.key === 'Enter' && newName && createStmt.mutate()}
                         />
                         <button
                             disabled={!newName || createStmt.isPending}
                             onClick={() => createStmt.mutate()}
-                            className="text-xs px-2 py-1 bg-primary-purple rounded text-white disabled:opacity-50"
+                            className="text-xs px-2 py-1 bg-primary-500 rounded text-white disabled:opacity-50"
                         >
                             Add
                         </button>
@@ -995,7 +995,7 @@ const BankReconciliationPanel: React.FC = () => {
                                 onClick={() => setSelectedStmt(s.id)}
                                 className={`text-left p-3 rounded-xl border transition-colors ${
                                     selectedStmt === s.id
-                                        ? 'border-primary-purple/60 bg-primary-purple/10'
+                                        ? 'border-primary-500/60 bg-primary-500/10'
                                         : 'border-white/10 bg-white/5 hover:bg-white/8'
                                 }`}
                             >
@@ -1094,7 +1094,7 @@ const BankReconciliationPanel: React.FC = () => {
                                                             expandedLine === line.id ? null : line.id,
                                                         )
                                                     }
-                                                    className="p-1 text-white/30 hover:text-primary-purple transition-colors"
+                                                    className="p-1 text-white/30 hover:text-primary-500 transition-colors"
                                                 >
                                                     {expandedLine === line.id ? (
                                                         <ChevronUp size={13} />
@@ -1122,12 +1122,12 @@ const BankReconciliationPanel: React.FC = () => {
                                                                         moveId: s.moveId,
                                                                     })
                                                                 }
-                                                                className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-primary-purple/20 border border-white/10 hover:border-primary-purple/40 transition-colors text-sm"
+                                                                className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-primary-500/20 border border-white/10 hover:border-primary-500/40 transition-colors text-sm"
                                                             >
                                                                 <span className="text-white/70">{s.moveName}</span>
                                                                 <div className="flex items-center gap-3">
                                                                     <span className="font-mono text-white/60">{fmt(s.amount)}</span>
-                                                                    <span className="text-xs text-primary-purple bg-primary-purple/10 px-1.5 py-0.5 rounded">
+                                                                    <span className="text-xs text-primary-500 bg-primary-500/10 px-1.5 py-0.5 rounded">
                                                                         {Math.round(s.score * 100)}% match
                                                                     </span>
                                                                 </div>

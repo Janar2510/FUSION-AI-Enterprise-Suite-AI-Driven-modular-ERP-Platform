@@ -43,9 +43,9 @@ export const PlanningTimeline: React.FC<PlanningTimelineProps> = ({ slots, onSlo
                                 <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Resource</span>
                             </th>
                             {days.map(day => (
-                                <th key={day.toISOString()} className={`p-3 text-center min-w-[50px] border-r border-white/5 ${isSameDay(day, new Date()) ? 'bg-primary-purple/10' : ''}`}>
+                                <th key={day.toISOString()} className={`p-3 text-center min-w-[50px] border-r border-white/5 ${isSameDay(day, new Date()) ? 'bg-primary-500/10' : ''}`}>
                                     <div className="text-[9px] font-bold text-white/40 uppercase">{format(day, 'EEE')}</div>
-                                    <div className={`text-xs font-black ${isSameDay(day, new Date()) ? 'text-primary-purple' : 'text-white/80'}`}>{format(day, 'd')}</div>
+                                    <div className={`text-xs font-black ${isSameDay(day, new Date()) ? 'text-primary-500' : 'text-white/80'}`}>{format(day, 'd')}</div>
                                 </th>
                             ))}
                         </tr>
@@ -58,7 +58,7 @@ export const PlanningTimeline: React.FC<PlanningTimelineProps> = ({ slots, onSlo
                                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-white/10 to-white/5 flex items-center justify-center border border-white/10">
                                             <User className="w-4 h-4 text-white/40" />
                                         </div>
-                                        <span className="text-sm font-bold text-white group-hover:text-primary-purple transition-colors">{data.name}</span>
+                                        <span className="text-sm font-bold text-white group-hover:text-primary-500 transition-colors">{data.name}</span>
                                     </div>
                                 </td>
                                 {days.map(day => {
@@ -72,7 +72,7 @@ export const PlanningTimeline: React.FC<PlanningTimelineProps> = ({ slots, onSlo
                                             {activeSlot && (
                                                 <div
                                                     onClick={() => onSlotClick(activeSlot)}
-                                                    className={`absolute inset-1 rounded flex items-center justify-center cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-0 ${activeSlot.state === 'published' ? 'bg-primary-purple/40 border border-primary-purple/50' : 'bg-white/10 border border-white/20'}`}
+                                                    className={`absolute inset-1 rounded flex items-center justify-center cursor-pointer transition-all hover:scale-[1.02] hover:shadow-lg z-0 ${activeSlot.state === 'published' ? 'bg-primary-500/40 border border-primary-500/50' : 'bg-white/10 border border-white/20'}`}
                                                 >
                                                     <span className="text-[8px] font-black text-white/60 truncate px-1 uppercase tracking-tighter">
                                                         {activeSlot.project?.name || 'BUSY'}

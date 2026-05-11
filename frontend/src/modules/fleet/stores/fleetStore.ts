@@ -50,10 +50,19 @@ export interface FleetAnalytics {
     expiringContracts: FleetContract[];
 }
 
+export interface FleetCostRollup {
+    vehicleId: number | null;
+    vehicles: { vehicleId: number; total: number; byType: { type: string; amount: number; count: number }[] }[];
+    contractCostAnnualized: number;
+    grandTotal: number;
+}
+
 interface FleetStore {
     vehicles: FleetVehicle[];
     contracts: FleetContract[];
     analytics: FleetAnalytics | null;
+    costRollup: FleetCostRollup | null;
+    alerts: FleetContract[];
     loading: boolean;
     error: string | null;
 
@@ -70,12 +79,16 @@ interface FleetStore {
     deleteContract: (id: number) => Promise<void>;
 
     fetchAnalytics: () => Promise<void>;
+    fetchCostRollup: (vehicleId?: number) => Promise<void>;
+    fetchAlerts: (days?: number) => Promise<void>;
 }
 
 export const useFleetStore = create<FleetStore>((set, get) => ({
     vehicles: [],
     contracts: [],
     analytics: null,
+    costRollup: null,
+    alerts: [],
     loading: false,
     error: null,
 
@@ -155,6 +168,21 @@ export const useFleetStore = create<FleetStore>((set, get) => ({
         try {
             const res = await axios.get(`${API}/api/fleet/analytics`);
             set({ analytics: res.data });
+        } catch (e: any) { set({ error: e.message }); }
+    },
+
+    fetchCostRollup: async (vehicleId?: number) => {
+        try {
+            const params = vehicleId ? { vehicleId } : {};
+            const res = await axios.get(`${API}/api/fleet/costs`, { params });
+            set({ costRollup: res.data });
+        } catch (e: any) { set({ error: e.message }); }
+    },
+
+    fetchAlerts: async (days = 30) => {
+        try {
+            const res = await axios.get(`${API}/api/fleet/alerts`, { params: { days } });
+            set({ alerts: res.data });
         } catch (e: any) { set({ error: e.message }); }
     },
 }));

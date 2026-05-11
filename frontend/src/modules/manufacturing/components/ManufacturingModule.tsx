@@ -201,7 +201,7 @@ export const ManufacturingModule: React.FC = () => {
                         } catch (e: any) {
                             toast.error("AI Optimization failed");
                         }
-                    }} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">
+                    }} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white font-bold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">
                         <Brain className="w-5 h-5" />
                         AI Optimize Schedule
                     </button>
@@ -262,7 +262,7 @@ export const ManufacturingModule: React.FC = () => {
 
                     <GlassCard className="p-6">
                         <div className="flex items-center gap-3 mb-6">
-                            <Brain className="w-5 h-5 text-purple-400" />
+                            <Brain className="w-5 h-5 text-amber-400" />
                             <h3 className="text-xl font-medium text-white">Log Quality Data</h3>
                         </div>
                         <form className="space-y-4" onSubmit={async (e) => {
@@ -304,7 +304,7 @@ export const ManufacturingModule: React.FC = () => {
                                     <input name="humidity" type="number" step="0.1" className="w-full bg-white/5 border border-white/10 rounded px-2 py-1.5 text-sm text-white" />
                                 </div>
                             </div>
-                            <button type="submit" className="w-full py-2 bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 rounded text-sm font-bold transition-colors">
+                            <button type="submit" className="w-full py-2 bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 rounded text-sm font-bold transition-colors">
                                 Submit to AI Analyzer
                             </button>
                         </form>
@@ -317,6 +317,52 @@ export const ManufacturingModule: React.FC = () => {
     // --------------------------------------------------------------------------
     // ORDERS VIEW
     // --------------------------------------------------------------------------
+    const renderOrdersKanban = () => {
+        const COLS = [
+            { key: 'draft',    label: 'Draft',       cls: 'bg-white/5 border-white/10' },
+            { key: 'progress', label: 'In Progress',  cls: 'bg-blue-900/20 border-blue-500/20' },
+            { key: 'done',     label: 'Done',         cls: 'bg-green-900/20 border-green-500/20' },
+            { key: 'cancel',   label: 'Cancelled',    cls: 'bg-red-900/20 border-red-500/20' },
+        ];
+        const filtered = orders.filter(o =>
+            o.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            o.bom?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        return (
+            <div className="flex gap-4 overflow-x-auto pb-4">
+                {COLS.map(col => {
+                    const colOrders = filtered.filter(o => o.state === col.key);
+                    return (
+                        <div key={col.key} className={`flex-shrink-0 w-64 rounded-xl border p-3 ${col.cls}`}>
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-sm font-semibold text-white/70">{col.label}</span>
+                                <span className="text-xs bg-white/10 text-white/50 px-2 py-0.5 rounded-full">{colOrders.length}</span>
+                            </div>
+                            <div className="space-y-2">
+                                {colOrders.map(o => (
+                                    <div key={o.id} onClick={() => handleRowClick(o)}
+                                        className="bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg p-3 cursor-pointer transition-colors">
+                                        <div className="font-semibold text-white text-sm mb-1">{o.name}</div>
+                                        <div className="text-white/50 text-xs">{o.bom?.name || 'No BOM'}</div>
+                                        <div className="flex items-center justify-between mt-2">
+                                            <span className="text-white/40 text-xs">Qty: {o.productQty}</span>
+                                            {o.qtyProduced > 0 && (
+                                                <span className="text-blue-400 text-xs">{o.qtyProduced}/{o.productQty} produced</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                {colOrders.length === 0 && (
+                                    <div className="text-center text-white/20 text-xs py-6">No orders</div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
     const renderOrdersList = () => (
         <OdooListBase
             data={orders.filter(o => o.name?.toLowerCase().includes(searchTerm.toLowerCase()) || o.bom?.name?.toLowerCase().includes(searchTerm.toLowerCase()))}
@@ -356,7 +402,7 @@ export const ManufacturingModule: React.FC = () => {
                         {activeOrder?.state === 'draft' && (
                             <button
                                 onClick={handleStartOrder}
-                                className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-2 flex items-center gap-2 rounded-md transition-colors"
+                                className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-2 flex items-center gap-2 rounded-md transition-colors"
                             >
                                 Start Production
                             </button>
@@ -403,7 +449,7 @@ export const ManufacturingModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Bill of Material</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={orderFormData.bomId || ''}
                                 disabled={activeOrder?.state !== 'draft' && !!activeOrder}
                                 onChange={(e) => setOrderFormData({ ...orderFormData, bomId: parseInt(e.target.value) })}
@@ -418,7 +464,7 @@ export const ManufacturingModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Product to Produce</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={orderFormData.productId || ''}
                                 disabled={activeOrder?.state !== 'draft' && !!activeOrder}
                                 onChange={(e) => setOrderFormData({ ...orderFormData, productId: parseInt(e.target.value) })}
@@ -434,7 +480,7 @@ export const ManufacturingModule: React.FC = () => {
                             <input
                                 type="number"
                                 min="1"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={orderFormData.productQty || 1}
                                 disabled={activeOrder?.state !== 'draft' && !!activeOrder}
                                 onChange={(e) => setOrderFormData({ ...orderFormData, productQty: parseInt(e.target.value) })}
@@ -518,7 +564,7 @@ export const ManufacturingModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Main Product / BOM Name"
                         value={bomFormData.name || ''}
                         onChange={(e) => setBomFormData({ ...bomFormData, name: e.target.value })}
@@ -531,7 +577,7 @@ export const ManufacturingModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">BOM Type</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={bomFormData.type || 'normal'}
                                 onChange={(e) => setBomFormData({ ...bomFormData, type: e.target.value })}
                             >
@@ -543,7 +589,7 @@ export const ManufacturingModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Reference Code</label>
                             <input
                                 type="text"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={bomFormData.code || ''}
                                 onChange={(e) => setBomFormData({ ...bomFormData, code: e.target.value })}
                             />
@@ -578,7 +624,7 @@ export const ManufacturingModule: React.FC = () => {
                         />
                         {!activeBom && (
                             <div className="px-4 py-3 border-t border-white/10">
-                                <button onClick={addBomLine} className="text-sm font-medium text-primary-purple hover:text-primary-purple/80">
+                                <button onClick={addBomLine} className="text-sm font-medium text-primary-500 hover:text-primary-500/80">
                                     + Add a line
                                 </button>
                             </div>
@@ -597,7 +643,7 @@ export const ManufacturingModule: React.FC = () => {
                 id: bom.id,
                 name: bom.name || bom.code || `BOM ${bom.id}`,
                 subtitle: `Main Assembly - ${bom.productQty} Units`,
-                color: '#8b5cf6',
+                color: '#f59e0b',
                 details: [
                     { icon: <Package className="w-3 h-3" />, text: bom.type === 'normal' ? 'Manufacture' : 'Kit' }
                 ],
@@ -641,7 +687,7 @@ export const ManufacturingModule: React.FC = () => {
                         <button
                             key={nav.id}
                             onClick={() => { setView(nav.id as ManufacturingView); setCurrentView(nav.viewType as ViewType); }}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap ${isActive ? 'bg-primary-purple text-white shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/5'
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap ${isActive ? 'bg-primary-500 text-white shadow-lg' : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             <Icon className="w-4 h-4" /> {nav.label}
@@ -672,11 +718,13 @@ export const ManufacturingModule: React.FC = () => {
                 viewsAvailable={(() => {
                     if (view === 'dashboard') return ['dashboard'];
                     if (view === 'boms') return ['list', 'hierarchy', 'form'];
+                    if (view === 'orders') return ['list', 'kanban', 'form'];
                     return ['list', 'form'];
                 })()}
             >
                 {view === 'dashboard' && currentView === 'dashboard' && renderDashboard()}
                 {view === 'orders' && currentView === 'list' && renderOrdersList()}
+                {view === 'orders' && currentView === 'kanban' && renderOrdersKanban()}
                 {view === 'orders' && currentView === 'form' && renderOrderForm()}
                 {view === 'boms' && currentView === 'list' && renderBomsList()}
                 {view === 'boms' && currentView === 'hierarchy' && renderHierarchy()}
@@ -756,7 +804,7 @@ export const ManufacturingModule: React.FC = () => {
                                             setRoutingFormData({ ...routingFormData, operations: ops });
                                         }}
                                     />
-                                    <button onClick={() => setRoutingFormData({ ...routingFormData, operations: [...(routingFormData.operations || []), { id: Date.now(), name: 'New Op', workcenterId: workcenters[0]?.id, duration: 60, sequence: (routingFormData.operations?.length || 0) + 1, routingId: activeRouting?.id || 0 } as MrpRoutingOperation] })} className="mt-4 text-primary-purple text-sm font-medium">+ Add Operation</button>
+                                    <button onClick={() => setRoutingFormData({ ...routingFormData, operations: [...(routingFormData.operations || []), { id: Date.now(), name: 'New Op', workcenterId: workcenters[0]?.id, duration: 60, sequence: (routingFormData.operations?.length || 0) + 1, routingId: activeRouting?.id || 0 } as MrpRoutingOperation] })} className="mt-4 text-primary-500 text-sm font-medium">+ Add Operation</button>
                                 </div>
                             </div>
                         }

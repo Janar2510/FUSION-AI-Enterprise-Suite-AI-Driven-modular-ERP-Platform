@@ -29,8 +29,12 @@ export interface KnowledgeArticle {
     createdAt: string;
     updatedAt: string;
     workspaceId: number | null;
+    parentId?: number | null;
     workspace?: KnowledgeWorkspace;
+    parent?: { id: number; title: string } | null;
+    children?: { id: number; title: string; isPublished: boolean }[];
     revisions?: KnowledgeArticleRevision[];
+    _count?: { children: number };
 }
 
 interface KnowledgeStore {
@@ -40,7 +44,7 @@ interface KnowledgeStore {
     loading: boolean;
     error: string | null;
 
-    fetchArticles: () => Promise<void>;
+    fetchArticles: (parentId?: number | null, topLevel?: boolean) => Promise<void>;
     fetchWorkspaces: () => Promise<void>;
     fetchArticleDetails: (id: number) => Promise<void>;
     createArticle: (data: Partial<KnowledgeArticle>) => Promise<KnowledgeArticle | undefined>;
@@ -56,10 +60,13 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
     loading: false,
     error: null,
 
-    fetchArticles: async () => {
+    fetchArticles: async (parentId?: number | null, topLevel?: boolean) => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.get(`${API_BASE}/api/knowledge?limit=1000`);
+            const params: Record<string, string> = { limit: '1000' };
+            if (topLevel) params.topLevel = 'true';
+            else if (parentId !== undefined && parentId !== null) params.parentId = String(parentId);
+            const res = await axios.get(`${API_BASE}/api/knowledge`, { params });
             set({ articles: res.data.data, loading: false });
         } catch (err: any) {
             console.error(err);

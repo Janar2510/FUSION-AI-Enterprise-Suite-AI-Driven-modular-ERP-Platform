@@ -1,9 +1,11 @@
 import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { requirePermission } from '../core/auth';
+import { requireAuth, requirePermission } from '../core/auth';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+router.use(requireAuth);
 
 // ── Flat settings (legacy) ─────────────────────────────────────────────────────
 

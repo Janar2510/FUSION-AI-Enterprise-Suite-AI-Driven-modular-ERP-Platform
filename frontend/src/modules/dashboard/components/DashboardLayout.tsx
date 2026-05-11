@@ -217,7 +217,7 @@ const DashboardLayout: React.FC = () => {
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
-          <RefreshCw className="w-8 h-8 text-purple-500" />
+          <RefreshCw className="w-8 h-8 text-amber-500" />
         </motion.div>
       </div>
     );
@@ -239,12 +239,12 @@ const DashboardLayout: React.FC = () => {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-dark-bg via-purple-900/20 to-dark-bg ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-dark-bg via-amber-900/20 to-dark-bg ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* Header */}
       <div className="p-6 border-b border-glass-border">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-pink-400 bg-clip-text text-transparent">
               Dashboard
             </h1>
             <p className="text-gray-400 mt-1">
@@ -411,7 +411,7 @@ const KPICard: React.FC<{ widget: Widget }> = ({ widget }) => {
     <GlassCard className="h-full p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">{widget.title}</h3>
-        <TrendingUp className="w-5 h-5 text-purple-400" />
+        <TrendingUp className="w-5 h-5 text-amber-400" />
       </div>
 
       {data ? (
@@ -438,7 +438,7 @@ const ChartWidget: React.FC<{ widget: Widget }> = ({ widget }) => {
     <GlassCard className="h-full p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">{widget.title}</h3>
-        <BarChart3 className="w-5 h-5 text-purple-400" />
+        <BarChart3 className="w-5 h-5 text-amber-400" />
       </div>
       <div className="h-32 bg-glass-bg rounded-lg flex items-center justify-center">
         <span className="text-gray-400">Chart visualization would go here</span>
@@ -467,7 +467,7 @@ const AIInsightWidget: React.FC<{ widget: Widget; insights: AIInsight[] }> = ({ 
     <GlassCard className="h-full p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">{widget.title}</h3>
-        <AlertTriangle className="w-5 h-5 text-purple-400" />
+        <AlertTriangle className="w-5 h-5 text-amber-400" />
       </div>
       <div className="space-y-3">
         {widgetInsights.slice(0, 3).map((insight) => (

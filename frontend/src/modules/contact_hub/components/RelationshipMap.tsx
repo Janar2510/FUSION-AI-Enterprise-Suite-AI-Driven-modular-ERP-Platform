@@ -64,14 +64,14 @@ export const RelationshipMap: React.FC = () => {
               placeholder="Search relationships..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
             />
           </div>
 
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+            className="px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           >
             <option value="all">All Relationships</option>
             <option value="person">Person-to-Person</option>
@@ -118,7 +118,7 @@ export const RelationshipMap: React.FC = () => {
           >
             {/* Central Node */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-purple to-accent-pink flex items-center justify-center text-white font-bold">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-bold">
                 You
               </div>
             </div>
@@ -193,7 +193,7 @@ export const RelationshipMap: React.FC = () => {
         {/* Legend */}
         <div className="mt-6 flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-gradient-to-r from-primary-purple to-accent-pink"></div>
+            <div className="w-4 h-4 rounded-full bg-gradient-to-r from-primary-500 to-accent-pink"></div>
             <span className="text-white/80 text-sm">You</span>
           </div>
           <div className="flex items-center gap-2">

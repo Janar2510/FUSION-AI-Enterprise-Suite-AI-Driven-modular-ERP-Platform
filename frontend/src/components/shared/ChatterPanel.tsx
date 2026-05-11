@@ -179,7 +179,7 @@ export const ChatterPanel: React.FC<Props> = ({
                         const msg = item.data;
                         return (
                             <div key={`msg-${msg.id}`} className="flex gap-2.5">
-                                <div className="w-7 h-7 rounded-full bg-indigo-500/30 border border-indigo-500/40 flex items-center justify-center text-[10px] font-bold text-indigo-300 shrink-0">
+                                <div className="w-7 h-7 rounded-full bg-amber-500/30 border border-amber-500/40 flex items-center justify-center text-[10px] font-bold text-amber-300 shrink-0">
                                     {msg.authorId ? msg.authorId.slice(0, 2).toUpperCase() : 'SY'}
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -213,7 +213,7 @@ export const ChatterPanel: React.FC<Props> = ({
                                 <Clock className="w-2.5 h-2.5 text-white/30" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-[10px] text-indigo-300/70 uppercase tracking-wide font-medium">
+                                <span className="text-[10px] text-amber-300/70 uppercase tracking-wide font-medium">
                                     {eventKeyLabel(ev.eventKey)}
                                 </span>
                                 <p className="text-xs text-white/50 leading-relaxed">{ev.summary}</p>
@@ -259,12 +259,12 @@ export const ChatterPanel: React.FC<Props> = ({
                         onKeyDown={e => {
                             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSend();
                         }}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-indigo-500/50 transition-colors resize-none"
+                        className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-amber-500/50 transition-colors resize-none"
                     />
                     <button
                         onClick={handleSend}
                         disabled={sending || !draft.trim()}
-                        className="self-end p-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-lg transition-colors"
+                        className="self-end p-2.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white rounded-lg transition-colors"
                         title="Send (Ctrl+Enter)"
                     >
                         {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

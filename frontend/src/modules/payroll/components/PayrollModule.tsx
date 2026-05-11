@@ -5,12 +5,15 @@ import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { usePayrollStore, HrPayslip } from '../stores/payrollStore';
 import { useContractsStore, HrContract } from '../stores/contractsStore';
 import { useHRStore } from '@/modules/hr/stores/hrStore';
-import { CheckCircle, DollarSign, FileText } from 'lucide-react';
+import { CheckCircle, DollarSign, FileText, CreditCard, ChevronRight } from 'lucide-react';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 const STATE_LABELS: Record<string, { label: string; cls: string }> = {
     draft: { label: 'Draft', cls: 'bg-gray-500/20 text-gray-400' },
     verify: { label: 'Waiting', cls: 'bg-blue-500/20 text-blue-400' },
-    done: { label: 'Done', cls: 'bg-green-500/20 text-green-400' },
+    done: { label: 'Confirmed', cls: 'bg-green-500/20 text-green-400' },
+    paid: { label: 'Paid', cls: 'bg-amber-500/20 text-amber-400' },
     cancel: { label: 'Cancelled', cls: 'bg-red-500/20 text-red-400' },
 };
 
@@ -24,7 +27,7 @@ const CONTRACT_STATE_LABELS: Record<string, { label: string; cls: string }> = {
 type Tab = 'payslips' | 'contracts';
 
 export const PayrollModule: React.FC = () => {
-    const { payslips, fetch, create, update, remove, confirm } = usePayrollStore();
+    const { payslips, fetch, create, update, remove, confirm, pay } = usePayrollStore();
     const { contracts, fetch: fetchContracts, create: createContract, update: updateContract, open: openContract, close: closeContract, remove: removeContract } = useContractsStore();
     const { employees, fetchEmployees } = useHRStore();
 
@@ -81,7 +84,7 @@ export const PayrollModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Payslips</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{payslips.length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Net Salary</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">${totalNet.toLocaleString()}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Draft</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{payslips.filter(p => p.state === 'draft').length}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Confirmed</p><p className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">{payslips.filter(p => p.state === 'done').length}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Confirmed</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">{payslips.filter(p => p.state === 'done').length}</p></div>
             </div>
             <OdooListBase data={filteredPayslips} onRowClick={handlePayslipRowClick} keyExtractor={t => t.id.toString()} columns={[
                 { key: 'name', label: 'Reference', render: t => <span className="font-bold font-mono">{t.name}</span> },
@@ -99,19 +102,33 @@ export const PayrollModule: React.FC = () => {
         <OdooFormBase
             statusRibbon={
                 <div className="flex items-center justify-between w-full">
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
                         {activePayslip && payslipForm.state === 'draft' && (
                             <button onClick={async () => { await confirm(activePayslip.id); setPayslipForm(p => ({ ...p, state: 'done' })); }}
                                 className="bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white px-4 py-1.5 rounded text-sm border border-green-500/30 flex items-center gap-1">
                                 <CheckCircle className="w-4 h-4" /> Confirm
                             </button>
                         )}
+                        {activePayslip && payslipForm.state === 'done' && (
+                            <button onClick={async () => { await pay(activePayslip.id); setPayslipForm(p => ({ ...p, state: 'paid' })); }}
+                                className="bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white px-4 py-1.5 rounded text-sm border border-amber-500/30 flex items-center gap-1">
+                                <CreditCard className="w-4 h-4" /> Register Payment
+                            </button>
+                        )}
                         {renderBadge(payslipForm.state || 'draft', STATE_LABELS)}
+                        <div className="flex text-xs font-medium ml-4">
+                            {['draft', 'done', 'paid'].map((s, idx) => (
+                                <div key={s} className="flex items-center">
+                                    <span className={`px-3 py-1 uppercase ${payslipForm.state === s ? 'text-primary-500 font-bold' : 'text-white/30'}`}>{s === 'done' ? 'Confirmed' : s}</span>
+                                    {idx < 2 && <ChevronRight className="w-4 h-4 text-white/20" />}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     {activePayslip && <button onClick={async () => { if (window.confirm('Delete?')) { await remove(activePayslip.id); setCurrentView('list'); } }} className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-1.5 rounded text-sm border border-red-500/30">Delete</button>}
                 </div>
             }
-            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white font-mono border-b border-transparent outline-none focus:border-primary-purple w-full" value={payslipForm.name || ''} onChange={e => setPayslipForm({ ...payslipForm, name: e.target.value })} />}
+            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white font-mono border-b border-transparent outline-none focus:border-primary-500 w-full" value={payslipForm.name || ''} onChange={e => setPayslipForm({ ...payslipForm, name: e.target.value })} />}
             leftPanels={
                 <div className="space-y-6"><div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2"><label className="text-white/60 text-sm">Employee</label>
@@ -128,12 +145,20 @@ export const PayrollModule: React.FC = () => {
                 </div></div>
             }
             rightPanels={
-                <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5 text-green-400" /> Salary Breakdown</h3>
-                    <div className="space-y-3 text-sm">
-                        <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-white/60">Basic Wage</span><span className="text-white font-mono">${(payslipForm.basicWage || 0).toFixed(2)}</span></div>
-                        <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-white/60">Deductions</span><span className="text-red-400 font-mono">-${(payslipForm.deductions || 0).toFixed(2)}</span></div>
-                        <div className="flex justify-between pt-1"><span className="text-white font-bold">Net Salary</span><span className="text-green-400 font-bold font-mono text-lg">${((payslipForm.basicWage || 0) - (payslipForm.deductions || 0)).toFixed(2)}</span></div>
+                <div className="space-y-4">
+                    {activePayslip && (
+                        <>
+                            <AiActionsPanel entityType="HrPayslip" entityId={String(activePayslip.id)} />
+                            <ChatterPanel ownerType="HrPayslip" ownerId={activePayslip.id} showTimeline />
+                        </>
+                    )}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+                        <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5 text-green-400" /> Salary Breakdown</h3>
+                        <div className="space-y-3 text-sm">
+                            <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-white/60">Basic Wage</span><span className="text-white font-mono">${(payslipForm.basicWage || 0).toFixed(2)}</span></div>
+                            <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-white/60">Deductions</span><span className="text-red-400 font-mono">-${(payslipForm.deductions || 0).toFixed(2)}</span></div>
+                            <div className="flex justify-between pt-1"><span className="text-white font-bold">Net Salary</span><span className="text-green-400 font-bold font-mono text-lg">${((payslipForm.basicWage || 0) - (payslipForm.deductions || 0)).toFixed(2)}</span></div>
+                        </div>
                     </div>
                 </div>
             }
@@ -165,7 +190,7 @@ export const PayrollModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{contracts.length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Running</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{runningContracts.length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">New</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{contracts.filter(c => c.state === 'new').length}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Payroll</p><p className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">${runningContracts.reduce((s, c) => s + c.wage, 0).toLocaleString()}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Payroll</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">${runningContracts.reduce((s, c) => s + c.wage, 0).toLocaleString()}</p></div>
             </div>
             <OdooListBase data={filteredContracts} onRowClick={handleContractRowClick} keyExtractor={c => c.id.toString()} columns={[
                 { key: 'name', label: 'Contract', render: c => <span className="font-bold">{c.name}</span> },
@@ -202,7 +227,7 @@ export const PayrollModule: React.FC = () => {
                 </div>
             }
             headerContent={
-                <input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-purple w-full"
+                <input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-500 w-full"
                     placeholder="Contract name..."
                     value={contractForm.name || ''} onChange={e => setContractForm({ ...contractForm, name: e.target.value })} />
             }
@@ -245,7 +270,7 @@ export const PayrollModule: React.FC = () => {
                     </div>
                     <div className="space-y-2 col-span-2">
                         <label className="text-white/60 text-sm">Notes</label>
-                        <textarea className="w-full h-28 bg-white/5 border border-white/10 rounded-md px-4 py-3 text-white text-sm outline-none focus:border-primary-purple resize-none"
+                        <textarea className="w-full h-28 bg-white/5 border border-white/10 rounded-md px-4 py-3 text-white text-sm outline-none focus:border-primary-500 resize-none"
                             value={contractForm.notes || ''}
                             onChange={e => setContractForm({ ...contractForm, notes: e.target.value })} />
                     </div>
@@ -281,7 +306,7 @@ export const PayrollModule: React.FC = () => {
                             { id: 'contracts', label: 'Contracts', icon: FileText },
                         ].map(({ id, label, icon: Icon }) => (
                             <button key={id} onClick={() => handleTabChange(id as Tab)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === id ? 'bg-primary-purple text-white' : 'text-white/60 hover:text-white'}`}>
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === id ? 'bg-primary-500 text-white' : 'text-white/60 hover:text-white'}`}>
                                 <Icon className="w-4 h-4" /> {label}
                             </button>
                         ))}

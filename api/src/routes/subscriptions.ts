@@ -1,8 +1,34 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { requireAuth } from '../core/auth';
 
 export const subscriptionRoutes = Router();
+subscriptionRoutes.use(requireAuth);
+
+// ── Recurring Plans CRUD ──────────────────────────────────────────────────────
+subscriptionRoutes.get('/plans', asyncHandler(async (_req, res) => {
+    const plans = await prisma.recurringPlan.findMany({
+        where: { active: true },
+        orderBy: { interval: 'asc' },
+    });
+    res.json(plans);
+}));
+
+subscriptionRoutes.post('/plans', asyncHandler(async (req, res) => {
+    const plan = await prisma.recurringPlan.create({ data: req.body });
+    res.status(201).json(plan);
+}));
+
+subscriptionRoutes.put('/plans/:id', asyncHandler(async (req, res) => {
+    const plan = await prisma.recurringPlan.update({ where: { id: +req.params.id }, data: req.body });
+    res.json(plan);
+}));
+
+subscriptionRoutes.delete('/plans/:id', asyncHandler(async (req, res) => {
+    await prisma.recurringPlan.update({ where: { id: +req.params.id }, data: { active: false } });
+    res.json({ success: true });
+}));
 
 // ── Subscriptions CRUD ────────────────────────────────────────────────────────
 subscriptionRoutes.get('/', asyncHandler(async (req, res) => {
@@ -16,6 +42,7 @@ subscriptionRoutes.get('/', asyncHandler(async (req, res) => {
             include: {
                 partner: { select: { id: true, name: true, email: true } },
                 lines: { include: { product: { select: { id: true, name: true } } } },
+                recurringPlan: { select: { id: true, name: true, code: true, interval: true } },
             },
             orderBy: { createdAt: 'desc' },
         }),
@@ -30,6 +57,7 @@ subscriptionRoutes.get('/:id', asyncHandler(async (req, res) => {
         include: {
             partner: true,
             lines: { include: { product: { select: { id: true, name: true } } } },
+            recurringPlan: true,
         },
     });
     if (!sub) { res.status(404).json({ error: 'Subscription not found' }); return; }

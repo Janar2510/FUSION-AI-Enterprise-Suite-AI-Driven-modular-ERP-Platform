@@ -101,7 +101,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
       case 'alert':
         return <AlertTriangle className="w-5 h-5 text-red-400" />;
       case 'prediction':
-        return <Brain className="w-5 h-5 text-purple-400" />;
+        return <Brain className="w-5 h-5 text-amber-400" />;
       default:
         return <Sparkles className="w-5 h-5 text-yellow-400" />;
     }
@@ -146,7 +146,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
           <div className="p-6 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-pink-500">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -186,7 +186,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`px-4 py-2 rounded-lg capitalize transition-all ${
                     activeTab === tab.id
-                      ? 'bg-primary-purple text-white'
+                      ? 'bg-primary-500 text-white'
                       : 'bg-white/5 text-white/60 hover:bg-white/10'
                   }`}
                 >
@@ -201,7 +201,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-purple mx-auto mb-4"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
                   <p className="text-white/60">Analyzing data with AI...</p>
                 </div>
               </div>
@@ -290,7 +290,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
                 <button className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 text-sm">
                   Export Insights
                 </button>
-                <button className="px-4 py-2 bg-gradient-to-r from-primary-purple to-accent-pink text-white rounded-lg text-sm">
+                <button className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg text-sm">
                   Apply Recommendations
                 </button>
               </div>

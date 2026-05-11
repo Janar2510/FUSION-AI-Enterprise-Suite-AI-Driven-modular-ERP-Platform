@@ -9,14 +9,20 @@ knowledgeRoutes.use(requireAuth);
 
 knowledgeRoutes.get('/', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
+    const parentId = req.query.parentId ? parseInt(req.query.parentId as string) : undefined;
+    const topLevel = req.query.topLevel === 'true';
+    const where: any = {};
+    if (topLevel) where.parentId = null;
+    else if (parentId !== undefined) where.parentId = parentId;
     const [data, total] = await Promise.all([
         prisma.knowledgeArticle.findMany({
+            where,
             skip,
             take: limit,
-            include: { workspace: true },
+            include: { workspace: true, _count: { select: { children: true } } },
             orderBy: { updatedAt: 'desc' }
         }),
-        prisma.knowledgeArticle.count(),
+        prisma.knowledgeArticle.count({ where }),
     ]);
     res.json(paginatedResponse(data, total, page, limit));
 }));
@@ -36,7 +42,12 @@ knowledgeRoutes.post('/workspaces', asyncHandler(async (req, res) => {
 knowledgeRoutes.get('/:id', asyncHandler(async (req, res) => {
     const record = await prisma.knowledgeArticle.findUnique({
         where: { id: parseInt(req.params.id) },
-        include: { workspace: true, revisions: { take: 5, orderBy: { createdAt: 'desc' } } }
+        include: {
+            workspace: true,
+            revisions: { take: 5, orderBy: { createdAt: 'desc' } },
+            children: { select: { id: true, title: true, isPublished: true } },
+            parent: { select: { id: true, title: true } },
+        }
     });
     if (!record) {
         res.status(404).json({ error: 'Article not found' });

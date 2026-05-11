@@ -38,6 +38,8 @@ export interface ProjectTask {
   projectId: number;
   project?: ProjectProject;
   parentId?: number | null;
+  assigneeId?: number | null;
+  assignee?: { id: number; name: string } | null;
 }
 
 interface ProjectStore {

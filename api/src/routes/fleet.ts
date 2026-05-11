@@ -118,3 +118,57 @@ fleetRoutes.get('/analytics', asyncHandler(async (_req, res) => {
         expiringContracts,
     });
 }));
+
+// Cost rollup per vehicle
+fleetRoutes.get('/costs', asyncHandler(async (req, res) => {
+    const vehicleId = req.query.vehicleId ? parseInt(req.query.vehicleId as string) : undefined;
+    const where: any = {};
+    if (vehicleId) where.vehicleId = vehicleId;
+
+    const [logs, contracts] = await Promise.all([
+        prisma.fleetVehicleLog.groupBy({
+            by: ['vehicleId', 'type'],
+            where,
+            _sum: { amount: true },
+            _count: true,
+        }),
+        prisma.fleetContract.findMany({
+            where: vehicleId ? { vehicleId } : {},
+            select: { id: true, vehicleId: true, costPerMonth: true },
+        }),
+    ]);
+
+    // Contract annualized cost estimate (costPerMonth × 12)
+    const contractCost = contracts.reduce((sum, c) => {
+        return sum + (c.costPerMonth ?? 0) * 12;
+    }, 0);
+
+    const logsByVehicle = logs.reduce((acc, g) => {
+        const vid = g.vehicleId;
+        if (!acc[vid]) acc[vid] = { vehicleId: vid, total: 0, byType: [] };
+        const amount = g._sum.amount ?? 0;
+        acc[vid].total += amount;
+        acc[vid].byType.push({ type: g.type, amount, count: g._count });
+        return acc;
+    }, {} as Record<number, any>);
+
+    res.json({
+        vehicleId: vehicleId ?? null,
+        vehicles: Object.values(logsByVehicle),
+        contractCostAnnualized: contractCost,
+        grandTotal: Object.values(logsByVehicle).reduce((s: number, v: any) => s + v.total, 0) + contractCost,
+    });
+}));
+
+// Expiry alerts — contracts expiring within N days
+fleetRoutes.get('/alerts', asyncHandler(async (req, res) => {
+    const days = parseInt((req.query.days as string) ?? '30');
+    const cutoff = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    const expiring = await prisma.fleetContract.findMany({
+        where: { expirationDate: { lte: cutoff }, state: 'open' },
+        include: { vehicle: { select: { id: true, name: true } } },
+        orderBy: { expirationDate: 'asc' },
+    });
+    res.json(expiring);
+}));
+

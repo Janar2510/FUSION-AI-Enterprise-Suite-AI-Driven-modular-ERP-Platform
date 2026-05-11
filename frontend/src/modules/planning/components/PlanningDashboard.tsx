@@ -11,11 +11,11 @@ import { format } from 'date-fns';
 
 const STATE_BADGES: Record<string, { label: string; cls: string }> = {
   draft: { label: 'DRAFT_SPEC', cls: 'bg-white/5 text-white/30 border-white/10 shadow-none' },
-  published: { label: 'LIVE_ALLOCATION', cls: 'bg-primary-purple/10 text-primary-purple border-primary-purple/30 shadow-[0_0_15px_rgba(168,85,247,0.2)]' },
+  published: { label: 'LIVE_ALLOCATION', cls: 'bg-primary-500/10 text-primary-500 border-primary-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' },
 };
 
 export const PlanningModule: React.FC = () => {
-  const { items, recommendations, conflict, fetch, fetchRecommendations, create, update, remove } = usePlanningStore();
+  const { items, recommendations, conflict, fetch, fetchRecommendations, create, update, remove, publishSlots } = usePlanningStore();
   const [currentView, setCurrentView] = useState<ViewType>('timeline');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeRecord, setActiveRecord] = useState<PlanningSlot | null>(null);
@@ -90,7 +90,7 @@ export const PlanningModule: React.FC = () => {
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10 pt-4">
       {[
         { label: 'ACTIVE_SLOTS', value: items.length, icon: CalendarRange, color: 'text-white' },
-        { label: 'TOTAL_CAPACITY', value: `${items.reduce((s, sl) => s + sl.hours, 0)}H`, icon: TrendingUp, color: 'text-primary-purple' },
+        { label: 'TOTAL_CAPACITY', value: `${items.reduce((s, sl) => s + sl.hours, 0)}H`, icon: TrendingUp, color: 'text-primary-500' },
         { label: 'RESOURCES_ALLOCATED', value: new Set(items.map(s => s.employeeId)).size, icon: Users, color: 'text-white' },
         { label: 'PUBLISH_RATE', value: `${Math.round((items.filter(s => s.state === 'published').length / (items.length || 1)) * 100)}%`, icon: Target, color: 'text-green-400' },
       ].map((c, i) => (
@@ -122,7 +122,7 @@ export const PlanningModule: React.FC = () => {
                   await update(activeRecord.id, { state: 'published' });
                   setFormData((p: any) => ({ ...p, state: 'published' }));
                 }}
-                className="bg-primary-purple hover:bg-primary-purple/80 text-white px-8 py-2 rounded-none text-[10px] font-black uppercase tracking-[3px] shadow-[0_0_25px_rgba(168,85,247,0.4)] transition-all"
+                className="bg-primary-500 hover:bg-primary-500/80 text-white px-8 py-2 rounded-none text-[10px] font-black uppercase tracking-[3px] shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all"
               >
                 Execute Allocation
               </button>
@@ -137,7 +137,7 @@ export const PlanningModule: React.FC = () => {
       headerContent={
         <div className="flex flex-col gap-3 py-10">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-2 h-6 bg-primary-purple shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
+            <div className="w-2 h-6 bg-primary-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]"></div>
             <span className="text-[10px] font-black text-white/40 uppercase tracking-[6px]">Planning_Protocol.obs</span>
           </div>
           <h2 className="text-6xl font-black text-white tracking-tighter">{activeRecord ? `SLOT_ID_${activeRecord.id}` : 'NEW_ALLOCATION_PRTC'}</h2>
@@ -188,23 +188,41 @@ export const PlanningModule: React.FC = () => {
                 <div className="relative group">
                   <input
                     type={f.type}
-                    className="w-full bg-black/40 border border-white/10 px-5 py-4 text-white font-black text-sm outline-none focus:border-primary-purple/50 transition-all tracking-[2px] rounded-none placeholder-white/10"
+                    className="w-full bg-black/40 border border-white/10 px-5 py-4 text-white font-black text-sm outline-none focus:border-primary-500/50 transition-all tracking-[2px] rounded-none placeholder-white/10"
                     value={f.type === 'date' ? (formData[f.key]?.slice(0, 10)) : (formData[f.key] || '')}
                     placeholder={f.placeholder}
                     onChange={(e) => setFormData({ ...formData, [f.key]: f.type === 'date' ? new Date(e.target.value).toISOString() : e.target.value })}
                   />
-                  <div className="absolute inset-0 border border-primary-purple/0 group-focus-within:border-primary-purple/30 transition-all pointer-events-none scale-105 opacity-0 group-focus-within:opacity-100"></div>
+                  <div className="absolute inset-0 border border-primary-500/0 group-focus-within:border-primary-500/30 transition-all pointer-events-none scale-105 opacity-0 group-focus-within:opacity-100"></div>
                 </div>
               </div>
             ))}
             <div className="col-span-2 space-y-4">
               <label className="text-white/30 text-[9px] font-black uppercase tracking-[3px] ml-1">Strategic_Context</label>
               <textarea
-                className="w-full h-40 bg-black/40 border border-white/10 px-6 py-5 text-white text-sm font-medium outline-none focus:border-primary-purple/50 transition-all resize-none leading-relaxed tracking-wider rounded-none placeholder-white/5"
+                className="w-full h-40 bg-black/40 border border-white/10 px-6 py-5 text-white text-sm font-medium outline-none focus:border-primary-500/50 transition-all resize-none leading-relaxed tracking-wider rounded-none placeholder-white/5"
                 placeholder="// Enter deployment notes..."
                 value={formData.note || ''}
                 onChange={(e) => setFormData({ ...formData, note: e.target.value })}
               />
+            </div>
+            <div className="col-span-2 space-y-4">
+              <label className="text-white/30 text-[9px] font-black uppercase tracking-[3px] ml-1 flex items-center gap-3">
+                <span>Recurrence_Protocol</span>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" className="rounded" checked={!!formData.isRecurring} onChange={e => setFormData({ ...formData, isRecurring: e.target.checked })} />
+                  <span className="text-white/40 text-[9px] font-black uppercase tracking-[2px]">Enable</span>
+                </label>
+              </label>
+              {formData.isRecurring && (
+                <input
+                  type="text"
+                  className="w-full bg-black/40 border border-white/10 px-5 py-4 text-white font-mono text-sm outline-none focus:border-primary-500/50 transition-all tracking-[1px] rounded-none placeholder-white/10"
+                  placeholder="FREQ=WEEKLY;BYDAY=MO,WE,FR"
+                  value={formData.recurrenceRule || ''}
+                  onChange={(e) => setFormData({ ...formData, recurrenceRule: e.target.value })}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -213,8 +231,8 @@ export const PlanningModule: React.FC = () => {
         <div className="space-y-10">
           <div className="bg-white/5 border border-white/10 p-8 shadow-2xl backdrop-blur-2xl ring-1 ring-white/10 rounded-2xl">
             <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[5px] mb-8 flex items-center gap-4">
-              <div className="w-5 h-5 bg-primary-purple/20 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-3 h-3 text-primary-purple shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+              <div className="w-5 h-5 bg-primary-500/20 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-3 h-3 text-primary-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
               </div>
               Neural_Resource_Scan
             </h3>
@@ -226,7 +244,7 @@ export const PlanningModule: React.FC = () => {
                     <button
                       key={skill.id}
                       onClick={() => setSelectedSkillIds(prev => prev.includes(skill.id) ? prev.filter(i => i !== skill.id) : [...prev, skill.id])}
-                      className={`px-4 py-2 text-[9px] font-black tracking-widest border transition-all rounded-none uppercase ${selectedSkillIds.includes(skill.id) ? 'bg-primary-purple border-primary-purple text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'bg-white/5 border-white/10 text-white/30 hover:text-white hover:bg-white/10'}`}
+                      className={`px-4 py-2 text-[9px] font-black tracking-widest border transition-all rounded-none uppercase ${selectedSkillIds.includes(skill.id) ? 'bg-primary-500 border-primary-500 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'bg-white/5 border-white/10 text-white/30 hover:text-white hover:bg-white/10'}`}
                     >
                       {skill.name}
                     </button>
@@ -235,9 +253,9 @@ export const PlanningModule: React.FC = () => {
                 <button
                   onClick={() => fetchRecommendations(selectedSkillIds, formData.startDate, formData.endDate)}
                   disabled={selectedSkillIds.length === 0}
-                  className="w-full bg-primary-purple/10 hover:bg-primary-purple/20 text-white text-xs font-black uppercase tracking-[4px] py-4 transition-all flex items-center justify-center gap-3 border border-primary-purple/30 disabled:opacity-20 backdrop-blur-xl group"
+                  className="w-full bg-primary-500/10 hover:bg-primary-500/20 text-white text-xs font-black uppercase tracking-[4px] py-4 transition-all flex items-center justify-center gap-3 border border-primary-500/30 disabled:opacity-20 backdrop-blur-xl group"
                 >
-                  <Search className="w-4 h-4 text-primary-purple group-hover:scale-110 transition-transform" />
+                  <Search className="w-4 h-4 text-primary-500 group-hover:scale-110 transition-transform" />
                   INITIATE_MATCH_SEQUENCE
                 </button>
               </div>
@@ -251,7 +269,7 @@ export const PlanningModule: React.FC = () => {
                         key={rec.employee.id}
                         whileHover={{ x: 4 }}
                         onClick={() => setFormData((p: any) => ({ ...p, employeeId: rec.employee.id }))}
-                        className={`group p-5 border transition-all cursor-pointer flex items-center justify-between rounded-xl ${formData.employeeId === rec.employee.id ? 'bg-primary-purple/20 border-primary-purple ring-1 ring-primary-purple/40' : 'bg-black/60 border-white/5 hover:border-white/20'}`}
+                        className={`group p-5 border transition-all cursor-pointer flex items-center justify-between rounded-xl ${formData.employeeId === rec.employee.id ? 'bg-primary-500/20 border-primary-500 ring-1 ring-primary-500/40' : 'bg-black/60 border-white/5 hover:border-white/20'}`}
                       >
                         <div className="flex flex-col gap-2">
                           <span className="text-sm font-black text-white tracking-wide uppercase">{rec.employee.name}</span>
@@ -263,12 +281,12 @@ export const PlanningModule: React.FC = () => {
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-lg font-black text-primary-purple tracking-tighter">{Math.round(rec.matchScore)}%</span>
+                            <span className="text-lg font-black text-primary-500 tracking-tighter">{Math.round(rec.matchScore)}%</span>
                           </div>
                           <AnimatePresence>
                             {formData.employeeId === rec.employee.id && (
                               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                                <CheckCircle2 className="w-5 h-5 text-primary-purple shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+                                <CheckCircle2 className="w-5 h-5 text-primary-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
                               </motion.div>
                             )}
                           </AnimatePresence>
@@ -332,6 +350,17 @@ export const PlanningModule: React.FC = () => {
           {currentView === 'list' && (
             <div className="pt-4">
               {renderDashboard()}
+              <div className="flex justify-end mb-3">
+                <button
+                  onClick={async () => {
+                    const count = await publishSlots(undefined, true);
+                    alert(`${count} slot(s) published and employees notified.`);
+                  }}
+                  className="bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white px-5 py-2 rounded text-xs font-bold border border-green-500/30 flex items-center gap-2"
+                >
+                  Publish All Drafts + Notify
+                </button>
+              </div>
               <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-2xl shadow-2xl ring-1 ring-white/10">
                 <OdooListBase<PlanningSlot>
                   data={filtered}
@@ -341,7 +370,7 @@ export const PlanningModule: React.FC = () => {
                     { key: 'employee', label: 'RESOURCE', render: (s) => <span className="font-black text-white uppercase tracking-wider">{s.employee?.name || 'ROOT_EMPTY'}</span> },
                     { key: 'role', label: 'JOB_ROLE', render: (s) => <span className="text-white/40 font-bold uppercase text-[10px] tracking-widest">{s.role}</span> },
                     { key: 'project', label: 'ACTIVE_PROJECT', render: (s) => <span className="text-white/60 font-medium">{s.project?.name || '—'}</span> },
-                    { key: 'hours', label: 'ALLOC_HOURS', render: (s) => <span className="font-black text-primary-purple text-lg tracking-tighter">{s.hours}H</span> },
+                    { key: 'hours', label: 'ALLOC_HOURS', render: (s) => <span className="font-black text-primary-500 text-lg tracking-tighter">{s.hours}H</span> },
                     { key: 'startDate', label: 'SCHEDULED_DATE', render: (s) => <span className="text-white/30 font-mono text-[11px]">{new Date(s.startDate).toLocaleDateString()}</span> },
                     { key: 'state', label: 'LIFECYCLE', render: (s) => renderStateBadge(s.state) },
                   ]}

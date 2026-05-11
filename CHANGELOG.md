@@ -4,7 +4,133 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
-## [Unreleased] — Sprint 12: Persistence & Frontend Wiring — 2026-05-10
+## [Unreleased] — Marketing Automation Activities — 2026-05-11
+
+### Added
+- **Marketing Automation — CampaignActivity model** with activity type (`email`, `sms`, `server_action`), sequence ordering, delay settings, template reference, draft content fields, state, and success/rejected counters.
+- **Marketing Automation — CampaignParticipant model** with campaign-scoped target tracking, idempotent unique constraint (`campaignId`, `targetModel`, `targetId`), participant state, contact fields, and metadata support.
+- **Campaign activity API** on `api/src/routes/campaigns.ts`:
+  - `GET /api/campaigns/:id/activities`
+  - `POST /api/campaigns/:id/activities`
+  - `PUT /api/campaigns/:id/activities/:activityId`
+  - `DELETE /api/campaigns/:id/activities/:activityId`
+- **Audience targeting API** on `api/src/routes/campaigns.ts`:
+  - `GET /api/campaigns/:id/participants`
+  - `POST /api/campaigns/:id/participants/resolve`
+  - Supports allowlisted Partner filters (`consentMarketing`, `isCustomer`, `isCompany`, `city`, `search`) and CRM Lead filters (`active`, `type`, `minProbability`, `minExpectedRevenue`, `search`).
+- **Focused API tests** for campaign activity list/create validation and missing-campaign handling.
+
+### Infrastructure
+- Added Prisma migration `20260511005000_marketing_campaign_activities`.
+- Added Prisma migration `20260511010000_marketing_campaign_participants`.
+
+## [Unreleased] — Design System Purge: Purple → Amber — 2026-05-11
+
+### Changed
+- **Global color purge** — replaced all hardcoded `purple`/`indigo`/`violet` Tailwind classes with `amber`/`orange` across 116 frontend files to match the design token system (`--accent-primary: #f59e0b`, `--accent-secondary: #f97316`)
+- `primary-purple` custom class references replaced with `primary-500` (Tailwind amber-500)
+- `--color-info` token updated from indigo-500 to amber-500
+- `tokens.ts` `info` color aligned to `#f59e0b`
+- All hex purple/indigo/violet color literals replaced with amber equivalents
+
+## [Unreleased] — Sprint 20: AI Rollout + Production Hardening — 2026-05-10
+
+### Added
+- **AI Agents — 6 new production agents** registered in `api/src/routes/ai-actions.ts`:
+  - `optimize_production` (Manufacturing): suggests batch sizes and scheduling optimizations based on current shop floor data.
+  - `knowledge-article-draft` (Knowledge): drafts a knowledge base article from a topic, category, and content hints.
+  - `recommend_training` (HR): recommends training courses for an employee based on role, skills gap, and department.
+  - `analyze_performance` (HR): produces a performance narrative with strengths, areas for improvement, and recommended next steps.
+  - `predict_churn` (Subscriptions): predicts churn risk for a subscription based on MRR, days active, and usage signals.
+  - `evaluate_vendor` (Purchases): scores a vendor on quality, pricing, reliability, and payment terms using historical order data.
+- **RAG Permission Filter** (`api/src/core/rag/index.ts`): new `RagService` class enforces `userId`/`orgId` on all vector index and search operations. Includes `VectorAdapter` interface and `InMemoryVectorAdapter` for dev/test. Prevents cross-tenant document leakage.
+- **Golden-set AI evals** (`api/src/__tests__/ai/agents.eval.test.ts`): comprehensive test suite for all 6 new agents; mocks Anthropic SDK and Prisma to validate output shapes and quality gates without real API calls. Acts as a CI gate.
+- **ChatterPanel + AiActionsPanel** wired to remaining modules: Appraisals, Fleet, Leaves, Payroll, Rental, Sign.
+- **Auth on every route** — `requireAuth` added to previously unprotected routes: `automation`, `calendar`, `campaigns`, `dashboard`, `planning`, `pos`, `settings`, `skills`, `spreadsheet`. eCommerce AI endpoints also now require auth.
+
+### Changed
+- `api/src/core/ai/index.ts`: exported `getAgent()` and `listAgents()` functions to allow test introspection of the agent registry.
+
+### Infrastructure
+- `DeploymentChecklist.md` updated with Sprint 20 completion status and remaining pre-go-live items.
+
+## [Unreleased] — Sprint 17: Inventory Phase 1 + Payroll Foundation — 2026-05-10
+
+### Added
+- **Inventory — Backorder API** (`POST /api/inventory/pickings/:id/backorder`): creates a new picking for remaining (unfinished) move quantities of a `done` picking; sets `backorderId` to source picking.
+- **Inventory — Return API** (`POST /api/inventory/pickings/:id/return`): creates a reverse transfer for a `done` picking; reverses source/dest locations; supports optional `moveQtys` body to return partial quantities; sets `returnId`.
+- **Inventory — Schema**: `StockPicking.backorderId` and `StockPicking.returnId` nullable FK fields added; migration `sprint17_inventory_backorder_return`.
+- **Inventory — ChatterPanel on transfer form** (`InventoryModule.tsx`): `ChatterPanel` with `resourceModel="stock.picking"` added to `rightPanels` of the picking form; renders only when viewing an existing record.
+- **Payroll — Payslip API** (`/api/hr/payslips`): full CRUD + state transitions `PATCH /confirm` (draft→done), `PATCH /pay` (done→paid), `PATCH /reset` (→draft); backed by existing `HrPayslip` schema model.
+- **Payroll — State pipeline UI** (`PayrollModule.tsx`): added "Register Payment" button for `done→paid` transition; added `paid` state to `STATE_LABELS`; state pipeline breadcrumb (Draft → Confirmed → Paid) visible on the form ribbon.
+- **Payroll store** (`payrollStore.ts`): API endpoints updated from `/api/payroll` to `/api/hr/payslips`; `pay()` action added.
+
+### Fixed
+- **Inventory — TypeScript**: corrected `productUomQty` → `productQty` and added required `locationId`/`locationDestId`/`qtyDone` fields in backorder/return move creation.
+
+### Notes
+- `HrContract` model and full CRUD + `open`/`close` endpoints already existed from a prior sprint; verified complete.
+- Inventory adjustments (`POST /api/inventory/adjustments`) already existed; verified complete.
+- Contracts smart button on employee form in `HRModule.tsx` already navigates to Payroll module.
+
+
+
+### Added
+- **Leaves — Team Calendar API** (`GET /api/hr/leaves/calendar?month=YYYY-MM`): returns all `validate`-state leaves for the given month as structured calendar events (title, start, end, employeeName, leaveTypeName, leaveTypeColor).
+- **Leaves — Team Calendar UI** (`LeavesModule.tsx`): new "Team Calendar" tab with a full monthly grid; month navigation with ChevronLeft/ChevronRight; per-day leave cards colour-coded by `HrLeaveType.color`; fetches from the calendar API on tab switch or month change.
+- **Manufacturing — Kanban view** (`ManufacturingModule.tsx`): production orders rendered as Kanban columns (Draft / In Progress / Done / Cancelled); added `'kanban'` to `viewsAvailable` for the orders view; `renderOrdersKanban()` function.
+
+### Fixed
+- **Portal (`portal.ts`)**: corrected field references `invoice.invoiceDate` → `invoice.date`, `invoice.invoiceDateDue` → `invoice.dueDate` to match `AccountMove` schema (TypeScript error resolved).
+- **Prisma client regenerated**: picked up `SaleOrder.pricelistId` from `sprint15_sale_order_pricelist` migration; sales.ts TypeScript errors resolved.
+
+### Notes
+- Manufacturing: backorder (`POST /orders/:id/backorder`), scrap (`POST /orders/:id/scrap`), and ChatterPanel were already implemented in the codebase; verified complete.
+- Leaves: `HrLeaveType`, `HrLeaveAllocation`, and all CRUD + approve/refuse endpoints were already implemented; team calendar was the only missing piece.
+
+
+
+### Added
+- **Pricelist engine** (`api/src/core/pricelist.service.ts`): `computeLinePrice(productId, partnerId, qty, pricelistId)` resolves unit price via active `PricelistLine` records (fixed price or % discount, quantity breaks, date ranges); falls back to `product.salesPrice`.
+- **Sales order — pricelist wiring**: `POST /api/sales` and `PUT /api/sales/:id` now call `calculateTotalsWithPricelist`, auto-resolving unit prices from the partner's default pricelist (or explicit header pricelist).
+- **`GET /api/sales/pricelists`**: lists active pricelists for the order-form selector.
+- **`GET /api/sales/line-price`**: returns resolved unit price for a single product+qty+pricelist combination (used by frontend live-preview).
+- **Sales form — pricelist selector**: dropdown added to sale order form header; fetches `/api/sales/pricelists` on mount; selected `pricelistId` is sent with order save.
+- **`SaleOrder.pricelistId`** schema field: optional FK to `Pricelist`; migration `sprint15_sale_order_pricelist` created.
+- **Portal access layer** (`api/src/routes/portal.ts`, `GET /api/portal/invoices/:token`): ADR-0015 implementation — HMAC-SHA256 signed short-lived tokens; `POST /api/portal/token` (auth required) generates tokens; `GET /api/portal/invoices/:token` (public) returns safe invoice view. Mounted before global `requireAuth` guard.
+
+### Architecture
+- ADR-0014 implemented: Invoicing module retains its own API; `InvoicingDashboard` remains. Portal access layer is the bridge for external customer invoice views.
+- ADR-0015 implemented: Portal token mechanism live at `/api/portal/*`.
+
+---
+
+## [Unreleased] — Sprint 14: Accounting Reports + CRM Activities + Mark Lost Modal — 2026-05-10
+
+### Added
+- **CRM "Mark Lost" modal**: button in `CRMModule.tsx` now opens a modal with an optional reason text field; calls `PATCH /api/crm/leads/:id/lost` on confirm; updates local form state.
+- **`PATCH /api/crm/leads/:id/lost`** endpoint: sets `active: false` and optionally `lostReason` on the lead.
+- (Accounting financial reports and CRM activities were already implemented in prior sprints — verified complete.)
+
+---
+
+## [Unreleased] — Sprint 13: Critical Bug Fixes + Architectural ADRs — 2026-05-10
+
+### Fixed
+- **`GET /api/settings/users` route shadow**: `GET /:module` was registered before `/users`, swallowing user-list calls. Moved `/users` first.
+- **Helpdesk SLA reset**: `PATCH /api/helpdesk/tickets/:id/sla-reset` was listed as complete in TODO.md but handler was missing. Implemented: resets `slaDeadline` to `now + slaHours` and clears `slaExceeded`.
+- **`invoicing` module invisible**: not registered in `ModulePage.tsx` route switch. Added `case 'invoicing'` → `<InvoicingDashboard />`.
+
+### Architecture (ADRs)
+- `docs/adr/0014-invoicing-accounting-consolidation.md` — Invoicing module UI merges into Accounting views.
+- `docs/adr/0015-portal-access-layer.md` — `/api/portal/*` with short-lived HMAC-SHA256 tokens.
+- `docs/adr/0016-file-storage-strategy.md` — MinIO (S3-compatible) as primary file storage.
+- `docs/adr/0017-websocket-auth.md` — JWT in WS handshake query parameter.
+- `docs/adr/0018-email-provider.md` — Wire `core/email/index.ts` to configured SMTP env vars.
+
+---
+
+
 
 ### Added
 - **Sign module — full persistence**: new `sign_requests` + `sign_signers` Prisma models; CRUD API at `/api/sign/requests` including signer-submit (`PUT /:id/sign`) and add-signer (`POST /:id/signers`); frontend `signStore` rewritten to use real API instead of in-memory state.

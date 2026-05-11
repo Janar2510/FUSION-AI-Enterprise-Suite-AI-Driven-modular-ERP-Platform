@@ -100,7 +100,7 @@ export const TimesheetsModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Description..."
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -114,7 +114,7 @@ export const TimesheetsModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Date</label>
                             <input
                                 type="date"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.date?.split('T')[0] || ''}
                                 onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toISOString() })}
                             />
@@ -122,7 +122,7 @@ export const TimesheetsModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Employee</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.employeeId || ''}
                                 onChange={(e) => setFormData({ ...formData, employeeId: parseInt(e.target.value) })}
                             >
@@ -135,7 +135,7 @@ export const TimesheetsModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Project</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.projectId || ''}
                                 onChange={(e) => setFormData({ ...formData, projectId: parseInt(e.target.value) })}
                             >
@@ -148,7 +148,7 @@ export const TimesheetsModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Task</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 disabled={!formData.projectId}
                                 value={formData.taskId || ''}
                                 onChange={(e) => setFormData({ ...formData, taskId: parseInt(e.target.value) })}
@@ -166,7 +166,7 @@ export const TimesheetsModule: React.FC = () => {
                                 type="number"
                                 step="0.25"
                                 min="0"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all font-mono"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all font-mono"
                                 value={formData.unitAmount || 0}
                                 onChange={(e) => setFormData({ ...formData, unitAmount: parseFloat(e.target.value) })}
                             />

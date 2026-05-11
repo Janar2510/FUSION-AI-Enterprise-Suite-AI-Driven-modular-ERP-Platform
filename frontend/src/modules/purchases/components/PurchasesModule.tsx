@@ -215,7 +215,7 @@ export const PurchasesModule: React.FC = () => {
                                 if (!activeOrder) return;
                                 try { await postBill(activeOrder.id); toast.success('Bill posted'); }
                                 catch { toast.error('Failed to post bill'); }
-                            }} className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm">
+                            }} className="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm">
                                 Post Bill
                             </button>
                         )}
@@ -224,7 +224,7 @@ export const PurchasesModule: React.FC = () => {
                                 if (!activeOrder) return;
                                 try { await payBill(activeOrder.id); toast.success('Bill paid'); }
                                 catch { toast.error('Failed to register payment'); }
-                            }} className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm">
+                            }} className="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2 rounded-md font-medium transition-colors text-sm">
                                 Register Payment
                             </button>
                         )}

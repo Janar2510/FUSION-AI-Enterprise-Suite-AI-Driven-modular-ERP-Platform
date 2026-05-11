@@ -238,7 +238,7 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               >
-                <RefreshCw className="w-6 h-6 text-purple-400" />
+                <RefreshCw className="w-6 h-6 text-amber-400" />
               </motion.div>
             </div>
           )}
@@ -279,7 +279,7 @@ const WidgetCard: React.FC<WidgetCardProps> = ({
               </span>
             )}
             <span className={`text-xs px-2 py-1 rounded ${
-              widget.color_scheme === 'purple' ? 'bg-purple-500/20 text-purple-400' :
+              widget.color_scheme === 'purple' ? 'bg-amber-500/20 text-amber-400' :
               widget.color_scheme === 'blue' ? 'bg-blue-500/20 text-blue-400' :
               widget.color_scheme === 'green' ? 'bg-green-500/20 text-green-400' :
               'bg-gray-500/20 text-gray-400'

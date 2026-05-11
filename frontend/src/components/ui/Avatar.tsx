@@ -20,11 +20,11 @@ function initials(name: string): string {
 function nameGradient(name: string): [string, string] {
   const palettes: Array<[string, string]> = [
     ['#f59e0b', '#f97316'],
-    ['#6366f1', '#8b5cf6'],
+    ['#f59e0b', '#f59e0b'],
     ['#10b981', '#14b8a6'],
     ['#ef4444', '#f97316'],
-    ['#ec4899', '#8b5cf6'],
-    ['#06b6d4', '#6366f1'],
+    ['#ec4899', '#f59e0b'],
+    ['#06b6d4', '#f59e0b'],
   ]
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) % palettes.length

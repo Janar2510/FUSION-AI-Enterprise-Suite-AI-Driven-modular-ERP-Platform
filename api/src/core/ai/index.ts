@@ -57,6 +57,14 @@ export function registerAgent(key: string, fn: AgentFn) {
     registry.set(key, fn);
 }
 
+export function getAgent(key: string): AgentFn | undefined {
+    return registry.get(key);
+}
+
+export function listAgents(): string[] {
+    return Array.from(registry.keys());
+}
+
 // ── Runner ───────────────────────────────────────────────────────────────────
 
 export async function runAgent(

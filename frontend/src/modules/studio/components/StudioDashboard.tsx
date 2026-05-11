@@ -15,13 +15,13 @@ const mockCustomizations = [
 const StudioDashboard: React.FC = () => {
   const [items] = useState(mockCustomizations);
   const typeIcons: Record<string, JSX.Element> = { view: <Layout className="w-4 h-4" />, field: <Database className="w-4 h-4" />, automation: <Settings className="w-4 h-4" />, report: <Code className="w-4 h-4" /> };
-  const typeColors: Record<string, string> = { view: 'bg-blue-500/20 text-blue-400', field: 'bg-green-500/20 text-green-400', automation: 'bg-purple-500/20 text-purple-400', report: 'bg-orange-500/20 text-orange-400' };
+  const typeColors: Record<string, string> = { view: 'bg-blue-500/20 text-blue-400', field: 'bg-green-500/20 text-green-400', automation: 'bg-amber-500/20 text-amber-400', report: 'bg-orange-500/20 text-orange-400' };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-purple to-secondary-purple p-6">
+    <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-purple p-6">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(3)].map((_, i) => (
-          <motion.div key={i} className="absolute rounded-full bg-gradient-to-r from-purple-500/10 to-violet-500/10 blur-3xl"
+          <motion.div key={i} className="absolute rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 blur-3xl"
             style={{ width: `${280 + i * 90}px`, height: `${280 + i * 90}px`, left: `${12 + i * 26}%`, top: `${6 + i * 22}%` }}
             animate={{ x: [0, 50, 0], y: [0, -35, 0] }} transition={{ duration: 22 + i * 3, repeat: Infinity, ease: "easeInOut" }} />
         ))}
@@ -30,16 +30,16 @@ const StudioDashboard: React.FC = () => {
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3"><Brush className="w-10 h-10 text-purple-400" />Studio</h1>
+              <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3"><Brush className="w-10 h-10 text-amber-400" />Studio</h1>
               <p className="text-white/70 text-lg">No-code customization and app builder</p>
             </div>
-            <button className="px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"><Plus className="w-5 h-5" />New Customization</button>
+            <button className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"><Plus className="w-5 h-5" />New Customization</button>
           </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
           <MetricGrid metrics={[
-            { title: 'Customizations', value: items.length, icon: Brush, color: 'text-purple-400' },
+            { title: 'Customizations', value: items.length, icon: Brush, color: 'text-amber-400' },
             { title: 'Views', value: items.filter(i => i.type === 'view').length, icon: Layout, color: 'text-blue-400' },
             { title: 'Automations', value: items.filter(i => i.type === 'automation').length, icon: Settings, color: 'text-green-400' },
             { title: 'Active', value: items.filter(i => i.status === 'active').length, icon: Code, color: 'text-amber-400' },

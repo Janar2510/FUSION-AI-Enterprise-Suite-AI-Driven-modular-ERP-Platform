@@ -31,7 +31,7 @@ export const WorkcenterDashboard: React.FC<WorkcenterDashboardProps> = ({ workce
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <GlassCard className="p-6">
                     <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-primary-purple" />
+                        <Clock className="w-5 h-5 text-primary-500" />
                         Operation Status
                     </h3>
                     <div className="space-y-4">
@@ -48,7 +48,7 @@ export const WorkcenterDashboard: React.FC<WorkcenterDashboardProps> = ({ workce
                                     <p className="text-white/90 font-mono">{wc.timeEfficiency}% Eff.</p>
                                     <div className="w-24 h-1.5 bg-white/10 rounded-full mt-1 overflow-hidden">
                                         <div
-                                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-500"
+                                            className="h-full bg-gradient-to-r from-blue-500 to-orange-500"
                                             style={{ width: `${wc.timeEfficiency}%` }}
                                         />
                                     </div>
@@ -68,8 +68,8 @@ export const WorkcenterDashboard: React.FC<WorkcenterDashboardProps> = ({ workce
                     </h3>
                     <div className="flex flex-col items-center justify-center h-64 text-center">
                         <div className="relative mb-4">
-                            <Activity className="w-16 h-16 text-primary-purple opacity-20 animate-ping absolute top-0" />
-                            <Activity className="w-16 h-16 text-primary-purple relative z-10" />
+                            <Activity className="w-16 h-16 text-primary-500 opacity-20 animate-ping absolute top-0" />
+                            <Activity className="w-16 h-16 text-primary-500 relative z-10" />
                         </div>
                         <h4 className="text-white/80 font-medium italic">Neural Load Balancer Active</h4>
                         <p className="text-white/40 text-sm max-w-xs mt-2">

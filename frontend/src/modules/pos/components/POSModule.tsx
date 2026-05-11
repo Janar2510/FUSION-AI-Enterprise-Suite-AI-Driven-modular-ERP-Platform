@@ -80,7 +80,7 @@ export const POSModule: React.FC = () => {
                                     <>
                                         <button
                                             onClick={() => setActiveTerminalId(activeSession.id)}
-                                            className="flex-1 bg-primary-purple hover:bg-primary-purple/80 text-white py-2 rounded-lg font-medium transition-colors"
+                                            className="flex-1 bg-primary-500 hover:bg-primary-500/80 text-white py-2 rounded-lg font-medium transition-colors"
                                         >
                                             Resume Terminal
                                         </button>
@@ -94,7 +94,7 @@ export const POSModule: React.FC = () => {
                                 ) : (
                                     <button
                                         onClick={() => handleOpenSession(config.id)}
-                                        className="flex-1 bg-primary-purple hover:bg-primary-purple/80 text-white py-2 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(147,51,234,0.3)] shadow-primary-purple/20"
+                                        className="flex-1 bg-primary-500 hover:bg-primary-500/80 text-white py-2 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(147,51,234,0.3)] shadow-primary-500/20"
                                     >
                                         New Session
                                     </button>
@@ -153,7 +153,7 @@ export const POSModule: React.FC = () => {
                             <span>Subtotal</span>
                             <span>$0.00</span>
                         </div>
-                        <div className="flex justify-between text-2xl font-bold text-primary-purple">
+                        <div className="flex justify-between text-2xl font-bold text-primary-500">
                             <span>Total</span>
                             <span>$0.00</span>
                         </div>
@@ -173,7 +173,7 @@ export const POSModule: React.FC = () => {
                     {/* Customer & Loyalty Panel */}
                     <div className="bg-white/5 border border-white/10 rounded-xl p-6">
                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                            <UserCheck className="w-5 h-5 text-primary-purple" />
+                            <UserCheck className="w-5 h-5 text-primary-500" />
                             Customer Profile
                         </h3>
                         <div className="flex gap-2 mb-4">
@@ -193,21 +193,21 @@ export const POSModule: React.FC = () => {
                         </div>
 
                         {currentLoyaltyCard ? (
-                            <div className="bg-primary-purple/10 border border-primary-purple/30 rounded-lg p-4">
+                            <div className="bg-primary-500/10 border border-primary-500/30 rounded-lg p-4">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="bg-primary-purple/20 p-2 rounded-full hidden md:block">
-                                        <Award className="w-6 h-6 text-primary-purple" />
+                                    <div className="bg-primary-500/20 p-2 rounded-full hidden md:block">
+                                        <Award className="w-6 h-6 text-primary-500" />
                                     </div>
                                     <div>
                                         <div className="font-medium text-white">Loyalty Member</div>
                                         <div className="text-sm text-white/60">ID: {currentLoyaltyCard.customer_id}</div>
                                     </div>
                                 </div>
-                                <div className="text-3xl font-bold text-primary-purple mt-4">
+                                <div className="text-3xl font-bold text-primary-500 mt-4">
                                     {Math.round(currentLoyaltyCard.points)} <span className="text-sm font-normal text-white/60">Points</span>
                                 </div>
-                                <div className="mt-4 pt-4 border-t border-primary-purple/20">
-                                    <button className="w-full bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                <div className="mt-4 pt-4 border-t border-primary-500/20">
+                                    <button className="w-full bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                                         Apply Top Reward ($10 Off)
                                     </button>
                                 </div>
@@ -220,14 +220,14 @@ export const POSModule: React.FC = () => {
                     </div>
 
                     {/* AI Retail Intelligence */}
-                    <div className="bg-gradient-to-br from-primary-purple/20 to-transparent border border-primary-purple/30 rounded-xl p-6">
+                    <div className="bg-gradient-to-br from-primary-500/20 to-transparent border border-primary-500/30 rounded-xl p-6">
                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                             <Sparkles className="w-5 h-5 text-yellow-400" />
                             Retail Intelligence
                         </h3>
                         {currentLoyaltyCard ? (
                             <div className="space-y-4">
-                                <div className="text-sm border-l-2 border-primary-purple pl-3 py-1">
+                                <div className="text-sm border-l-2 border-primary-500 pl-3 py-1">
                                     <p className="font-bold text-white/90 mb-1">AI Recommendation:</p>
                                     <p className="text-white/60">"High value customer. Suggest 15% discount on next purchase to drive retention."</p>
                                 </div>
@@ -237,7 +237,7 @@ export const POSModule: React.FC = () => {
                                         <span>Product Protection Plan</span>
                                         <span className="font-bold">$12.99</span>
                                     </div>
-                                    <button className="w-full mt-3 bg-white/10 hover:bg-primary-purple text-xs py-1.5 rounded-lg transition-colors border border-white/10">
+                                    <button className="w-full mt-3 bg-white/10 hover:bg-primary-500 text-xs py-1.5 rounded-lg transition-colors border border-white/10">
                                         Add to Order
                                     </button>
                                 </div>

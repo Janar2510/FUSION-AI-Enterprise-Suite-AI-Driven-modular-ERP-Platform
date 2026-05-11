@@ -61,7 +61,7 @@ const MODULES: Array<{ name: string; description: string; icon: LucideIcon; stat
   { name: 'Inventory', description: 'Stock and warehouse management', icon: Package, status: 'active', color: 'from-blue-500 to-cyan-500' },
   { name: 'HR', description: 'Human resources management', icon: Activity, status: 'active', color: 'from-pink-500 to-rose-500' },
   { name: 'Project', description: 'Project management and tracking', icon: Calendar, status: 'active', color: 'from-orange-500 to-amber-500' },
-  { name: 'Sales', description: 'Sales orders and quotations', icon: ShoppingCart, status: 'active', color: 'from-violet-500 to-purple-500' },
+  { name: 'Sales', description: 'Sales orders and quotations', icon: ShoppingCart, status: 'active', color: 'from-amber-500 to-orange-500' },
 ]
 
 function formatCurrency(value: number): string {

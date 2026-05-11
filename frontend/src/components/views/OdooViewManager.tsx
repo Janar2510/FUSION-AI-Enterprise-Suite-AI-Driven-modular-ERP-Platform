@@ -61,7 +61,7 @@ export function OdooViewManager({
 
                     {currentView === 'form' ? (
                         <div className="flex items-center gap-2 ml-4">
-                            <button onClick={onSave} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md font-medium shadow-lg hover:shadow-xl transition-all">
+                            <button onClick={onSave} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white rounded-md font-medium shadow-lg hover:shadow-xl transition-all">
                                 Save
                             </button>
                             <button onClick={onDiscard} className="px-4 py-2 bg-white/10 text-white hover:bg-white/20 rounded-md font-medium transition-colors">
@@ -69,7 +69,7 @@ export function OdooViewManager({
                             </button>
                         </div>
                     ) : (
-                        <button onClick={onNew} className="ml-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                        <button onClick={onNew} className="ml-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white rounded-md font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
                             <Plus className="w-4 h-4" /> New
                         </button>
                     )}
@@ -104,7 +104,7 @@ export function OdooViewManager({
                     {onExport && (
                         <button
                             onClick={onExport}
-                            className="p-2 text-primary-purple hover:text-white bg-primary-purple/10 border border-primary-purple/20 rounded-md hover:bg-primary-purple transition-all flex items-center gap-2 group"
+                            className="p-2 text-primary-500 hover:text-white bg-primary-500/10 border border-primary-500/20 rounded-md hover:bg-primary-500 transition-all flex items-center gap-2 group"
                             title="Export to Neural Spreadsheet"
                         >
                             <Table className="w-5 h-5" />

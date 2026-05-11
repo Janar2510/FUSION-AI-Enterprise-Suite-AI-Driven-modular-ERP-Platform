@@ -9,6 +9,18 @@ function getToken(): string | null {
     return localStorage.getItem('accessToken') ?? sessionStorage.getItem('accessToken');
 }
 
+function getCurrentUserId(): string | null {
+    // JWT stored in localStorage — parse sub claim without a full decode library
+    try {
+        const token = getToken();
+        if (!token) return null;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return String(payload.sub ?? payload.id ?? '');
+    } catch {
+        return null;
+    }
+}
+
 function wsMessageToStoreMessage(data: Record<string, unknown>): Message {
     return {
         id: (data.id as number) ?? Date.now(),
@@ -27,7 +39,7 @@ function wsMessageToStoreMessage(data: Record<string, unknown>): Message {
 export function useDiscussSocket(currentChannelId: number | null) {
     const socketRef = useRef<Socket | null>(null);
     const currentChannelRef = useRef<number | null>(null);
-    const { messages, addMessage } = useDiscussStore();
+    const { messages, addMessage, applyWsReactions, addMention } = useDiscussStore();
     const messageIdsRef = useRef<Set<number>>(new Set());
 
     // Keep message IDs in sync to deduplicate
@@ -59,6 +71,31 @@ export function useDiscussSocket(currentChannelId: number | null) {
             }
         });
 
+        socket.on('reaction', (data: { messageId: number; reactions: Array<{ emoji: string; authorId: string }> }) => {
+            if (data.messageId && data.reactions) {
+                applyWsReactions(data.messageId, data.reactions);
+            }
+        });
+
+        socket.on('mention', (data: {
+            channelId: number;
+            messageId?: number;
+            mentionedUserId: string;
+            fromUserId: string;
+            fromName: string;
+        }) => {
+            const myId = getCurrentUserId();
+            if (myId && String(data.mentionedUserId) === myId) {
+                addMention({
+                    channelId: data.channelId,
+                    messageId: data.messageId,
+                    fromUserId: data.fromUserId,
+                    fromName: data.fromName,
+                    receivedAt: new Date().toISOString(),
+                });
+            }
+        });
+
         socket.on('connect_error', (err) => {
             console.warn('[WS] connection error:', err.message);
         });
@@ -69,7 +106,7 @@ export function useDiscussSocket(currentChannelId: number | null) {
             socket.disconnect();
             socketRef.current = null;
         };
-    }, [addMessage]);
+    }, [addMessage, applyWsReactions, addMention]);
 
     // Join/leave channel rooms when currentChannelId changes
     useEffect(() => {
@@ -95,5 +132,13 @@ export function useDiscussSocket(currentChannelId: number | null) {
         socketRef.current?.emit('typing', { channelId });
     }, []);
 
-    return { sendViaSocket, sendTyping };
+    const sendReaction = useCallback((messageId: number, emoji: string) => {
+        socketRef.current?.emit('reaction', { messageId, emoji });
+    }, []);
+
+    const sendMention = useCallback((channelId: number, mentionedUserId: string, messageId?: number) => {
+        socketRef.current?.emit('mention', { channelId, mentionedUserId, messageId });
+    }, []);
+
+    return { sendViaSocket, sendTyping, sendReaction, sendMention };
 }

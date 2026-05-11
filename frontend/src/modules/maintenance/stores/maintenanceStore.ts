@@ -16,6 +16,7 @@ export interface MaintenanceEquipment {
     active: boolean;
     preventiveFreqDays: number | null;
     nextMaintenanceDate: string | null;
+    nextDueDate: string | null;
     lastMaintenanceDate: string | null;
     _count?: { requests: number };
 }

@@ -222,7 +222,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium transition-colors ${
                   activeTab === tab.id
-                    ? 'text-purple-400 border-b-2 border-purple-400'
+                    ? 'text-amber-400 border-b-2 border-amber-400'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
@@ -454,7 +454,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = ({
                             {document.tags.map((tag, index) => (
                               <span
                                 key={index}
-                                className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-sm"
+                                className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded text-sm"
                               >
                                 {tag}
                               </span>

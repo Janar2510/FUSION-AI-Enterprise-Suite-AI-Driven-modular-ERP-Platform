@@ -95,7 +95,7 @@ export const SpreadsheetModule: React.FC = () => {
                 key={key}
                 style={style}
                 className={`border border-white/5 px-2 flex items-center text-sm transition-all cursor-cell
-                    ${isSelected ? 'bg-primary-purple/20 ring-2 ring-primary-purple/50 z-10' : 'hover:bg-white/5'}
+                    ${isSelected ? 'bg-primary-500/20 ring-2 ring-primary-500/50 z-10' : 'hover:bg-white/5'}
                 `}
                 onClick={() => handleCellSelect(rowIndex, columnIndex - 1)}
             >
@@ -111,10 +111,10 @@ export const SpreadsheetModule: React.FC = () => {
             <motion.div
                 whileHover={{ y: -4, scale: 1.02 }}
                 onClick={handleNew}
-                className="bg-white/5 border-2 border-dashed border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 hover:border-primary-purple/40 hover:bg-white/[0.08] transition-all cursor-pointer group shadow-2xl"
+                className="bg-white/5 border-2 border-dashed border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center gap-4 hover:border-primary-500/40 hover:bg-white/[0.08] transition-all cursor-pointer group shadow-2xl"
             >
-                <div className="w-16 h-16 rounded-full bg-primary-purple/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Plus className="w-8 h-8 text-primary-purple" />
+                <div className="w-16 h-16 rounded-full bg-primary-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Plus className="w-8 h-8 text-primary-500" />
                 </div>
                 <div className="text-center">
                     <h3 className="text-white font-black uppercase tracking-[3px] text-xs">Initialize Protocol</h3>
@@ -127,7 +127,7 @@ export const SpreadsheetModule: React.FC = () => {
                     key={s.id}
                     whileHover={{ y: -4, scale: 1.02 }}
                     onClick={() => handleRowClick(s.id)}
-                    className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-primary-purple/40 hover:bg-white/[0.08] transition-all cursor-pointer relative overflow-hidden backdrop-blur-xl shadow-2xl"
+                    className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-primary-500/40 hover:bg-white/[0.08] transition-all cursor-pointer relative overflow-hidden backdrop-blur-xl shadow-2xl"
                 >
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
@@ -162,7 +162,7 @@ export const SpreadsheetModule: React.FC = () => {
                 </div>
                 <button
                     onClick={() => currentSpreadsheet && updateSpreadsheet(currentSpreadsheet.id, currentSpreadsheet.data)}
-                    className="ml-auto flex items-center gap-2 px-6 py-2 bg-primary-purple text-white text-[10px] font-black uppercase tracking-[3px] shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:bg-primary-purple/80 transition-all"
+                    className="ml-auto flex items-center gap-2 px-6 py-2 bg-primary-500 text-white text-[10px] font-black uppercase tracking-[3px] shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:bg-primary-500/80 transition-all"
                 >
                     <Save className="w-3.5 h-3.5" /> Commit Sync
                 </button>
@@ -171,13 +171,13 @@ export const SpreadsheetModule: React.FC = () => {
             {/* Formula Bar */}
             <div className="flex items-center gap-3 p-2 px-4 border-b border-white/10 bg-white/5">
                 <div className="w-12 text-[10px] font-black text-white/40 text-center border-r border-white/10 pr-3 flex items-center justify-center gap-2">
-                    <Calculator className="w-3 h-3 text-primary-purple" /> {selectedCell ? `${selectedCell.col}${selectedCell.row}` : '--'}
+                    <Calculator className="w-3 h-3 text-primary-500" /> {selectedCell ? `${selectedCell.col}${selectedCell.row}` : '--'}
                 </div>
                 <div className="flex-1 relative group">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-primary-purple opacity-40 group-focus-within:opacity-100 transition-opacity">fx</div>
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-primary-500 opacity-40 group-focus-within:opacity-100 transition-opacity">fx</div>
                     <input
                         type="text"
-                        className="w-full bg-black/40 border border-white/5 px-8 py-2 text-sm text-white font-mono outline-none focus:border-primary-purple/40 transition-all tracking-wider"
+                        className="w-full bg-black/40 border border-white/5 px-8 py-2 text-sm text-white font-mono outline-none focus:border-primary-500/40 transition-all tracking-wider"
                         placeholder="Neural analytic function buffer..."
                         value={formulaValue}
                         onChange={handleFormulaChange}

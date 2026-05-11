@@ -50,7 +50,7 @@ export const ChannelSidebar: React.FC = () => {
             className={`
               w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left
               ${currentChannel?.id === channel.id
-                ? 'bg-primary-purple/20 text-white border border-primary-purple/30'
+                ? 'bg-primary-500/20 text-white border border-primary-500/30'
                 : 'text-white/70 hover:bg-white/10 hover:text-white'
               }
             `}

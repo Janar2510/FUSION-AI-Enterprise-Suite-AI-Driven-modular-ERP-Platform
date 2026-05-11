@@ -26,7 +26,7 @@ export const CRMSettings: React.FC = () => {
             <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-20">
                 <BreadcrumbHeader customLabels={{ '/module/crm/settings': 'Settings' }} />
                 <div className="flex items-center gap-4">
-                    <button onClick={handleSave} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                    <button onClick={handleSave} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white rounded-md font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
                         <Save className="w-4 h-4" /> Save
                     </button>
                     {saved && <span className="text-green-400 text-sm">Saved!</span>}
@@ -37,7 +37,7 @@ export const CRMSettings: React.FC = () => {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                     <div>
                         <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-1">
-                            <Settings2 className="w-5 h-5 text-primary-purple" /> CRM Features
+                            <Settings2 className="w-5 h-5 text-primary-500" /> CRM Features
                         </h2>
                         <p className="text-white/60 text-sm">Enable or disable advanced CRM tracking and AI functionalities.</p>
                     </div>
@@ -46,7 +46,7 @@ export const CRMSettings: React.FC = () => {
                         <GlassCard className="p-6">
                             <label className="flex items-start gap-4 cursor-pointer group">
                                 <div className="mt-1">
-                                    <input type="checkbox" checked={settings.multiTeams} onChange={e => setSettings(s => ({ ...s, multiTeams: e.target.checked }))} className="w-4 h-4 bg-transparent border-white/20 rounded text-primary-purple focus:ring-primary-purple" />
+                                    <input type="checkbox" checked={settings.multiTeams} onChange={e => setSettings(s => ({ ...s, multiTeams: e.target.checked }))} className="w-4 h-4 bg-transparent border-white/20 rounded text-primary-500 focus:ring-primary-500" />
                                 </div>
                                 <div>
                                     <div className="text-white font-medium flex items-center gap-2">
@@ -60,7 +60,7 @@ export const CRMSettings: React.FC = () => {
                         <GlassCard className="p-6">
                             <label className="flex items-start gap-4 cursor-pointer group">
                                 <div className="mt-1">
-                                    <input type="checkbox" checked={settings.leadMining} onChange={e => setSettings(s => ({ ...s, leadMining: e.target.checked }))} className="w-4 h-4 bg-transparent border-white/20 rounded text-primary-purple focus:ring-primary-purple" />
+                                    <input type="checkbox" checked={settings.leadMining} onChange={e => setSettings(s => ({ ...s, leadMining: e.target.checked }))} className="w-4 h-4 bg-transparent border-white/20 rounded text-primary-500 focus:ring-primary-500" />
                                 </div>
                                 <div>
                                     <div className="text-white font-medium flex items-center gap-2">
@@ -74,7 +74,7 @@ export const CRMSettings: React.FC = () => {
                         <GlassCard className="p-6">
                             <label className="flex items-start gap-4 cursor-pointer group">
                                 <div className="mt-1">
-                                    <input type="checkbox" checked={settings.predictiveScoring} onChange={e => setSettings(s => ({ ...s, predictiveScoring: e.target.checked }))} className="w-4 h-4 bg-transparent border-white/20 rounded text-primary-purple focus:ring-primary-purple" />
+                                    <input type="checkbox" checked={settings.predictiveScoring} onChange={e => setSettings(s => ({ ...s, predictiveScoring: e.target.checked }))} className="w-4 h-4 bg-transparent border-white/20 rounded text-primary-500 focus:ring-primary-500" />
                                 </div>
                                 <div>
                                     <div className="text-white font-medium flex items-center gap-2">
@@ -110,7 +110,7 @@ export const CRMSettings: React.FC = () => {
                                         <td className="py-3 px-4 text-white font-medium">{stage.name}</td>
                                         <td className="py-3 px-4 text-white/60">{stage.foldedKanban ? 'Yes' : 'No'}</td>
                                         <td className="py-3 px-4 text-right">
-                                            <button className="text-primary-purple hover:text-white transition-colors text-sm">Edit</button>
+                                            <button className="text-primary-500 hover:text-white transition-colors text-sm">Edit</button>
                                         </td>
                                     </tr>
                                 ))}

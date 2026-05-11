@@ -14,11 +14,11 @@ interface SmartButtonProps {
 export function SmartButton({ icon: Icon, label, value, onClick, isActive, variant = 'primary' }: SmartButtonProps) {
     const variantStyles = {
         primary: {
-            active: 'bg-primary-purple/20 border-primary-purple text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]',
+            active: 'bg-primary-500/20 border-primary-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]',
             inactive: 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20 hover:text-white hover:shadow-lg',
-            iconActive: 'bg-primary-purple/30 text-primary-purple-light',
+            iconActive: 'bg-primary-500/30 text-primary-300',
             iconInactive: 'bg-white/10 text-white/50 group-hover:bg-white/20 group-hover:text-white',
-            labelActive: 'text-primary-purple-light/80',
+            labelActive: 'text-primary-300/80',
             labelInactive: 'text-white/40 group-hover:text-white/60',
         },
         secondary: {

@@ -238,6 +238,18 @@ export const CalendarModule: React.FC = () => {
                             {formData.attendees?.length ?? 0} attendee(s) — manage after saving
                         </div>
                     </div>
+                    <div className="rounded-xl p-6" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
+                        <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>Recurrence (RRULE)</h3>
+                        <input
+                            type="text"
+                            className="w-full rounded px-3 py-2 text-sm outline-none font-mono"
+                            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-default)', color: 'var(--text-primary)' }}
+                            placeholder="FREQ=WEEKLY;BYDAY=MO,WE,FR"
+                            value={formData.rrule || ''}
+                            onChange={e => setFormData({ ...formData, rrule: e.target.value || null })}
+                        />
+                        <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>RFC 5545 RRULE string. Leave blank for one-time event.</p>
+                    </div>
                 </div>
             }
         />
@@ -251,7 +263,7 @@ export const CalendarModule: React.FC = () => {
             onRowClick={handleRowClick}
             keyExtractor={e => e.id.toString()}
             columns={[
-                { key: 'name',      label: 'Subject',   render: e => <span className="font-semibold">{e.name}</span> },
+                { key: 'name',      label: 'Subject',   render: e => <span className="font-semibold">{e.name}{e.rrule ? ' 🔁' : ''}</span> },
                 { key: 'start',     label: 'Start',     render: e => new Date(e.start).toLocaleString() },
                 { key: 'stop',      label: 'End',       render: e => new Date(e.stop).toLocaleString() },
                 { key: 'attendees', label: 'Attendees', render: e => e.attendees?.length ?? 0 },

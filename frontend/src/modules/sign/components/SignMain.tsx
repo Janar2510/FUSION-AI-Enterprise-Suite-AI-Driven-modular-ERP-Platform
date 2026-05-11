@@ -7,6 +7,8 @@ import { DocumentViewer } from './DocumentViewer';
 import { SignatureList } from './SignatureList';
 import { useSignStore } from '../stores/signStore';
 import { SignatureRequest, Signer, SignatureStatus } from '../types';
+import { ChatterPanel } from '../../../components/shared/ChatterPanel';
+import { AiActionsPanel } from '../../../components/shared/AiActionsPanel';
 import { 
   DocumentTextIcon, 
   PencilIcon, 
@@ -116,7 +118,7 @@ export const SignMain: React.FC = () => {
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 ${
               activeTab === tab.id
-                ? 'bg-primary-purple text-white'
+                ? 'bg-primary-500 text-white'
                 : 'text-text-secondary hover:text-white hover:bg-glass-hover'
             }`}
           >
@@ -154,7 +156,7 @@ export const SignMain: React.FC = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className={`p-4 rounded-lg cursor-pointer transition-all duration-200 mb-3 ${
                             selectedRequest?.id === request.id
-                              ? 'bg-primary-purple/30 border-primary-purple'
+                              ? 'bg-primary-500/30 border-primary-500'
                               : 'bg-glass-bg border-glass-border hover:bg-glass-hover'
                           }`}
                           onClick={() => selectRequest(request.id)}
@@ -189,7 +191,7 @@ export const SignMain: React.FC = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className={`p-4 rounded-lg cursor-pointer transition-all duration-200 mb-3 ${
                             selectedRequest?.id === request.id
-                              ? 'bg-primary-purple/30 border-primary-purple'
+                              ? 'bg-primary-500/30 border-primary-500'
                               : 'bg-glass-bg border-glass-border hover:bg-glass-hover'
                           }`}
                           onClick={() => selectRequest(request.id)}
@@ -205,7 +207,7 @@ export const SignMain: React.FC = () => {
                           </p>
                           <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
                             <div 
-                              className="bg-primary-purple h-2 rounded-full transition-all duration-300"
+                              className="bg-primary-500 h-2 rounded-full transition-all duration-300"
                               style={{ 
                                 width: `${(request.signers.filter(s => s.status === 'signed').length / request.signers.length) * 100}%` 
                               }}
@@ -228,7 +230,7 @@ export const SignMain: React.FC = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className={`p-4 rounded-lg cursor-pointer transition-all duration-200 mb-3 ${
                             selectedRequest?.id === request.id
-                              ? 'bg-primary-purple/30 border-primary-purple'
+                              ? 'bg-primary-500/30 border-primary-500'
                               : 'bg-glass-bg border-glass-border hover:bg-glass-hover'
                           }`}
                           onClick={() => selectRequest(request.id)}
@@ -334,7 +336,7 @@ export const SignMain: React.FC = () => {
                       className="flex items-center justify-between p-4 bg-glass-bg rounded-lg"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-primary-purple rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-medium">
                             {signer.name.charAt(0).toUpperCase()}
                           </span>
@@ -390,6 +392,10 @@ export const SignMain: React.FC = () => {
                   </GradientButton>
                 </div>
               )}
+              <div className="mt-4 space-y-4">
+                <AiActionsPanel entityType="SignatureRequest" entityId={String(selectedRequest.id)} />
+                <ChatterPanel ownerType="SignatureRequest" ownerId={selectedRequest.id} showTimeline />
+              </div>
             </GlassCard>
           ) : (
             <GlassCard className="p-6 h-[80vh] flex items-center justify-center">

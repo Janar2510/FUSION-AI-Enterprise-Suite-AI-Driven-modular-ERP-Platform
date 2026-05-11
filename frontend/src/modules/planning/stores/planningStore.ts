@@ -13,6 +13,8 @@ export interface PlanningSlot {
     state: string;
     employeeId: number | null;
     projectId: number | null;
+    isRecurring: boolean;
+    recurrenceRule: string | null;
     employee?: {
         id: number;
         name: string;
@@ -41,6 +43,7 @@ interface PlanningStore {
     create: (data: Partial<PlanningSlot>) => Promise<boolean>;
     update: (id: number, data: Partial<PlanningSlot>) => Promise<boolean>;
     remove: (id: number) => Promise<void>;
+    publishSlots: (slotIds?: number[], notify?: boolean) => Promise<number>;
 }
 
 export const usePlanningStore = create<PlanningStore>((set, get) => ({
@@ -102,5 +105,16 @@ export const usePlanningStore = create<PlanningStore>((set, get) => ({
     remove: async (id) => {
         await axios.delete(`${API}/api/planning/${id}`);
         await get().fetch();
+    },
+
+    publishSlots: async (slotIds?, notify = false) => {
+        try {
+            const res = await axios.patch(`${API}/api/planning/publish`, { slotIds, notify });
+            await get().fetch();
+            return res.data.updated ?? 0;
+        } catch (err) {
+            console.error(err);
+            return 0;
+        }
     },
 }));

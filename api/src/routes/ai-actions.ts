@@ -36,6 +36,12 @@ import '../core/ai/agents/appraisalCoach';
 import '../core/ai/agents/recruitmentRanker';
 import '../core/ai/agents/attendanceAnomaly';
 import '../core/ai/agents/planningOptimizer';
+import '../core/ai/agents/optimizeProduction';
+import '../core/ai/agents/knowledgeArticleDraft';
+import '../core/ai/agents/recommendTraining';
+import '../core/ai/agents/analyzePerformance';
+import '../core/ai/agents/predictChurn';
+import '../core/ai/agents/evaluateVendor';
 
 import prisma from '../lib/prisma';
 

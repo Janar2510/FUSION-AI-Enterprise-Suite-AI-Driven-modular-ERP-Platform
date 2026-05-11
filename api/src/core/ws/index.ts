@@ -98,6 +98,65 @@ export function initWebSocket(httpServer: HttpServer): SocketServer {
             });
         });
 
+        // Persist and broadcast a reaction (emoji) on a message — uses MailMessageReaction model
+        socket.on('reaction', async ({ messageId, emoji }: { messageId: number; emoji: string }) => {
+            if (!messageId || !emoji) return;
+            try {
+                const msg = await prisma.mailMessage.findUnique({
+                    where: { id: messageId },
+                    select: { id: true, channelId: true },
+                });
+                if (!msg || !msg.channelId) return;
+
+                const authorId = String(user?.sub ?? '');
+
+                // Toggle: upsert or delete
+                const existing = await prisma.mailMessageReaction.findUnique({
+                    where: { messageId_emoji_authorId: { messageId, emoji, authorId } },
+                });
+
+                if (existing) {
+                    await prisma.mailMessageReaction.delete({ where: { id: existing.id } });
+                } else {
+                    await prisma.mailMessageReaction.create({
+                        data: { messageId, emoji, authorId },
+                    });
+                }
+
+                // Fetch updated reactions for broadcast
+                const reactions = await prisma.mailMessageReaction.findMany({
+                    where: { messageId },
+                    select: { emoji: true, authorId: true },
+                });
+
+                io!.to(`channel:${msg.channelId}`).emit('reaction', {
+                    type: 'reaction',
+                    messageId,
+                    channelId: msg.channelId,
+                    reactions,
+                });
+            } catch (err) {
+                logger.warn({ err }, 'WS reaction persist failed');
+            }
+        });
+
+        // @mention — notify specific user sockets in the channel
+        socket.on('mention', ({ channelId, mentionedUserId, messageId }: {
+            channelId: number;
+            mentionedUserId: string;
+            messageId?: number;
+        }) => {
+            // Broadcast to entire channel; clients filter for their own userId
+            io!.to(`channel:${channelId}`).emit('mention', {
+                type: 'mention',
+                channelId,
+                messageId,
+                mentionedUserId,
+                fromUserId: user?.sub,
+                fromName: user?.email ?? 'Someone',
+            });
+        });
+
         socket.on('disconnect', () => {
             logger.debug({ userId: user?.sub }, 'WS client disconnected');
         });

@@ -255,6 +255,113 @@ inventoryRoutes.get('/routes', asyncHandler(async (req, res) => {
 }));
 
 // ── Inventory Adjustments ────────────────────────────────────────────────────
+
+/**
+ * POST /api/inventory/pickings/:id/backorder
+ * Creates a backorder for any moves that weren't fully transferred.
+ * The original picking remains; a new picking is created for remaining quantities.
+ */
+inventoryRoutes.post('/pickings/:id/backorder', asyncHandler(async (req, res) => {
+    const id = parseInt(req.params.id);
+    const picking = await prisma.stockPicking.findUnique({
+        where: { id },
+        include: { moves: true },
+    });
+
+    if (!picking) { res.status(404).json({ error: 'Picking not found' }); return; }
+    if (picking.state !== 'done') { res.status(400).json({ error: 'Only done pickings can have backorders' }); return; }
+
+    const remainingMoves = picking.moves.filter(m => {
+        const remaining = m.productQty - m.qtyDone;
+        return remaining > 0;
+    });
+
+    if (remainingMoves.length === 0) {
+        res.status(422).json({ error: 'No remaining quantities to backorder' });
+        return;
+    }
+
+    const pickingCount = await prisma.stockPicking.count();
+    const prefix = picking.name?.split('/')[0] ?? 'WH/OUT';
+
+    const backorder = await prisma.stockPicking.create({
+        data: {
+            name: `${prefix}/${String(pickingCount + 1).padStart(5, '0')}`,
+            pickingTypeId: picking.pickingTypeId,
+            locationId: picking.locationId,
+            locationDestId: picking.locationDestId,
+            origin: picking.name ?? undefined,
+            state: 'ready',
+            scheduledDate: new Date(),
+            backorderId: picking.id,
+            moves: {
+                create: remainingMoves.map(m => ({
+                    name: m.name,
+                    productId: m.productId,
+                    productQty: m.productQty - m.qtyDone,
+                    qtyDone: 0,
+                    locationId: m.locationId,
+                    locationDestId: m.locationDestId,
+                    state: 'confirmed',
+                })),
+            },
+        },
+        include: { moves: true },
+    });
+
+    res.status(201).json(backorder);
+}));
+
+/**
+ * POST /api/inventory/pickings/:id/return
+ * Creates a return transfer (reverse picking) for a done picking.
+ */
+inventoryRoutes.post('/pickings/:id/return', asyncHandler(async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { moveQtys } = req.body as { moveQtys?: Record<string, number> };
+
+    const picking = await prisma.stockPicking.findUnique({
+        where: { id },
+        include: { moves: true },
+    });
+
+    if (!picking) { res.status(404).json({ error: 'Picking not found' }); return; }
+    if (picking.state !== 'done') { res.status(400).json({ error: 'Only done pickings can be returned' }); return; }
+
+    const pickingCount = await prisma.stockPicking.count();
+    const prefix = 'WH/RETURN';
+
+    const returnPicking = await prisma.stockPicking.create({
+        data: {
+            name: `${prefix}/${String(pickingCount + 1).padStart(5, '0')}`,
+            pickingTypeId: picking.pickingTypeId,
+            locationId: picking.locationDestId,   // reversed
+            locationDestId: picking.locationId,   // reversed
+            origin: `Return of ${picking.name ?? id}`,
+            state: 'ready',
+            scheduledDate: new Date(),
+            returnId: picking.id,
+            moves: {
+                create: picking.moves.map(m => {
+                    const qty = moveQtys?.[m.id] ?? m.productQty;
+                    return {
+                        name: `Return of ${m.name}`,
+                        productId: m.productId,
+                        productQty: qty,
+                        qtyDone: 0,
+                        locationId: m.locationDestId,   // reversed
+                        locationDestId: m.locationId,   // reversed
+                        state: 'confirmed',
+                    };
+                }),
+            },
+        },
+        include: { moves: true },
+    });
+
+    res.status(201).json(returnPicking);
+}));
+
 // GET: list all stock quants (current inventory levels per product/location)
 inventoryRoutes.get('/adjustments', asyncHandler(async (req, res) => {
     const productId = req.query.productId as string | undefined;

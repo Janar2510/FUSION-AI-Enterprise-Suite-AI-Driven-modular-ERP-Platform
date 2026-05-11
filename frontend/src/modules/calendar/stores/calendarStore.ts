@@ -19,6 +19,7 @@ export interface CalendarEvent {
     allday: boolean;
     location: string | null;
     description: string | null;
+    rrule: string | null;
     attendees?: CalendarAttendee[];
 }
 

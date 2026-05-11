@@ -315,19 +315,19 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         >
-          <RefreshCw className="w-8 h-8 text-purple-500" />
+          <RefreshCw className="w-8 h-8 text-amber-500" />
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-dark-bg via-purple-900/20 to-dark-bg ${className}`}>
+    <div className={`min-h-screen bg-gradient-to-br from-dark-bg via-amber-900/20 to-dark-bg ${className}`}>
       {/* Header */}
       <div className="p-6 border-b border-glass-border">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-pink-400 bg-clip-text text-transparent">
               Document Manager
             </h1>
             <p className="text-gray-400 mt-1">
@@ -370,7 +370,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
               placeholder="Search documents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-glass-bg border border-glass-border rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-glass-bg border border-glass-border rounded-lg text-white placeholder-gray-400 focus:border-amber-400 focus:outline-none"
             />
           </div>
         </div>
@@ -390,7 +390,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
                   <select
                     value={filters.document_type}
                     onChange={(e) => setFilters(prev => ({ ...prev, document_type: e.target.value }))}
-                    className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                    className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                   >
                     <option value="">All Types</option>
                     <option value="pdf">PDF</option>
@@ -407,7 +407,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
                   <select
                     value={filters.classification}
                     onChange={(e) => setFilters(prev => ({ ...prev, classification: e.target.value }))}
-                    className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                    className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                   >
                     <option value="">All Classifications</option>
                     <option value="invoice">Invoice</option>
@@ -423,7 +423,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
                   <select
                     value={filters.processing_status}
                     onChange={(e) => setFilters(prev => ({ ...prev, processing_status: e.target.value }))}
-                    className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                    className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                   >
                     <option value="">All Statuses</option>
                     <option value="pending">Pending</option>
@@ -446,7 +446,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
                         is_receipt: value === 'receipt'
                       }));
                     }}
-                    className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                    className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                   >
                     <option value="">All Business Types</option>
                     <option value="invoice">Invoice</option>
@@ -550,7 +550,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
                 />
                 <label
                   htmlFor="file-upload"
-                  className="inline-block px-4 py-2 bg-purple-600 text-white rounded-lg cursor-pointer hover:bg-purple-700 transition-colors"
+                  className="inline-block px-4 py-2 bg-amber-600 text-white rounded-lg cursor-pointer hover:bg-amber-700 transition-colors"
                 >
                   Choose Files
                 </label>
@@ -564,7 +564,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
                   </div>
                   <div className="w-full bg-gray-700 rounded-full h-2">
                     <div
-                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                      className="bg-amber-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
@@ -705,7 +705,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
               
               {document.classification && (
                 <div className="text-xs">
-                  <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded">
+                  <span className="px-2 py-1 bg-amber-500/20 text-amber-400 rounded">
                     {document.classification}
                   </span>
                 </div>
@@ -749,7 +749,7 @@ const DocumentCard: React.FC<DocumentCardProps> = ({
               <div className="flex items-center space-x-2">
                 {getProcessingStatusIcon(document.processing_status)}
                 {document.classification && (
-                  <span className="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded">
+                  <span className="text-xs px-2 py-1 bg-amber-500/20 text-amber-400 rounded">
                     {document.classification}
                   </span>
                 )}

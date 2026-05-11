@@ -14,7 +14,7 @@ export const tokens = {
     accentTextDim:   '#fcd34d',
     success:         '#10b981',
     error:           '#ef4444',
-    info:            '#6366f1',
+    info:            '#f59e0b',
     textPrimary:     '#f8fafc',
     textSecondary:   'rgba(255,255,255,0.6)',
     textTertiary:    'rgba(255,255,255,0.35)',

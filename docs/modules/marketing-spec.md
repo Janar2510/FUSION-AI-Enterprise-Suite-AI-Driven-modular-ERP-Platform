@@ -1,4 +1,4 @@
-# Marketing Automation — Gap Analysis
+konntinue# Marketing Automation — Gap Analysis
 **Odoo 17 docs:** https://www.odoo.com/documentation/17.0/applications/marketing/marketing_automation.html
 **FusionAI status:** Stub
 **Effort to complete:** XL
@@ -28,11 +28,11 @@
 - [ ] Conditional branching based on participant interaction — ❌ Missing
 
 #### Target Audience
-- [ ] Target record type selection (Contacts, Leads, Opportunities, Event Registrations) — ❌ Missing
-- [ ] Domain-based audience filter — ❌ Missing
-- [ ] Participant tracking (distinct from total target) — ❌ Missing (only aggregate `leads` int)
+- [ ] Target record type selection (Contacts, Leads, Opportunities, Event Registrations) — 🟡 Partial (Partners/CRM Leads supported via `POST /api/campaigns/:id/participants/resolve`; Event Registrations still missing)
+- [ ] Domain-based audience filter — 🟡 Partial (allowlisted Partner/CRM Lead filters implemented; no arbitrary Odoo-style domain DSL yet)
+- [ ] Participant tracking (distinct from total target) — ✅ Done (`CampaignParticipant` model + unique campaign/target tracking)
 - [ ] Test mode / isolated participant group — ❌ Missing
-- [ ] Participant list view — ❌ Missing
+- [ ] Participant list view — 🟡 API Done (`GET /api/campaigns/:id/participants`; frontend view missing)
 
 #### Campaign Templates (Odoo pre-built)
 - [ ] Tag Hot Contacts — ❌ Missing
@@ -92,7 +92,8 @@
 - [ ] `GET /api/campaigns/:id/activities` — ❌ Missing
 - [ ] `POST /api/campaigns/:id/activities` — ❌ Missing
 - [ ] `POST /api/campaigns/:id/launch` — ❌ Missing (currently merged into PUT state change)
-- [ ] `GET /api/campaigns/:id/participants` — ❌ Missing
+- [ ] `GET /api/campaigns/:id/participants` — ✅ Done
+- [ ] `POST /api/campaigns/:id/participants/resolve` — ✅ Done (allowlisted Partner/CRM Lead targeting filters)
 - [ ] `GET /api/campaigns/:id/traces` — ❌ Missing
 - [ ] `GET /api/campaigns/:id/analytics` — ❌ Missing
 - [ ] `POST /api/campaigns/:id/test` — ❌ Missing
@@ -119,7 +120,7 @@
 ## Recommended Build Order
 
 1. **Activity model** — `CampaignActivity` (type: email|sms|server_action, timing offset, template ref); CRUD endpoints
-2. **Audience targeting** — domain filter DSL against `Partner`/`Lead`; `CampaignParticipant` model
+2. **Audience targeting** — 🟡 Partial (`CampaignParticipant` model + allowlisted Partner/CRM Lead filters complete; full domain DSL and Events targeting remain)
 3. **Email composition** — integrate with Email Marketing module's template system; compose per-activity email
 4. **Workflow execution engine** — background job (Bull/Agenda) that advances participants through activity chain on timer
 5. **Trigger-based branching** — conditional next-activity selection based on open/click/bounce events

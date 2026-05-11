@@ -156,7 +156,7 @@ export const HelpdeskModule: React.FC = () => {
                         {activeRecord && taskId && !showTimesheetRow && (
                             <button
                                 onClick={() => setShowTimesheetRow(true)}
-                                className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md transition-colors"
+                                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-md transition-colors"
                             >
                                 Log Time
                             </button>
@@ -170,7 +170,7 @@ export const HelpdeskModule: React.FC = () => {
                                     placeholder="Hours"
                                     value={timesheetHours}
                                     onChange={(e) => setTimesheetHours(e.target.value)}
-                                    className="w-24 bg-white/5 border border-white/20 rounded-md px-2 py-1.5 text-white text-sm outline-none focus:border-indigo-400"
+                                    className="w-24 bg-white/5 border border-white/20 rounded-md px-2 py-1.5 text-white text-sm outline-none focus:border-amber-400"
                                 />
                                 <button
                                     onClick={async () => {
@@ -185,7 +185,7 @@ export const HelpdeskModule: React.FC = () => {
                                             toast.error('Failed to log time');
                                         }
                                     }}
-                                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md transition-colors"
+                                    className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-md transition-colors"
                                 >
                                     Save
                                 </button>
@@ -207,7 +207,7 @@ export const HelpdeskModule: React.FC = () => {
                                     if (activeRecord) handleStageChange(activeRecord.id.toString(), stage.id.toString());
                                 }}
                                 className={`px-4 py-2 flex items-center border-l border-white/10 uppercase transition-colors
-                        ${formData.stageId === stage.id ? 'text-primary-purple font-bold bg-white/5' : 'text-white/40 hover:text-white hover:bg-white/5'}
+                        ${formData.stageId === stage.id ? 'text-primary-500 font-bold bg-white/5' : 'text-white/40 hover:text-white hover:bg-white/5'}
                         `}
                             >
                                 {stage.name}
@@ -220,7 +220,7 @@ export const HelpdeskModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Ticket Subject..."
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -240,7 +240,7 @@ export const HelpdeskModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Customer</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.partnerId || ''}
                                 onChange={(e) => setFormData({ ...formData, partnerId: parseInt(e.target.value) })}
                             >
@@ -254,7 +254,7 @@ export const HelpdeskModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Deadline</label>
                             <input
                                 type="date"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.dateDeadline?.split('T')[0] || ''}
                                 onChange={(e) => setFormData({ ...formData, dateDeadline: new Date(e.target.value).toISOString() })}
                             />
@@ -263,7 +263,7 @@ export const HelpdeskModule: React.FC = () => {
                         <div className="space-y-2 col-span-2">
                             <label className="text-white/60 text-sm font-medium">Description</label>
                             <textarea
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all h-48"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all h-48"
                                 placeholder="Ticket description..."
                                 value={formData.description || ''}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}

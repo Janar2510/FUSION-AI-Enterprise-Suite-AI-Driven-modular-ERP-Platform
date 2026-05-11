@@ -34,7 +34,19 @@ maintenanceRoutes.post('/equipment', asyncHandler(async (req, res) => {
 }));
 
 maintenanceRoutes.put('/equipment/:id', asyncHandler(async (req, res) => {
-    const eq = await prisma.maintenanceEquipment.update({ where: { id: parseInt(req.params.id) }, data: req.body });
+    const { preventiveFreqDays, ...rest } = req.body;
+    const updateData: any = { ...rest };
+    if (preventiveFreqDays !== undefined) {
+        updateData.preventiveFreqDays = preventiveFreqDays;
+        if (preventiveFreqDays > 0) {
+            const base = rest.lastMaintenanceDate ? new Date(rest.lastMaintenanceDate) : new Date();
+            const next = new Date(base);
+            next.setDate(next.getDate() + preventiveFreqDays);
+            updateData.nextDueDate = next;
+            updateData.nextMaintenanceDate = next;
+        }
+    }
+    const eq = await prisma.maintenanceEquipment.update({ where: { id: parseInt(req.params.id) }, data: updateData });
     res.json(eq);
 }));
 

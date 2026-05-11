@@ -96,7 +96,7 @@ export const FieldServiceModule: React.FC = () => {
             statusRibbon={
                 <div className="flex items-center justify-between w-full">
                     <div className="flex gap-2">
-                        {formData.state === 'new' && <button onClick={() => handleAction('planned')} className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-1.5 rounded text-sm transition-colors">Mark as Planned</button>}
+                        {formData.state === 'new' && <button onClick={() => handleAction('planned')} className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-1.5 rounded text-sm transition-colors">Mark as Planned</button>}
                         {formData.state === 'planned' && <button onClick={() => handleAction('done')} className="bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded text-sm transition-colors">Mark as Done</button>}
                         {formData.state !== 'done' && formData.state !== 'cancelled' && <button onClick={() => handleAction('cancelled')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded text-sm transition-colors">Cancel</button>}
                     </div>
@@ -106,7 +106,7 @@ export const FieldServiceModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Task Title..."
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -119,7 +119,7 @@ export const FieldServiceModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Customer</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.partnerId || ''}
                                 onChange={(e) => setFormData({ ...formData, partnerId: parseInt(e.target.value) })}
                             >
@@ -132,7 +132,7 @@ export const FieldServiceModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Assigned Employee</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.employeeId || ''}
                                 onChange={(e) => setFormData({ ...formData, employeeId: parseInt(e.target.value) })}
                             >
@@ -149,7 +149,7 @@ export const FieldServiceModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Street</label>
                             <input
                                 type="text"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.street || ''}
                                 onChange={(e) => setFormData({ ...formData, street: e.target.value })}
                             />
@@ -158,7 +158,7 @@ export const FieldServiceModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">City</label>
                             <input
                                 type="text"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.city || ''}
                                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                             />
@@ -172,7 +172,7 @@ export const FieldServiceModule: React.FC = () => {
                         <label className="text-white/60 text-sm font-medium">Scheduled Date</label>
                         <input
                             type="datetime-local"
-                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                             value={formData.scheduledDate ? new Date(formData.scheduledDate).toISOString().slice(0, 16) : ''}
                             onChange={(e) => setFormData({ ...formData, scheduledDate: new Date(e.target.value).toISOString() })}
                         />
@@ -181,7 +181,7 @@ export const FieldServiceModule: React.FC = () => {
                     <div className="space-y-2 pt-4">
                         <label className="text-white/60 text-sm font-medium">Description</label>
                         <textarea
-                            className="w-full h-32 bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all resize-none"
+                            className="w-full h-32 bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all resize-none"
                             placeholder="Add task details here..."
                             value={formData.description || ''}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}

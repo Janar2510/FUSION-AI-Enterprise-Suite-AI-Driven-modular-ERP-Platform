@@ -34,7 +34,7 @@ const SupplyChainModule: React.FC = () => {
     const metrics = [
         { title: 'Reordering Rules', value: stats.totalOrderpoints, icon: Zap, color: 'text-yellow-400' },
         { title: 'Active Routes', value: stats.activeRoutes, icon: Network, color: 'text-blue-400' },
-        { title: 'Avg Lead Time', value: stats.avgLeadTime != null && stats.avgLeadTime > 0 ? `${stats.avgLeadTime} Days` : 'N/A', icon: Truck, color: 'text-purple-400' },
+        { title: 'Avg Lead Time', value: stats.avgLeadTime != null && stats.avgLeadTime > 0 ? `${stats.avgLeadTime} Days` : 'N/A', icon: Truck, color: 'text-amber-400' },
         { title: 'Stock Alerts', value: orderpoints.filter(op => op.product.qtyOnHand < op.productMinQty).length, icon: AlertTriangle, color: 'text-red-400' },
     ];
 
@@ -53,11 +53,11 @@ const SupplyChainModule: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Replenishment Control Center */}
-                <GlassCard className="lg:col-span-2 p-10 relative overflow-hidden group border-primary-purple/20">
+                <GlassCard className="lg:col-span-2 p-10 relative overflow-hidden group border-primary-500/20">
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-primary-purple/10 rounded-lg">
-                                <Zap className="w-6 h-6 text-primary-purple" />
+                            <div className="p-2 bg-primary-500/10 rounded-lg">
+                                <Zap className="w-6 h-6 text-primary-500" />
                             </div>
                             <h2 className="text-3xl font-black text-white tracking-tight">Neural Replenishment</h2>
                         </div>
@@ -68,19 +68,19 @@ const SupplyChainModule: React.FC = () => {
                             onClick={runReplenishment}
                             loading={loading}
                             size="lg"
-                            className="shadow-2xl shadow-primary-purple/20"
+                            className="shadow-2xl shadow-primary-500/20"
                         >
                             <RefreshCw className="w-4 h-4 mr-2 inline-block" />
                             Execute Global Run
                         </GradientButton>
                     </div>
-                    <Database className="absolute -bottom-20 -right-20 w-80 h-80 text-primary-purple/5 group-hover:text-primary-purple/10 transition-all duration-1000 rotate-12 group-hover:rotate-0" />
+                    <Database className="absolute -bottom-20 -right-20 w-80 h-80 text-primary-500/5 group-hover:text-primary-500/10 transition-all duration-1000 rotate-12 group-hover:rotate-0" />
                 </GlassCard>
 
                 {/* Quick Stock Forecast */}
                 <GlassCard className="p-8">
                     <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                        <Box className="w-6 h-6 text-primary-purple" />
+                        <Box className="w-6 h-6 text-primary-500" />
                         Critical Alerts
                     </h3>
                     <div className="space-y-4">
@@ -154,7 +154,7 @@ const SupplyChainModule: React.FC = () => {
             <OdooViewManager
                 title={
                     <div className="flex items-center gap-3">
-                        <Truck className="w-8 h-8 text-primary-purple" />
+                        <Truck className="w-8 h-8 text-primary-500" />
                         <h1 className="text-3xl font-black text-white tracking-tighter uppercase">Supply Chain Hub</h1>
                     </div>
                 }

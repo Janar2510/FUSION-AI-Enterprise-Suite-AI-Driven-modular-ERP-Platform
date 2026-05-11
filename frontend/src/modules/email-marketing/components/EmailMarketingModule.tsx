@@ -66,7 +66,7 @@ export const EmailMarketingModule: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 mb-8">
             <div className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-white/20 transition-all">
                 <div className="flex items-center gap-4 mb-2">
-                    <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400">
+                    <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-400">
                         <Mail className="w-5 h-5" />
                     </div>
                     <div>
@@ -166,7 +166,7 @@ export const EmailMarketingModule: React.FC = () => {
             statusRibbon={
                 <div className="flex items-center justify-between w-full">
                     <div className="flex gap-2">
-                        {formData.state === 'draft' && <button onClick={() => handleAction('in_queue')} className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-1.5 rounded text-sm transition-colors shadow-[0_0_15px_rgba(147,51,234,0.3)] shadow-primary-purple/20">Schedule</button>}
+                        {formData.state === 'draft' && <button onClick={() => handleAction('in_queue')} className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-1.5 rounded text-sm transition-colors shadow-[0_0_15px_rgba(147,51,234,0.3)] shadow-primary-500/20">Schedule</button>}
                         {formData.state === 'draft' && <button onClick={() => handleAction('sending')} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded text-sm transition-colors">Send Now</button>}
                         {formData.state === 'in_queue' && <button onClick={() => handleAction('draft')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded text-sm transition-colors">Cancel Schedule</button>}
                         {formData.state === 'sending' && <button onClick={() => handleAction('done')} className="bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded text-sm transition-colors">Mark as Done</button>}
@@ -177,7 +177,7 @@ export const EmailMarketingModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Campaign Subject..."
                         value={formData.subject || ''}
                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
@@ -189,11 +189,11 @@ export const EmailMarketingModule: React.FC = () => {
                 <div className="space-y-6">
                     <div className="border border-white/10 rounded-xl overflow-hidden bg-white/5 p-6">
                         <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-                            <Mail className="w-5 h-5 text-primary-purple" />
+                            <Mail className="w-5 h-5 text-primary-500" />
                             Email Body (HTML)
                         </h3>
                         <textarea
-                            className="w-full h-80 bg-black/20 border border-white/10 rounded-md px-4 py-3 text-white font-mono text-sm outline-none focus:border-primary-purple transition-all resize-none"
+                            className="w-full h-80 bg-black/20 border border-white/10 rounded-md px-4 py-3 text-white font-mono text-sm outline-none focus:border-primary-500 transition-all resize-none"
                             placeholder="<h1>Hello World</h1>..."
                             value={formData.bodyHtml || ''}
                             onChange={(e) => setFormData({ ...formData, bodyHtml: e.target.value })}
@@ -214,7 +214,7 @@ export const EmailMarketingModule: React.FC = () => {
                                 <label className="text-white/60 text-xs font-medium uppercase">Scheduled Send Date</label>
                                 <input
                                     type="datetime-local"
-                                    className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary-purple transition-all text-sm font-medium"
+                                    className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-primary-500 transition-all text-sm font-medium"
                                     value={formData.scheduledDate ? new Date(formData.scheduledDate).toISOString().slice(0, 16) : ''}
                                     onChange={(e) => setFormData({ ...formData, scheduledDate: new Date(e.target.value).toISOString() })}
                                     disabled={formData.state !== 'draft'}

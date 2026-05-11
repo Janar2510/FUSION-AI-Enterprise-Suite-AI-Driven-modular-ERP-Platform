@@ -141,7 +141,7 @@ export const ProjectModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Project Name"
                         value={projectFormData.name || ''}
                         onChange={(e) => setProjectFormData({ ...projectFormData, name: e.target.value })}
@@ -155,7 +155,7 @@ export const ProjectModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Start Date</label>
                             <input
                                 type="date"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={projectFormData.dateStart?.split('T')[0] || ''}
                                 onChange={(e) => setProjectFormData({ ...projectFormData, dateStart: new Date(e.target.value).toISOString() })}
                             />
@@ -164,7 +164,7 @@ export const ProjectModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Deadline</label>
                             <input
                                 type="date"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={projectFormData.date?.split('T')[0] || ''}
                                 onChange={(e) => setProjectFormData({ ...projectFormData, date: new Date(e.target.value).toISOString() })}
                             />
@@ -172,7 +172,7 @@ export const ProjectModule: React.FC = () => {
                         <div className="space-y-2 col-span-2">
                             <label className="text-white/60 text-sm font-medium">Description</label>
                             <textarea
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all h-32"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all h-32"
                                 placeholder="Project description..."
                                 value={projectFormData.description || ''}
                                 onChange={(e) => setProjectFormData({ ...projectFormData, description: e.target.value })}
@@ -264,7 +264,7 @@ export const ProjectModule: React.FC = () => {
                                     if (activeTask) handleTaskStageChange(activeTask.id.toString(), stage.id.toString());
                                 }}
                                 className={`px-4 py-2 flex items-center border-l border-white/10 uppercase transition-colors
-                        ${taskFormData.stageId === stage.id ? 'text-primary-purple font-bold bg-white/5' : 'text-white/40 hover:text-white hover:bg-white/5'}
+                        ${taskFormData.stageId === stage.id ? 'text-primary-500 font-bold bg-white/5' : 'text-white/40 hover:text-white hover:bg-white/5'}
                         `}
                             >
                                 {stage.name}
@@ -277,7 +277,7 @@ export const ProjectModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Task Title"
                         value={taskFormData.name || ''}
                         onChange={(e) => setTaskFormData({ ...taskFormData, name: e.target.value })}
@@ -291,7 +291,7 @@ export const ProjectModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Project</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={taskFormData.projectId || ''}
                                 onChange={(e) => setTaskFormData({ ...taskFormData, projectId: parseInt(e.target.value) })}
                             >
@@ -304,7 +304,7 @@ export const ProjectModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Assignee</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all appearance-none"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all appearance-none"
                                 value={(taskFormData as any).assigneeId || ''}
                                 onChange={(e) => setTaskFormData({ ...taskFormData, assigneeId: e.target.value ? parseInt(e.target.value) : null } as any)}>
                                 <option value="">Unassigned</option>
@@ -315,7 +315,7 @@ export const ProjectModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Deadline</label>
                             <input
                                 type="date"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={taskFormData.dateDeadline?.split('T')[0] || ''}
                                 onChange={(e) => setTaskFormData({ ...taskFormData, dateDeadline: new Date(e.target.value).toISOString() })}
                             />
@@ -324,7 +324,7 @@ export const ProjectModule: React.FC = () => {
                         <div className="space-y-2 col-span-2">
                             <label className="text-white/60 text-sm font-medium">Description</label>
                             <textarea
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all h-32"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all h-32"
                                 placeholder="Task description..."
                                 value={taskFormData.description || ''}
                                 onChange={(e) => setTaskFormData({ ...taskFormData, description: e.target.value })}
@@ -372,7 +372,7 @@ export const ProjectModule: React.FC = () => {
                 ].map(tab => (
                     <button
                         key={tab.id}
-                        className={`pb-3 px-2 font-medium transition-colors border-b-2 ${activeTab === tab.id ? 'border-primary-purple text-primary-purple' : 'border-transparent text-white/60 hover:text-white'
+                        className={`pb-3 px-2 font-medium transition-colors border-b-2 ${activeTab === tab.id ? 'border-primary-500 text-primary-500' : 'border-transparent text-white/60 hover:text-white'
                             }`}
                         onClick={() => {
                             setActiveTab(tab.id as any);
@@ -389,7 +389,7 @@ export const ProjectModule: React.FC = () => {
                 <div className="mb-4 px-4 flex items-center gap-3">
                     <span className="text-white/60 font-medium">Active Project:</span>
                     <select
-                        className="bg-white/10 border border-white/20 rounded-md px-3 py-1 text-white outline-none focus:border-primary-purple"
+                        className="bg-white/10 border border-white/20 rounded-md px-3 py-1 text-white outline-none focus:border-primary-500"
                         value={activeProject?.id || ''}
                         onChange={(e) => {
                             const p = projects.find(proj => proj.id === parseInt(e.target.value));

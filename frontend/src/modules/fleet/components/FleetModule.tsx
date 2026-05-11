@@ -4,6 +4,8 @@ import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useFleetStore, FleetVehicle, FleetContract } from '../stores/fleetStore';
 import { Car, FileText, BarChart2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 const FUEL_TYPES = ['gasoline', 'diesel', 'electric', 'hybrid', 'lpg'];
 const LOG_TYPES = ['fuel', 'repair', 'service', 'other'];
@@ -18,7 +20,7 @@ const VEHICLE_STATE: Record<string, string> = {
 type Tab = 'vehicles' | 'contracts' | 'analytics';
 
 export const FleetModule: React.FC = () => {
-    const { vehicles, contracts, analytics, fetchVehicles, createVehicle, updateVehicle, deleteVehicle, addVehicleLog, fetchContracts, createContract, updateContract, deleteContract, fetchAnalytics } = useFleetStore();
+    const { vehicles, contracts, analytics, costRollup, alerts, fetchVehicles, createVehicle, updateVehicle, deleteVehicle, addVehicleLog, fetchContracts, createContract, updateContract, deleteContract, fetchAnalytics, fetchCostRollup, fetchAlerts } = useFleetStore();
 
     const [tab, setTab] = useState<Tab>('vehicles');
     const [currentView, setCurrentView] = useState<ViewType>('list');
@@ -32,7 +34,7 @@ export const FleetModule: React.FC = () => {
     const [activeContract, setActiveContract] = useState<FleetContract | null>(null);
     const [contractForm, setContractForm] = useState<Partial<FleetContract>>({});
 
-    useEffect(() => { fetchVehicles(); fetchContracts(); fetchAnalytics(); }, []);
+    useEffect(() => { fetchVehicles(); fetchContracts(); fetchAnalytics(); fetchCostRollup(); fetchAlerts(); }, []);
 
     const renderBadge = (state: string, map: Record<string, string>) => (
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium uppercase ${map[state] || 'bg-gray-500/20 text-gray-400'}`}>{state}</span>
@@ -93,7 +95,7 @@ export const FleetModule: React.FC = () => {
                     <div className="flex gap-2">
                         {['active', 'inactive', 'reserved'].map(s => (
                             <button key={s} onClick={async () => { await updateVehicle(activeVehicle!.id, { state: s }); setVehicleForm(p => ({ ...p, state: s })); }}
-                                className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${vehicleForm.state === s ? 'bg-primary-purple border-primary-purple text-white' : 'bg-white/5 border-white/10 text-white/60 hover:text-white'}`}>
+                                className={`px-3 py-1.5 rounded text-xs font-medium border transition-colors ${vehicleForm.state === s ? 'bg-primary-500 border-primary-500 text-white' : 'bg-white/5 border-white/10 text-white/60 hover:text-white'}`}>
                                 {s.charAt(0).toUpperCase() + s.slice(1)}
                             </button>
                         ))}
@@ -105,7 +107,7 @@ export const FleetModule: React.FC = () => {
                 </div>
             }
             headerContent={
-                <input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-purple w-full"
+                <input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-500 w-full"
                     placeholder="Vehicle name..."
                     value={vehicleForm.name || ''} onChange={e => setVehicleForm({ ...vehicleForm, name: e.target.value })} />
             }
@@ -127,7 +129,7 @@ export const FleetModule: React.FC = () => {
                     {/* Cost log entry */}
                     {activeVehicle && (
                         <div className="pt-4 border-t border-white/10">
-                            <button onClick={() => setShowLogForm(!showLogForm)} className="text-primary-purple hover:underline text-sm">+ Add Cost Log</button>
+                            <button onClick={() => setShowLogForm(!showLogForm)} className="text-primary-500 hover:underline text-sm">+ Add Cost Log</button>
                             {showLogForm && (
                                 <div className="mt-4 bg-white/5 border border-white/10 rounded-xl p-4 grid grid-cols-2 gap-4">
                                     <div className="space-y-1"><label className="text-white/60 text-xs">Type</label>
@@ -140,7 +142,7 @@ export const FleetModule: React.FC = () => {
                                     <div className="space-y-1"><label className="text-white/60 text-xs">Description</label><input className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none text-sm" value={logForm.description} onChange={e => setLogForm({ ...logForm, description: e.target.value })} /></div>
                                     <div className="col-span-2 flex justify-end gap-2">
                                         <button onClick={() => setShowLogForm(false)} className="px-4 py-1.5 rounded text-sm text-white/60 hover:text-white">Cancel</button>
-                                        <button onClick={handleAddLog} className="bg-primary-purple text-white px-4 py-1.5 rounded text-sm">Save Log</button>
+                                        <button onClick={handleAddLog} className="bg-primary-500 text-white px-4 py-1.5 rounded text-sm">Save Log</button>
                                     </div>
                                 </div>
                             )}
@@ -149,12 +151,20 @@ export const FleetModule: React.FC = () => {
                 </div>
             }
             rightPanels={
-                <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><Car className="w-5 h-5 text-blue-400" /> Vehicle Summary</h3>
-                    <div className="space-y-3 text-sm">
-                        <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-white/60">Status</span>{renderBadge(vehicleForm.state || 'active', VEHICLE_STATE)}</div>
-                        <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-white/60">Odometer</span><span className="text-white font-mono">{(vehicleForm.odometer || 0).toLocaleString()} km</span></div>
-                        <div className="flex justify-between"><span className="text-white/60">Logs</span><span className="text-white">{activeVehicle?._count?.logs || 0}</span></div>
+                <div className="space-y-4">
+                    {activeVehicle && (
+                        <>
+                            <AiActionsPanel entityType="FleetVehicle" entityId={String(activeVehicle.id)} />
+                            <ChatterPanel ownerType="FleetVehicle" ownerId={activeVehicle.id} showTimeline />
+                        </>
+                    )}
+                    <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+                        <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><Car className="w-5 h-5 text-blue-400" /> Vehicle Summary</h3>
+                        <div className="space-y-3 text-sm">
+                            <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-white/60">Status</span>{renderBadge(vehicleForm.state || 'active', VEHICLE_STATE)}</div>
+                            <div className="flex justify-between border-b border-white/5 pb-2"><span className="text-white/60">Odometer</span><span className="text-white font-mono">{(vehicleForm.odometer || 0).toLocaleString()} km</span></div>
+                            <div className="flex justify-between"><span className="text-white/60">Logs</span><span className="text-white">{activeVehicle?._count?.logs || 0}</span></div>
+                        </div>
                     </div>
                 </div>
             }
@@ -207,7 +217,7 @@ export const FleetModule: React.FC = () => {
                     {activeContract && <button onClick={async () => { if (window.confirm('Delete contract?')) { await deleteContract(activeContract.id); setCurrentView('list'); } }} className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-1.5 rounded text-sm border border-red-500/30">Delete</button>}
                 </div>
             }
-            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-purple w-full" placeholder="Contract name..." value={contractForm.name || ''} onChange={e => setContractForm({ ...contractForm, name: e.target.value })} />}
+            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-500 w-full" placeholder="Contract name..." value={contractForm.name || ''} onChange={e => setContractForm({ ...contractForm, name: e.target.value })} />}
             leftPanels={
                 <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2"><label className="text-white/60 text-sm">Vehicle</label>
@@ -245,33 +255,60 @@ export const FleetModule: React.FC = () => {
         <div className="space-y-6">
             <div className="grid grid-cols-4 gap-4">
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Vehicles</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{analytics?.totalVehicles || 0}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Cost</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">${(analytics?.totalCost || 0).toLocaleString()}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Last 30 Days</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">${(analytics?.last30DaysCost || 0).toLocaleString()}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Expiring Contracts</p><p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">{analytics?.expiringContracts?.length || 0}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Cost (All)</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">${(costRollup?.grandTotal ?? analytics?.totalCost ?? 0).toLocaleString()}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Contract Cost (Ann.)</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">${(costRollup?.contractCostAnnualized ?? 0).toLocaleString()}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Expiring (30d)</p><p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">{alerts.length}</p></div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
+                {/* Cost rollup per vehicle */}
                 <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><BarChart2 className="w-5 h-5 text-purple-400" /> Cost by Category</h3>
-                    {analytics?.costByType?.length ? (
-                        <div className="space-y-3">
-                            {analytics.costByType.map(c => (
-                                <div key={c.type}>
-                                    <div className="flex justify-between text-sm mb-1"><span className="text-white/60 capitalize">{c.type}</span><span className="text-white font-mono">${c.total.toLocaleString()} ({c.count} logs)</span></div>
-                                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                        <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" style={{ width: `${Math.min(100, (c.total / (analytics.totalCost || 1)) * 100)}%` }} />
+                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><BarChart2 className="w-5 h-5 text-amber-400" /> Cost Rollup by Vehicle</h3>
+                    {costRollup?.vehicles?.length ? (
+                        <div className="space-y-4">
+                            {costRollup.vehicles.map(v => {
+                                const vehicleName = vehicles.find(veh => veh.id === v.vehicleId)?.name ?? `Vehicle #${v.vehicleId}`;
+                                return (
+                                    <div key={v.vehicleId}>
+                                        <div className="flex justify-between text-sm mb-1">
+                                            <span className="text-white/80 font-medium">{vehicleName}</span>
+                                            <span className="text-white font-mono">${v.total.toLocaleString()}</span>
+                                        </div>
+                                        <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2">
+                                            <div className="h-full bg-gradient-to-r from-amber-500 to-pink-500 rounded-full"
+                                                style={{ width: `${Math.min(100, (v.total / (costRollup.grandTotal || 1)) * 100)}%` }} />
+                                        </div>
+                                        <div className="flex gap-3 flex-wrap">
+                                            {v.byType.map(bt => (
+                                                <span key={bt.type} className="text-[10px] text-white/40 bg-white/5 px-2 py-0.5 rounded-full capitalize">{bt.type}: ${bt.amount.toLocaleString()}</span>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
-                    ) : <p className="text-white/40 text-sm">No cost logs yet.</p>}
+                    ) : (
+                        analytics?.costByType?.length ? (
+                            <div className="space-y-3">
+                                {analytics.costByType.map(c => (
+                                    <div key={c.type}>
+                                        <div className="flex justify-between text-sm mb-1"><span className="text-white/60 capitalize">{c.type}</span><span className="text-white font-mono">${c.total.toLocaleString()} ({c.count} logs)</span></div>
+                                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                                            <div className="h-full bg-gradient-to-r from-amber-500 to-pink-500 rounded-full" style={{ width: `${Math.min(100, (c.total / (analytics.totalCost || 1)) * 100)}%` }} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : <p className="text-white/40 text-sm">No cost logs yet.</p>
+                    )}
                 </div>
 
+                {/* Expiry alerts */}
                 <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-amber-400" /> Expiring Contracts</h3>
-                    {analytics?.expiringContracts?.length ? (
+                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><AlertTriangle className="w-5 h-5 text-amber-400" /> Expiring Contracts (30d)</h3>
+                    {alerts.length ? (
                         <div className="space-y-3">
-                            {analytics.expiringContracts.map(c => (
+                            {alerts.map(c => (
                                 <div key={c.id} className="flex items-center justify-between text-sm border-b border-white/5 pb-2">
                                     <div><p className="text-white font-medium">{c.name}</p><p className="text-white/50 text-xs">{c.vehicle?.name}</p></div>
                                     <span className="text-amber-400 font-medium">{c.expirationDate ? new Date(c.expirationDate).toLocaleDateString() : '—'}</span>
@@ -297,7 +334,7 @@ export const FleetModule: React.FC = () => {
                     <div className="flex gap-1 mb-6 bg-white/5 border border-white/10 rounded-lg p-1 w-fit">
                         {[{ id: 'vehicles', label: 'Vehicles', icon: Car }, { id: 'contracts', label: 'Contracts', icon: FileText }, { id: 'analytics', label: 'Analytics', icon: BarChart2 }].map(({ id, label, icon: Icon }) => (
                             <button key={id} onClick={() => handleTabChange(id as Tab)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === id ? 'bg-primary-purple text-white' : 'text-white/60 hover:text-white'}`}>
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === id ? 'bg-primary-500 text-white' : 'text-white/60 hover:text-white'}`}>
                                 <Icon className="w-4 h-4" /> {label}
                             </button>
                         ))}

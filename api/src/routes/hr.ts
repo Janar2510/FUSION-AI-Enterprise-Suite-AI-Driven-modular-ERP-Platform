@@ -228,6 +228,43 @@ hrRoutes.get('/leave-balance/:employeeId', asyncHandler(async (req, res) => {
     res.json(balances);
 }));
 
+/**
+ * Team Calendar — returns all validated leaves for a given month as calendar events.
+ * GET /api/hr/leaves/calendar?month=YYYY-MM
+ */
+hrRoutes.get('/leaves/calendar', asyncHandler(async (req, res) => {
+    const month = (req.query.month as string) || new Date().toISOString().slice(0, 7);
+    const [year, mon] = month.split('-').map(Number);
+    const dateFrom = new Date(year, mon - 1, 1);
+    const dateTo = new Date(year, mon, 0, 23, 59, 59); // last day of month
+
+    const leaves = await prisma.hrLeave.findMany({
+        where: {
+            state: 'validate',
+            OR: [
+                { dateFrom: { lte: dateTo }, dateTo: { gte: dateFrom } },
+            ],
+        },
+        include: {
+            employee: { select: { id: true, name: true } },
+            hrLeaveType: { select: { id: true, name: true, color: true } },
+        },
+        orderBy: { dateFrom: 'asc' },
+    });
+
+    res.json(leaves.map(l => ({
+        id: l.id,
+        title: `${l.employee.name} — ${l.hrLeaveType?.name ?? l.leaveType}`,
+        start: l.dateFrom,
+        end: l.dateTo,
+        employeeId: l.employeeId,
+        employeeName: l.employee.name,
+        leaveTypeName: l.hrLeaveType?.name ?? l.leaveType,
+        leaveTypeColor: l.hrLeaveType?.color ?? 'blue',
+        numberOfDays: l.numberOfDays,
+    })));
+}));
+
 // Contracts
 hrRoutes.get('/contracts', asyncHandler(async (req, res) => {
     const { skip, page, limit } = getPagination(req.query);
@@ -363,8 +400,55 @@ hrRoutes.patch('/expense-sheets/:id/submit', asyncHandler(async (req, res) => {
 }));
 
 hrRoutes.patch('/expense-sheets/:id/approve', asyncHandler(async (req, res) => {
-    const sheet = await prisma.hrExpenseSheet.update({ where: { id: parseInt(req.params.id) }, data: { state: 'approved' } });
-    res.json(sheet);
+    const sheetId = parseInt(req.params.id);
+    // Update state to approved
+    const sheet = await prisma.hrExpenseSheet.update({
+        where: { id: sheetId },
+        data: { state: 'approved' },
+        include: { employee: true, expenses: true },
+    });
+
+    // Auto-post GL entry on approval
+    try {
+        let expenseAccount = await prisma.accountAccount.findFirst({ where: { accountType: 'expense' } });
+        if (!expenseAccount) {
+            expenseAccount = await prisma.accountAccount.create({
+                data: { code: '612000', name: 'Employee Expenses', accountType: 'expense', active: true },
+            });
+        }
+        let expenseJournal = await prisma.accountJournal.findFirst({ where: { type: 'purchase' } });
+        if (!expenseJournal) {
+            expenseJournal = await prisma.accountJournal.create({
+                data: { name: 'Expense Journal', code: 'EXP', type: 'purchase', active: true },
+            });
+        }
+        await prisma.accountMove.create({
+            data: {
+                name: `EXP/${new Date().getFullYear()}/${String(sheetId).padStart(4, '0')}`,
+                moveType: 'in_invoice',
+                state: 'posted',
+                date: new Date(),
+                ref: sheet.name,
+                amountTotal: sheet.totalAmount,
+                amountResidual: sheet.totalAmount,
+                journalId: expenseJournal.id,
+                lines: {
+                    create: sheet.expenses.map(exp => ({
+                        name: exp.name,
+                        accountId: expenseAccount!.id,
+                        debit: exp.totalAmount,
+                        credit: 0,
+                        amount: exp.totalAmount,
+                    })),
+                },
+            },
+        });
+        await prisma.hrExpenseSheet.update({ where: { id: sheetId }, data: { state: 'posted' } });
+        res.json({ ...sheet, state: 'posted' });
+    } catch (_err) {
+        // GL posting failed non-fatally — sheet is still approved
+        res.json(sheet);
+    }
 }));
 
 hrRoutes.patch('/expense-sheets/:id/refuse', asyncHandler(async (req, res) => {
@@ -571,3 +655,81 @@ hrRoutes.delete('/applicants/:id', asyncHandler(async (req, res) => {
 // ── Chatter ─────────────────────────────────────────────────────────────────
 import { createChatterRouter } from '../core/chatter';
 hrRoutes.use('/', createChatterRouter('hr.applicant'));
+
+// ── Payslips ─────────────────────────────────────────────────────────────────
+
+hrRoutes.get('/payslips', asyncHandler(async (req, res) => {
+    const { skip, page, limit } = getPagination(req.query);
+    const employeeId = req.query.employee_id ? parseInt(req.query.employee_id as string) : undefined;
+    const where: any = {};
+    if (employeeId) where.employeeId = employeeId;
+
+    const [data, total] = await Promise.all([
+        prisma.hrPayslip.findMany({ where, skip, take: limit, orderBy: { dateFrom: 'desc' }, include: { employee: { select: { id: true, name: true } } } }),
+        prisma.hrPayslip.count({ where }),
+    ]);
+    res.json({ data, total, page, pages: Math.ceil(total / limit) });
+}));
+
+hrRoutes.get('/payslips/:id', asyncHandler(async (req, res) => {
+    const payslip = await prisma.hrPayslip.findUnique({
+        where: { id: parseInt(req.params.id) },
+        include: { employee: true },
+    });
+    if (!payslip) { res.status(404).json({ error: 'Payslip not found' }); return; }
+    res.json(payslip);
+}));
+
+hrRoutes.post('/payslips', asyncHandler(async (req, res) => {
+    const payslip = await prisma.hrPayslip.create({
+        data: { ...req.body, state: 'draft' },
+        include: { employee: true },
+    });
+    res.status(201).json(payslip);
+}));
+
+hrRoutes.put('/payslips/:id', asyncHandler(async (req, res) => {
+    const { employee, ...data } = req.body;
+    const payslip = await prisma.hrPayslip.update({
+        where: { id: parseInt(req.params.id) },
+        data,
+        include: { employee: true },
+    });
+    res.json(payslip);
+}));
+
+/** Confirm payslip: draft → confirmed */
+hrRoutes.patch('/payslips/:id/confirm', asyncHandler(async (req, res) => {
+    const payslip = await prisma.hrPayslip.update({
+        where: { id: parseInt(req.params.id) },
+        data: { state: 'done' },
+        include: { employee: true },
+    });
+    res.json(payslip);
+}));
+
+/** Mark as paid: confirmed → paid */
+hrRoutes.patch('/payslips/:id/pay', asyncHandler(async (req, res) => {
+    const payslip = await prisma.hrPayslip.update({
+        where: { id: parseInt(req.params.id) },
+        data: { state: 'paid' },
+        include: { employee: true },
+    });
+    res.json(payslip);
+}));
+
+/** Reset to draft */
+hrRoutes.patch('/payslips/:id/reset', asyncHandler(async (req, res) => {
+    const payslip = await prisma.hrPayslip.update({
+        where: { id: parseInt(req.params.id) },
+        data: { state: 'draft' },
+        include: { employee: true },
+    });
+    res.json(payslip);
+}));
+
+hrRoutes.delete('/payslips/:id', asyncHandler(async (req, res) => {
+    await prisma.hrPayslip.delete({ where: { id: parseInt(req.params.id) } });
+    res.json({ success: true });
+}));
+

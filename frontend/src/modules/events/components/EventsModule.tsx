@@ -180,7 +180,7 @@ export const EventsModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Event Name..."
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -194,7 +194,7 @@ export const EventsModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Start Date</label>
                             <input
                                 type="datetime-local"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.dateBegin ? new Date(formData.dateBegin).toISOString().slice(0, 16) : ''}
                                 onChange={(e) => setFormData({ ...formData, dateBegin: new Date(e.target.value).toISOString() })}
                             />
@@ -203,7 +203,7 @@ export const EventsModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">End Date</label>
                             <input
                                 type="datetime-local"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.dateEnd ? new Date(formData.dateEnd).toISOString().slice(0, 16) : ''}
                                 onChange={(e) => setFormData({ ...formData, dateEnd: new Date(e.target.value).toISOString() })}
                             />
@@ -214,7 +214,7 @@ export const EventsModule: React.FC = () => {
                         <label className="text-white/60 text-sm font-medium">Location</label>
                         <input
                             type="text"
-                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                             placeholder="Venue name or address online link..."
                             value={formData.location || ''}
                             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
@@ -224,7 +224,7 @@ export const EventsModule: React.FC = () => {
                     <div className="space-y-2 pt-4">
                         <label className="text-white/60 text-sm font-medium">Description</label>
                         <textarea
-                            className="w-full h-32 bg-white/5 border border-white/10 rounded-md px-4 py-3 text-white text-sm outline-none focus:border-primary-purple transition-all resize-none"
+                            className="w-full h-32 bg-white/5 border border-white/10 rounded-md px-4 py-3 text-white text-sm outline-none focus:border-primary-500 transition-all resize-none"
                             placeholder="Add event details here..."
                             value={formData.description || ''}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -244,7 +244,7 @@ export const EventsModule: React.FC = () => {
                                 <label className="text-white/60 text-xs font-medium uppercase text-center block">Maximum Attendees</label>
                                 <input
                                     type="number"
-                                    className="w-24 mx-auto block bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-center outline-none focus:border-primary-purple transition-all text-lg font-bold"
+                                    className="w-24 mx-auto block bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-center outline-none focus:border-primary-500 transition-all text-lg font-bold"
                                     value={formData.seatsMax || 0}
                                     onChange={(e) => setFormData({ ...formData, seatsMax: parseInt(e.target.value) })}
                                 />

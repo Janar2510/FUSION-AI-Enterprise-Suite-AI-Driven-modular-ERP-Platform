@@ -95,7 +95,7 @@ export const OrderpointModal: React.FC<OrderpointModalProps> = ({
                             type="text"
                             required
                             placeholder="e.g. OP/0001"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50 transition-all font-sans"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-sans"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
@@ -106,7 +106,7 @@ export const OrderpointModal: React.FC<OrderpointModalProps> = ({
                             <label className="text-sm font-medium text-white/60">Product</label>
                             <select
                                 required
-                                className="w-full bg-[#2a2d37] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50 transition-all font-sans"
+                                className="w-full bg-[#2a2d37] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-sans"
                                 value={formData.productId}
                                 onChange={(e) => setFormData({ ...formData, productId: parseInt(e.target.value) })}
                             >
@@ -120,7 +120,7 @@ export const OrderpointModal: React.FC<OrderpointModalProps> = ({
                             <label className="text-sm font-medium text-white/60">Location</label>
                             <select
                                 required
-                                className="w-full bg-[#2a2d37] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50 transition-all font-sans"
+                                className="w-full bg-[#2a2d37] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-sans"
                                 value={formData.locationId}
                                 onChange={(e) => setFormData({ ...formData, locationId: parseInt(e.target.value) })}
                             >
@@ -139,7 +139,7 @@ export const OrderpointModal: React.FC<OrderpointModalProps> = ({
                                 type="number"
                                 required
                                 min="0"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50 transition-all font-sans"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-sans"
                                 value={formData.productMinQty}
                                 onChange={(e) => setFormData({ ...formData, productMinQty: parseFloat(e.target.value) })}
                             />
@@ -150,7 +150,7 @@ export const OrderpointModal: React.FC<OrderpointModalProps> = ({
                                 type="number"
                                 required
                                 min="0"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-purple/50 transition-all font-sans"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all font-sans"
                                 value={formData.productMaxQty}
                                 onChange={(e) => setFormData({ ...formData, productMaxQty: parseFloat(e.target.value) })}
                             />
@@ -161,7 +161,7 @@ export const OrderpointModal: React.FC<OrderpointModalProps> = ({
                         <input
                             type="checkbox"
                             id="active"
-                            className="w-5 h-5 rounded border-white/10 bg-white/5 text-primary-purple focus:ring-primary-purple"
+                            className="w-5 h-5 rounded border-white/10 bg-white/5 text-primary-500 focus:ring-primary-500"
                             checked={formData.active}
                             onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
                         />
@@ -179,7 +179,7 @@ export const OrderpointModal: React.FC<OrderpointModalProps> = ({
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-purple to-indigo-600 text-white rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary-purple/20 disabled:opacity-50"
+                            className="flex-1 px-6 py-3 bg-gradient-to-r from-primary-500 to-orange-600 text-white rounded-xl font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary-500/20 disabled:opacity-50"
                         >
                             {loading ? 'Saving...' : 'Save Rule'}
                         </button>

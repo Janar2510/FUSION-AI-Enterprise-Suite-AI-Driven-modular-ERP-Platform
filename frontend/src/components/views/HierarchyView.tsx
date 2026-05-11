@@ -39,7 +39,7 @@ const Node: React.FC<{
             >
                 <GlassCard
                     className={`min-w-[280px] p-4 border-l-4 cursor-pointer hover:border-r-4 transition-all bg-black/40 backdrop-blur-2xl`}
-                    style={{ borderLeftColor: node.color || '#a855f7' } as React.CSSProperties}
+                    style={{ borderLeftColor: node.color || '#f97316' } as React.CSSProperties}
                     onClick={() => onNodeClick?.(node.id)}
                 >
                     <div className="flex items-start gap-4">

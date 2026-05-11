@@ -9,7 +9,7 @@ import { CreditCard, Plus, Trash2, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const PLAN_BADGES: Record<string, string> = {
-    enterprise: 'bg-violet-500/20 text-violet-400',
+    enterprise: 'bg-amber-500/20 text-amber-400',
     pro: 'bg-blue-500/20 text-blue-400',
     starter: 'bg-gray-500/20 text-gray-400',
 };
@@ -94,7 +94,7 @@ export const SubscriptionsModule: React.FC = () => {
         const cards = [
             { label: 'MRR', value: `$${Math.round(totalMrr).toLocaleString()}`, color: 'from-green-500 to-emerald-500' },
             { label: 'ARR', value: `$${Math.round(totalMrr * 12).toLocaleString()}`, color: 'from-blue-500 to-cyan-500' },
-            { label: 'Active', value: analytics?.active ?? activeSubs.length, color: 'from-violet-500 to-purple-500' },
+            { label: 'Active', value: analytics?.active ?? activeSubs.length, color: 'from-amber-500 to-orange-500' },
             { label: 'Paused', value: analytics?.paused ?? 0, color: 'from-yellow-500 to-orange-500' },
         ];
         return (
@@ -180,7 +180,7 @@ export const SubscriptionsModule: React.FC = () => {
             }
             headerContent={
                 <input type="text"
-                    className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                    className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                     placeholder="Subscription name..." value={formData.name || ''}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
             }
@@ -189,7 +189,7 @@ export const SubscriptionsModule: React.FC = () => {
                     <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Customer</label>
-                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple"
+                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500"
                                 value={formData.partnerId || ''} onChange={(e) => setFormData({ ...formData, partnerId: e.target.value })}>
                                 <option value="">Select customer...</option>
                                 {partners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -197,7 +197,7 @@ export const SubscriptionsModule: React.FC = () => {
                         </div>
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Plan</label>
-                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple"
+                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500"
                                 value={formData.plan || 'starter'} onChange={(e) => setFormData({ ...formData, plan: e.target.value })}>
                                 <option value="starter">Starter</option>
                                 <option value="pro">Pro</option>
@@ -206,7 +206,7 @@ export const SubscriptionsModule: React.FC = () => {
                         </div>
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Billing Cycle</label>
-                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple"
+                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500"
                                 value={formData.recurringRule || 'monthly'} onChange={(e) => setFormData({ ...formData, recurringRule: e.target.value })}>
                                 <option value="monthly">Monthly</option>
                                 <option value="quarterly">Quarterly</option>
@@ -216,7 +216,7 @@ export const SubscriptionsModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Start Date</label>
                             <input type="date"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple [&::-webkit-calendar-picker-indicator]:filter-invert"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 [&::-webkit-calendar-picker-indicator]:filter-invert"
                                 value={formData.startDate?.split('T')[0] || new Date().toISOString().split('T')[0]}
                                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} />
                         </div>
@@ -241,7 +241,7 @@ export const SubscriptionsModule: React.FC = () => {
                                     const updated = useSubscriptionStore.getState().items.find(i => i.id === activeRecord.id);
                                     if (updated) { setActiveRecord(updated); setFormData(updated); }
                                 }}
-                                    className="text-primary-purple text-xs hover:text-white flex items-center gap-1 transition-colors">
+                                    className="text-primary-500 text-xs hover:text-white flex items-center gap-1 transition-colors">
                                     <Plus className="w-3.5 h-3.5" /> Add Line
                                 </button>
                             )}
@@ -276,7 +276,7 @@ export const SubscriptionsModule: React.FC = () => {
                                         </tr>
                                     ))}
                                     {activeRecord && (
-                                        <tr className="border-b border-white/5 bg-primary-purple/5">
+                                        <tr className="border-b border-white/5 bg-primary-500/5">
                                             <td className="py-2 px-3">
                                                 <input type="text" placeholder="Description…" value={newLine.name || ''}
                                                     onChange={e => setNewLine({ ...newLine, name: e.target.value })}
@@ -319,7 +319,7 @@ export const SubscriptionsModule: React.FC = () => {
             rightPanels={
                 <div className="bg-white/5 border border-white/10 rounded-xl p-6">
                     <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
-                        <CreditCard className="w-5 h-5 text-violet-400" /> Summary
+                        <CreditCard className="w-5 h-5 text-amber-400" /> Summary
                     </h3>
                     <div className="space-y-3 text-sm">
                         <div className="flex justify-between border-b border-white/5 pb-2">

@@ -77,12 +77,12 @@ export const AutomationModule: React.FC = () => {
                             exit={{ opacity: 0, scale: 0.95 }}
                         >
                             <GlassCard
-                                className={`relative p-6 border-t-4 transition-all group overflow-hidden ${w.active ? 'border-primary-purple' : 'border-white/10'}`}
+                                className={`relative p-6 border-t-4 transition-all group overflow-hidden ${w.active ? 'border-primary-500' : 'border-white/10'}`}
                                 onClick={() => handleRowClick(w)}
                             >
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:bg-primary-purple/20 transition-colors">
-                                        <Zap className={`w-6 h-6 ${w.active ? 'text-primary-purple' : 'text-white/20'}`} />
+                                    <div className="p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:bg-primary-500/20 transition-colors">
+                                        <Zap className={`w-6 h-6 ${w.active ? 'text-primary-500' : 'text-white/20'}`} />
                                     </div>
                                     <button
                                         onClick={(e) => {
@@ -90,7 +90,7 @@ export const AutomationModule: React.FC = () => {
                                             toggleWorkflow(w.id, !w.active);
                                         }}
                                         className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${w.active
-                                            ? 'bg-primary-purple/20 border-primary-purple text-primary-purple'
+                                            ? 'bg-primary-500/20 border-primary-500 text-primary-500'
                                             : 'bg-white/5 border-white/10 text-white/40'
                                             }`}
                                     >
@@ -135,7 +135,7 @@ export const AutomationModule: React.FC = () => {
                                     <motion.div
                                         animate={{ opacity: [0.1, 0.2, 0.1] }}
                                         transition={{ duration: 3, repeat: Infinity }}
-                                        className="absolute -right-4 -top-4 w-24 h-24 bg-primary-purple/20 blur-3xl rounded-full"
+                                        className="absolute -right-4 -top-4 w-24 h-24 bg-primary-500/20 blur-3xl rounded-full"
                                     />
                                 )}
                             </GlassCard>
@@ -169,7 +169,7 @@ export const AutomationModule: React.FC = () => {
                             type="text"
                             value={formData.name || ''}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="w-full bg-transparent text-6xl font-black text-white outline-none border-b border-transparent focus:border-primary-purple transition-all placeholder-white/10 italic"
+                            className="w-full bg-transparent text-6xl font-black text-white outline-none border-b border-transparent focus:border-primary-500 transition-all placeholder-white/10 italic"
                             placeholder="WORKFLOW_NAME"
                         />
                         <div className="flex items-center gap-4 text-white/30 uppercase font-black text-xs tracking-widest">
@@ -192,7 +192,7 @@ export const AutomationModule: React.FC = () => {
                         </button>
                         <button
                             onClick={handleSave}
-                            className="px-8 py-4 bg-primary-purple text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] transition-all"
+                            className="px-8 py-4 bg-primary-500 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:shadow-[0_0_30px_rgba(245,158,11,0.6)] transition-all"
                         >
                             Deploy Workflow
                         </button>
@@ -211,7 +211,7 @@ export const AutomationModule: React.FC = () => {
                                         <select
                                             value={formData.trigger}
                                             onChange={(e) => setFormData({ ...formData, trigger: e.target.value as WorkflowTrigger })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary-purple/50 appearance-none bg-chevron-down"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary-500/50 appearance-none bg-chevron-down"
                                         >
                                             <option value="ON_CREATE" className="bg-[#1a1a1a]">On Creation</option>
                                             <option value="ON_UPDATE" className="bg-[#1a1a1a]">On Update</option>
@@ -225,7 +225,7 @@ export const AutomationModule: React.FC = () => {
                                             type="text"
                                             value={formData.model || ''}
                                             onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary-purple/50"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary-500/50"
                                             placeholder="e.g. SaleOrder"
                                         />
                                     </div>
@@ -237,17 +237,17 @@ export const AutomationModule: React.FC = () => {
                             <h4 className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Phase 02: Neural Conditions</h4>
                             <GlassCard className="p-8 space-y-6 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4">
-                                    <BrainCircuit className="w-12 h-12 text-primary-purple/10" />
+                                    <BrainCircuit className="w-12 h-12 text-primary-500/10" />
                                 </div>
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center">
                                         <label className="text-[10px] font-black text-white/40 uppercase tracking-widest">Requirement Formula</label>
-                                        <span className="text-[9px] font-black text-primary-purple uppercase tracking-tighter bg-primary-purple/10 px-2 py-0.5 rounded leading-none">Powered by Neural Formula BI</span>
+                                        <span className="text-[9px] font-black text-primary-500 uppercase tracking-tighter bg-primary-500/10 px-2 py-0.5 rounded leading-none">Powered by Neural Formula BI</span>
                                     </div>
                                     <textarea
                                         value={formData.condition || ''}
                                         onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                                        className="w-full h-32 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white font-mono text-sm outline-none focus:border-primary-purple/50 placeholder-white/5"
+                                        className="w-full h-32 bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white font-mono text-sm outline-none focus:border-primary-500/50 placeholder-white/5"
                                         placeholder="=CRM.Probability > 80 && ACCOUNTING.TotalDebt < 1000"
                                     />
                                     <p className="text-[10px] text-white/20 italic">Use cross-module formulas to filter triggers dynamically.</p>
@@ -271,11 +271,11 @@ export const AutomationModule: React.FC = () => {
                                         key={opt.id}
                                         onClick={() => setFormData({ ...formData, action: JSON.stringify({ type: opt.id, config: action.config }) })}
                                         className={`w-full text-left p-6 rounded-3xl border transition-all flex items-start gap-5 group ${action.type === opt.id
-                                            ? 'bg-primary-purple/10 border-primary-purple/40 shadow-lg'
+                                            ? 'bg-primary-500/10 border-primary-500/40 shadow-lg'
                                             : 'bg-white/5 border-white/10 hover:border-white/20'
                                             }`}
                                     >
-                                        <div className={`p-3 rounded-2xl ${action.type === opt.id ? 'bg-primary-purple/20 text-primary-purple' : 'bg-white/5 text-white/40 group-hover:text-white/60'}`}>
+                                        <div className={`p-3 rounded-2xl ${action.type === opt.id ? 'bg-primary-500/20 text-primary-500' : 'bg-white/5 text-white/40 group-hover:text-white/60'}`}>
                                             {opt.icon}
                                         </div>
                                         <div>
@@ -284,7 +284,7 @@ export const AutomationModule: React.FC = () => {
                                         </div>
                                         {action.type === opt.id && (
                                             <div className="ml-auto">
-                                                <CheckCircle2 className="w-5 h-5 text-primary-purple" />
+                                                <CheckCircle2 className="w-5 h-5 text-primary-500" />
                                             </div>
                                         )}
                                     </button>

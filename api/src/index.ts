@@ -78,6 +78,7 @@ import { attendanceRoutes } from './routes/attendance';
 import { payrollRoutes } from './routes/payroll';
 import { appraisalRoutes } from './routes/appraisal';
 import { qualityRoutes } from './routes/quality';
+import { documentRoutes } from './routes/documents';
 import { plmRoutes } from './routes/plm';
 import { subscriptionRoutes } from './routes/subscriptions';
 import { planningRoutes } from './routes/planning';
@@ -91,6 +92,7 @@ import aiActionsRouter from './routes/ai-actions';
 import { gdprRoutes } from './routes/gdpr';
 import { invoicingRoutes } from './routes/invoicing';
 import { signRoutes } from './routes/sign';
+import { portalRoutes } from './routes/portal';
 import { startBackgroundJobs } from './jobs';
 import { createServer } from 'http';
 import { initWebSocket } from './core/ws';
@@ -199,6 +201,7 @@ app.use('/api', apiLimiter);
 // Public data routes (unauthenticated access by design)
 app.use('/api/ecommerce', ecommerceRoutes);         // session-based cart
 app.use('/api/marketing-web', marketingWebRoutes);  // public website pages
+app.use('/api/portal', portalRoutes);               // portal token-validated public resources (ADR-0015)
 
 // Global auth guard — all routes registered below require a valid Bearer token
 app.use('/api', requireAuth);
@@ -232,6 +235,7 @@ app.use('/api/recruitment', recruitmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payroll', payrollRoutes);
 app.use('/api/appraisals', appraisalRoutes);
+app.use('/api/documents', documentRoutes);
 app.use('/api/quality', qualityRoutes);
 app.use('/api/plm', plmRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);

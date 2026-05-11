@@ -2,8 +2,10 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { PlanningIntelligence } from '../lib/planning_intelligence';
+import { requireAuth } from '../core/auth';
 
 export const planningRoutes = Router();
+planningRoutes.use(requireAuth);
 
 planningRoutes.get('/', asyncHandler(async (req, res) => {
     const { page, limit, skip } = getPagination(req.query);
@@ -88,4 +90,42 @@ planningRoutes.put('/:id', asyncHandler(async (req, res) => {
 planningRoutes.delete('/:id', asyncHandler(async (req, res) => {
     await prisma.planningSlot.delete({ where: { id: +req.params.id } });
     res.json({ success: true });
+}));
+
+// Publish slots (draft → confirmed) with optional email notify
+planningRoutes.patch('/publish', asyncHandler(async (req, res) => {
+    const { slotIds, notify } = req.body as { slotIds?: number[]; notify?: boolean };
+    const where: any = slotIds?.length ? { id: { in: slotIds } } : { state: 'draft' };
+
+    const updated = await prisma.planningSlot.updateMany({ where, data: { state: 'confirmed' } });
+
+    if (notify) {
+        // Fetch slots with employee email for notification
+        const slots = await prisma.planningSlot.findMany({
+            where,
+            include: { employee: { select: { name: true } } },
+        });
+
+        // Import email service (best-effort, non-fatal)
+        try {
+            const { sendEmail } = await import('../core/email');
+            for (const slot of slots) {
+                if (!slot.employee) continue;
+                await sendEmail({
+                    to: `${slot.employee.name.toLowerCase().replace(/\s+/g, '.')}@company.com`,
+                    subject: `Shift Published: ${slot.role ?? 'Shift'} on ${slot.startDate.toLocaleDateString()}`,
+                    templateKey: 'shift-publish',
+                    vars: {
+                        employeeName: slot.employee.name,
+                        role: slot.role ?? 'Shift',
+                        startDate: slot.startDate.toLocaleDateString(),
+                        endDate: slot.endDate.toLocaleDateString(),
+                        hours: String(slot.hours),
+                    },
+                }).catch(() => {});
+            }
+        } catch (_) {}
+    }
+
+    res.json({ updated: updated.count });
 }));

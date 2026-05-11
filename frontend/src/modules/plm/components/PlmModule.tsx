@@ -3,6 +3,8 @@ import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { OdooDataGrid } from '@/components/shared/OdooDataGrid';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 import { usePlmStore, MrpEco } from '../stores/plmStore';
 import { useInventoryStore } from '@/modules/inventory/stores/inventoryStore';
 import { useManufacturingStore } from '@/modules/manufacturing/stores/manufacturingStore';
@@ -106,10 +108,10 @@ export const PlmModule: React.FC = () => {
                                     <GlassCard
                                         key={eco.id}
                                         onClick={() => handleRowClick(eco)}
-                                        className="p-4 cursor-pointer hover:border-primary-purple/50 transition-colors group"
+                                        className="p-4 cursor-pointer hover:border-primary-500/50 transition-colors group"
                                     >
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="font-bold text-white group-hover:text-primary-purple transition-colors">{eco.name}</span>
+                                            <span className="font-bold text-white group-hover:text-primary-500 transition-colors">{eco.name}</span>
                                             {eco.approvalState === 'approved' && <CheckCircle className="w-4 h-4 text-green-400" />}
                                         </div>
                                         <p className="text-white/60 text-xs line-clamp-2 mb-3 h-8">
@@ -176,7 +178,7 @@ export const PlmModule: React.FC = () => {
                         <div className="flex items-center gap-4">
                             {/* Action Buttons */}
                             {activeEco?.stage === 'draft' && (
-                                <button onClick={() => handleAction('confirm')} className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-1.5 rounded text-sm transition-colors">Start Revision</button>
+                                <button onClick={() => handleAction('confirm')} className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-1.5 rounded text-sm transition-colors">Start Revision</button>
                             )}
 
                             {activeEco?.stage === 'confirmed' && activeEco?.approvalState === 'none' && (
@@ -202,7 +204,7 @@ export const PlmModule: React.FC = () => {
                                     }`}>
                                     {activeEco.approvalState}
                                 </span>
-                                <span className={`px-3 py-1 text-xs font-medium rounded-full uppercase border border-primary-purple/30 text-primary-purple bg-primary-purple/10`}>
+                                <span className={`px-3 py-1 text-xs font-medium rounded-full uppercase border border-primary-500/30 text-primary-500 bg-primary-500/10`}>
                                     {activeEco.stage}
                                 </span>
                             </div>
@@ -213,7 +215,7 @@ export const PlmModule: React.FC = () => {
                     <div className="flex flex-col gap-2">
                         <input
                             type="text"
-                            className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                            className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                             placeholder="ECO Reference"
                             value={formData.name || ''}
                             readOnly={isReadonly}
@@ -228,7 +230,7 @@ export const PlmModule: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-white/60 text-sm font-medium">Type</label>
                                     <select
-                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.type || 'product'}
                                         disabled={isReadonly}
                                         onChange={(e) => setFormData({ ...formData, type: e.target.value })}
@@ -240,7 +242,7 @@ export const PlmModule: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-white/60 text-sm font-medium">Product</label>
                                     <select
-                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.productId || ''}
                                         disabled={isReadonly}
                                         onChange={(e) => setFormData({ ...formData, productId: parseInt(e.target.value) })}
@@ -255,7 +257,7 @@ export const PlmModule: React.FC = () => {
                                     <div className="space-y-2 col-span-2">
                                         <label className="text-white/60 text-sm font-medium">Bill of Material to Revise</label>
                                         <select
-                                            className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                            className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                             value={formData.bomId || ''}
                                             disabled={isReadonly}
                                             onChange={(e) => setFormData({ ...formData, bomId: parseInt(e.target.value) })}
@@ -273,7 +275,7 @@ export const PlmModule: React.FC = () => {
                         <GlassCard className="p-6">
                             <label className="text-white/60 text-sm font-medium mb-2 block">Reason for Change</label>
                             <textarea
-                                className="w-full min-h-[120px] bg-black/20 border border-white/10 rounded-md px-4 py-3 text-white outline-none focus:border-primary-purple transition-all resize-y"
+                                className="w-full min-h-[120px] bg-black/20 border border-white/10 rounded-md px-4 py-3 text-white outline-none focus:border-primary-500 transition-all resize-y"
                                 placeholder="Describe why this ECO is necessary..."
                                 value={formData.description || ''}
                                 readOnly={isReadonly}
@@ -318,7 +320,7 @@ export const PlmModule: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-white/60 text-sm">When to apply?</label>
                                     <select
-                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all text-sm"
+                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all text-sm"
                                         value={formData.effectivity || 'as_soon_as_possible'}
                                         disabled={isReadonly}
                                         onChange={(e) => setFormData({ ...formData, effectivity: e.target.value })}
@@ -335,6 +337,16 @@ export const PlmModule: React.FC = () => {
                                 )}
                             </div>
                         </GlassCard>
+                        {activeEco && (
+                            <AiActionsPanel
+                                entityType="MrpEco"
+                                entityId={activeEco.id}
+                                agentKey="plm_review"
+                            />
+                        )}
+                        {activeEco && (
+                            <ChatterPanel resourceModel="mrp.eco" resourceId={activeEco.id} />
+                        )}
                     </div>
                 }
             />

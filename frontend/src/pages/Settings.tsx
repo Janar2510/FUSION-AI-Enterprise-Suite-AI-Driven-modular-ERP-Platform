@@ -208,7 +208,7 @@ const SettingsPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-purple to-secondary-purple p-6">
+        <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-purple p-6">
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 {[...Array(3)].map((_, i) => (
                     <motion.div key={i} className="absolute rounded-full bg-gradient-to-r from-slate-500/10 to-gray-500/10 blur-3xl"
@@ -228,7 +228,7 @@ const SettingsPage: React.FC = () => {
                             <p className="text-white/70 text-lg">Platform configuration and administration</p>
                         </div>
                         <button onClick={handleSave}
-                            className={`px-6 py-3 rounded-lg font-medium shadow-lg transition-all flex items-center gap-2 ${saved ? 'bg-green-500 text-white' : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-xl'
+                            className={`px-6 py-3 rounded-lg font-medium shadow-lg transition-all flex items-center gap-2 ${saved ? 'bg-green-500 text-white' : 'bg-gradient-to-r from-blue-500 to-orange-600 text-white hover:shadow-xl'
                                 }`}>
                             <Save className="w-5 h-5" />{saved ? 'Saved!' : 'Save Changes'}
                         </button>
@@ -394,7 +394,7 @@ const SettingsPage: React.FC = () => {
                                             {platformUsers.map(u => (
                                                 <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
                                                     <td className="px-6 py-4 text-white font-medium flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
                                                             {u.name[0]}
                                                         </div>
                                                         {u.name}
@@ -498,10 +498,10 @@ const SettingsPage: React.FC = () => {
                                 <GlassCard className="p-6">
                                     <div className="flex items-center justify-between mb-4">
                                         <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                                            <CreditCard className="w-5 h-5 text-purple-400" />Pricelists
+                                            <CreditCard className="w-5 h-5 text-amber-400" />Pricelists
                                         </h2>
                                         <button onClick={() => setPlCreating(v => !v)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 rounded-lg text-sm transition-colors">
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 rounded-lg text-sm transition-colors">
                                             <Plus className="w-4 h-4" /> New
                                         </button>
                                     </div>
@@ -509,7 +509,7 @@ const SettingsPage: React.FC = () => {
                                         <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-4 space-y-3">
                                             <input placeholder="Name (e.g. Wholesale EUR)" value={plForm.name}
                                                 onChange={e => setPlForm(p => ({ ...p, name: e.target.value }))}
-                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-purple-400/60" />
+                                                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-amber-400/60" />
                                             <select value={plForm.currency}
                                                 onChange={e => setPlForm(p => ({ ...p, currency: e.target.value }))}
                                                 className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none appearance-none">
@@ -519,7 +519,7 @@ const SettingsPage: React.FC = () => {
                                             </select>
                                             <div className="flex gap-2">
                                                 <button onClick={createPL}
-                                                    className="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm">Save</button>
+                                                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm">Save</button>
                                                 <button onClick={() => setPlCreating(false)}
                                                     className="px-3 py-1.5 bg-white/5 text-white/60 hover:bg-white/10 rounded-lg text-sm">Cancel</button>
                                             </div>
@@ -532,7 +532,7 @@ const SettingsPage: React.FC = () => {
                                         {pricelists.map(pl => (
                                             <div key={pl.id} className="flex items-center justify-between px-4 py-3 rounded-lg bg-white/5 hover:bg-white/8 transition-all">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-xs font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded">{pl.currency}</span>
+                                                    <span className="text-xs font-mono bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">{pl.currency}</span>
                                                     <p className="text-white font-medium text-sm">{pl.name}</p>
                                                     {!pl.active && <span className="text-xs text-white/30">(inactive)</span>}
                                                 </div>

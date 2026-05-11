@@ -132,13 +132,13 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ channel, onC
               )}
 
               {summary.topics.length > 0 && (
-                <div className="bg-primary-purple/10 border border-primary-purple/20 rounded-lg p-4">
+                <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-4">
                   <h4 className="text-white font-medium mb-2">Key Topics</h4>
                   <div className="flex flex-wrap gap-2">
                     {summary.topics.map((topic) => (
                       <span
                         key={topic}
-                        className="px-3 py-1 bg-primary-purple/20 text-primary-purple text-xs rounded-full"
+                        className="px-3 py-1 bg-primary-500/20 text-primary-500 text-xs rounded-full"
                       >
                         {topic}
                       </span>
@@ -179,7 +179,7 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ channel, onC
                 <div className="space-y-3">
                   {members.map(({ id, name }) => (
                     <div key={id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-purple to-accent-pink flex items-center justify-center text-white font-semibold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-semibold text-sm">
                         {name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1">

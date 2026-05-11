@@ -57,7 +57,7 @@ export const MaintenanceModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{requests.length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Open</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{requests.filter(r => r.stage !== 'done' && r.stage !== 'cancelled').length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Done</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{requests.filter(r => r.stage === 'done').length}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTTR (hrs)</p><p className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">{analytics?.mttrHours ?? '—'}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTTR (hrs)</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">{analytics?.mttrHours ?? '—'}</p></div>
             </div>
             <OdooListBase data={filteredReqs} onRowClick={handleReqRowClick} keyExtractor={r => r.id.toString()} columns={[
                 { key: 'name', label: 'Request', render: r => <span className="font-bold">{r.name}</span> },
@@ -89,7 +89,7 @@ export const MaintenanceModule: React.FC = () => {
                     {activeReq && <button onClick={async () => { if (window.confirm('Delete request?')) { await deleteRequest(activeReq.id); setCurrentView('list'); } }} className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-1.5 rounded text-sm border border-red-500/30">Delete</button>}
                 </div>
             }
-            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-purple w-full" placeholder="Request title..." value={reqForm.name || ''} onChange={e => setReqForm({ ...reqForm, name: e.target.value })} />}
+            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-500 w-full" placeholder="Request title..." value={reqForm.name || ''} onChange={e => setReqForm({ ...reqForm, name: e.target.value })} />}
             leftPanels={
                 <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2"><label className="text-white/60 text-sm">Equipment</label>
@@ -168,7 +168,7 @@ export const MaintenanceModule: React.FC = () => {
                     {activeEq && <button onClick={async () => { if (window.confirm('Archive equipment?')) { await deleteEquipment(activeEq.id); setCurrentView('list'); } }} className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-1.5 rounded text-sm border border-red-500/30">Archive</button>}
                 </div>
             }
-            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-purple w-full" placeholder="Equipment name..." value={eqForm.name || ''} onChange={e => setEqForm({ ...eqForm, name: e.target.value })} />}
+            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-500 w-full" placeholder="Equipment name..." value={eqForm.name || ''} onChange={e => setEqForm({ ...eqForm, name: e.target.value })} />}
             leftPanels={
                 <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2"><label className="text-white/60 text-sm">Serial Number</label><input className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white font-mono outline-none" value={eqForm.serialNo || ''} onChange={e => setEqForm({ ...eqForm, serialNo: e.target.value })} /></div>
@@ -203,12 +203,12 @@ export const MaintenanceModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Equipment</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{analytics?.totalEquipment || 0}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Open Requests</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{analytics?.openRequests || 0}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTTR (hrs)</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{analytics?.mttrHours ?? '—'}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTBF (days)</p><p className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">{analytics?.mtbfDays ?? '—'}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTBF (days)</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">{analytics?.mtbfDays ?? '—'}</p></div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
                 <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><BarChart2 className="w-5 h-5 text-purple-400" /> Requests by Stage</h3>
+                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2"><BarChart2 className="w-5 h-5 text-amber-400" /> Requests by Stage</h3>
                     {analytics?.byStage?.length ? (
                         <div className="space-y-3">
                             {analytics.byStage.map(s => (
@@ -251,7 +251,7 @@ export const MaintenanceModule: React.FC = () => {
                     <div className="flex gap-1 mb-6 bg-white/5 border border-white/10 rounded-lg p-1 w-fit">
                         {[{ id: 'requests', label: 'Requests', icon: Wrench }, { id: 'equipment', label: 'Equipment', icon: Cpu }, { id: 'analytics', label: 'Analytics', icon: BarChart2 }].map(({ id, label, icon: Icon }) => (
                             <button key={id} onClick={() => handleTabChange(id as Tab)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === id ? 'bg-primary-purple text-white' : 'text-white/60 hover:text-white'}`}>
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === id ? 'bg-primary-500 text-white' : 'text-white/60 hover:text-white'}`}>
                                 <Icon className="w-4 h-4" /> {label}
                             </button>
                         ))}

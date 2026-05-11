@@ -127,7 +127,7 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
           onClick={() => setSignatureMethod('draw')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
             signatureMethod === 'draw'
-              ? 'bg-primary-purple text-white'
+              ? 'bg-primary-500 text-white'
               : 'bg-glass-bg text-text-secondary hover:text-white hover:bg-glass-hover'
           }`}
         >
@@ -138,7 +138,7 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
           onClick={() => setSignatureMethod('type')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
             signatureMethod === 'type'
-              ? 'bg-primary-purple text-white'
+              ? 'bg-primary-500 text-white'
               : 'bg-glass-bg text-text-secondary hover:text-white hover:bg-glass-hover'
           }`}
         >
@@ -172,7 +172,7 @@ export const SignatureCanvas: React.FC<SignatureCanvasProps> = ({
             value={typedSignature}
             onChange={(e) => setTypedSignature(e.target.value)}
             placeholder="Type your full name"
-            className="w-full p-4 bg-glass-bg border border-glass-border rounded-lg text-white text-xl font-semibold text-center focus:outline-none focus:ring-2 focus:ring-primary-purple"
+            className="w-full p-4 bg-glass-bg border border-glass-border rounded-lg text-white text-xl font-semibold text-center focus:outline-none focus:ring-2 focus:ring-primary-500"
             style={{ fontFamily: 'cursive' }}
           />
           <div className="text-center">

@@ -65,7 +65,7 @@ export const CompanyList: React.FC<CompanyListProps> = ({
                     <h3 className="text-white font-semibold text-xl">{company.name}</h3>
                     <div className="flex gap-2 mt-1">
                       {company.isCustomer && (
-                        <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded-full">Customer</span>
+                        <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded-full">Customer</span>
                       )}
                       {company.isVendor && (
                         <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 text-xs rounded-full">Vendor</span>
@@ -137,7 +137,7 @@ export const CompanyList: React.FC<CompanyListProps> = ({
                             {company.children.slice(0, 5).map((child) => (
                               <div key={child.id} className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer"
                                 onClick={() => setSelectedPartner(child)}>
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-purple to-accent-pink flex items-center justify-center text-white text-xs font-bold">
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white text-xs font-bold">
                                   {getInitials(child.name)}
                                 </div>
                                 <span className="text-white text-sm">{child.name}</span>

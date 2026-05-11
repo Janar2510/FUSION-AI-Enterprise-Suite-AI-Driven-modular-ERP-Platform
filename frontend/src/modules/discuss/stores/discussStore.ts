@@ -2,6 +2,14 @@ import { create } from 'zustand';
 import { Channel, Message, User, AIInsight, AIAction } from '../types';
 import { discussApi, aiActionsApi } from '@/lib/api';
 
+export interface MentionNotification {
+  channelId: number;
+  messageId?: number;
+  fromUserId: string;
+  fromName: string;
+  receivedAt: string;
+}
+
 interface DiscussState {
   channels: Channel[];
   currentChannel: Channel | null;
@@ -9,6 +17,7 @@ interface DiscussState {
   users: User[];
   aiInsights: AIInsight[];
   aiActions: AIAction[];
+  mentions: MentionNotification[];
 
   // Actions
   setCurrentChannel: (channelId: number | null) => void;
@@ -18,6 +27,9 @@ interface DiscussState {
   deleteMessage: (messageId: number) => void;
   addReaction: (messageId: number, emoji: string) => void;
   removeReaction: (messageId: number, emoji: string) => void;
+  applyWsReactions: (messageId: number, reactions: Array<{ emoji: string; authorId: string }>) => void;
+  addMention: (mention: MentionNotification) => void;
+  clearMentions: () => void;
   loadMessages: (channelId: number) => Promise<void>;
   loadChannels: () => Promise<void>;
   loadUsers: () => Promise<void>;
@@ -65,6 +77,7 @@ export const useDiscussStore = create<DiscussState>((set, get) => ({
   users: [],
   aiInsights: [],
   aiActions: [],
+  mentions: [],
 
   setCurrentChannel: (channelId) => {
     const channel = channelId ? get().channels.find(c => c.id === channelId) ?? null : null;
@@ -200,5 +213,23 @@ export const useDiscussStore = create<DiscussState>((set, get) => ({
 
   clearMessages: () => {
     set({ messages: [] });
+  },
+
+  applyWsReactions: (messageId, reactions) => {
+    set((state) => ({
+      messages: state.messages.map((msg) =>
+        msg.id === messageId
+          ? { ...msg, reactions: reactions.map(r => ({ emoji: r.emoji, userId: r.authorId, count: 1 })) }
+          : msg
+      ),
+    }));
+  },
+
+  addMention: (mention) => {
+    set((state) => ({ mentions: [mention, ...state.mentions].slice(0, 50) }));
+  },
+
+  clearMentions: () => {
+    set({ mentions: [] });
   },
 }));

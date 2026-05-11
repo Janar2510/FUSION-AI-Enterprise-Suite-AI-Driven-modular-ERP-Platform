@@ -3,8 +3,35 @@ import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { requireAuth } from '../core/auth';
 import { AppError } from '../core/errors';
+import { randomBytes } from 'crypto';
 
 export const surveyRoutes = Router();
+
+// ── Public portal route with access token (no auth) ───────────────────────────
+surveyRoutes.get('/portal/:token', asyncHandler(async (req, res) => {
+    const s = await prisma.survey.findUnique({
+        where: { accessToken: req.params.token },
+        include: { questions: { orderBy: { sequence: 'asc' }, include: { answers: { orderBy: { sequence: 'asc' } } } } },
+    });
+    if (!s || s.state !== 'open') {
+        res.status(404).json({ error: 'Survey not found or not open' });
+        return;
+    }
+    res.json({ id: s.id, title: s.title, description: s.description, questions: s.questions });
+}));
+
+surveyRoutes.post('/portal/:token/submit', asyncHandler(async (req, res) => {
+    const s = await prisma.survey.findUnique({ where: { accessToken: req.params.token } });
+    if (!s || s.state !== 'open') {
+        res.status(404).json({ error: 'Survey not found or not open' });
+        return;
+    }
+    const { email } = req.body;
+    const input = await prisma.surveyUserInput.create({
+        data: { surveyId: s.id, email: email ?? null, state: 'done', endDatetime: new Date() },
+    });
+    res.status(201).json({ inputId: input.id });
+}));
 
 // ── Public route (no auth) — participate in a survey ─────────────────────────
 surveyRoutes.get('/public/:id', asyncHandler(async (req, res) => {
@@ -69,7 +96,9 @@ surveyRoutes.get('/:id', asyncHandler(async (req, res) => {
 }));
 
 surveyRoutes.post('/', asyncHandler(async (req, res) => {
-    const s = await prisma.survey.create({ data: req.body });
+    const s = await prisma.survey.create({
+        data: { ...req.body, accessToken: randomBytes(16).toString('hex') },
+    });
     res.status(201).json(s);
 }));
 
@@ -147,29 +176,35 @@ surveyRoutes.delete('/answers/:aId', asyncHandler(async (req, res) => {
 
 surveyRoutes.get('/:id/results', asyncHandler(async (req, res) => {
     const surveyId = parseInt(req.params.id);
-    const [survey, responseCount] = await Promise.all([
-        prisma.survey.findUnique({
-            where: { id: surveyId },
-            include: { questions: { include: { answers: true } } },
-        }),
-        prisma.surveyUserInput.count({ where: { surveyId } }),
-    ]);
+    const survey = await prisma.survey.findUnique({
+        where: { id: surveyId },
+        include: { questions: { orderBy: { sequence: 'asc' }, include: { answers: { orderBy: { sequence: 'asc' } } } } },
+    });
     if (!survey) throw AppError.notFound('Survey');
 
-    const completionRate = responseCount > 0 ? 100 : 0;
+    const responseCount = await prisma.surveyUserInput.count({ where: { surveyId } });
+
+    // Return question structure with answer options for UI rendering.
+    // Detailed per-answer counts require a UserInputLine model (future work).
+    const questionStats = survey.questions.map(q => ({
+        questionId: q.id,
+        title: q.title,
+        questionType: q.questionType,
+        totalAnswers: 0,
+        options: ['multiple_choice', 'multiple_choice_multi'].includes(q.questionType)
+            ? q.answers.map(a => ({ label: a.value, count: 0 }))
+            : undefined,
+        numericAvg: null,
+        numericMin: null,
+        numericMax: null,
+    }));
 
     res.json({
         surveyId,
         title: survey.title,
         state: survey.state,
         totalResponses: responseCount,
-        completionRate,
-        questions: survey.questions.map(q => ({
-            id: q.id,
-            title: q.title,
-            questionType: q.questionType,
-            answerOptions: q.answers,
-        })),
+        questions: questionStats,
     });
 }));
 

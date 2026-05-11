@@ -109,7 +109,7 @@ export const ExpensesModule: React.FC = () => {
             { label: 'Total Expenses', value: `$${totalAmount.toLocaleString()}`, color: 'from-blue-500 to-cyan-500' },
             { label: 'Approved Amount', value: `$${approvedAmount.toLocaleString()}`, color: 'from-green-500 to-emerald-500' },
             { label: 'Pending', value: pending, color: 'from-amber-500 to-yellow-500' },
-            { label: 'Total Records', value: expenses.length, color: 'from-purple-500 to-pink-500' },
+            { label: 'Total Records', value: expenses.length, color: 'from-amber-500 to-pink-500' },
         ];
         return (
             <div className="grid grid-cols-4 gap-4 mb-6">
@@ -171,7 +171,7 @@ export const ExpensesModule: React.FC = () => {
             headerContent={
                 <div className="flex flex-col gap-2">
                     <input type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                         placeholder="Expense description..."
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -183,7 +183,7 @@ export const ExpensesModule: React.FC = () => {
                     <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Employee</label>
-                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all appearance-none"
+                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all appearance-none"
                                 value={formData.employeeId || ''}
                                 onChange={(e) => setFormData({ ...formData, employeeId: parseInt(e.target.value) })}>
                                 <option value="">Select employee...</option>
@@ -193,7 +193,7 @@ export const ExpensesModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Date</label>
                             <input type="date"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.date ? formData.date.slice(0, 10) : ''}
                                 onChange={(e) => setFormData({ ...formData, date: new Date(e.target.value).toISOString() })}
                             />
@@ -201,7 +201,7 @@ export const ExpensesModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Unit Price</label>
                             <input type="number" min={0} step={0.01}
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.unitAmount || 0}
                                 onChange={(e) => {
                                     const unitAmount = parseFloat(e.target.value);
@@ -212,7 +212,7 @@ export const ExpensesModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Quantity</label>
                             <input type="number" min={1} step={1}
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.quantity || 1}
                                 onChange={(e) => {
                                     const quantity = parseFloat(e.target.value);
@@ -222,7 +222,7 @@ export const ExpensesModule: React.FC = () => {
                         </div>
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Paid By</label>
-                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all appearance-none"
+                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all appearance-none"
                                 value={formData.paymentMode || 'own_account'}
                                 onChange={(e) => setFormData({ ...formData, paymentMode: e.target.value })}>
                                 {PAYMENT_MODES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
@@ -232,7 +232,7 @@ export const ExpensesModule: React.FC = () => {
                     <div className="space-y-2 pt-4 border-t border-white/10">
                         <label className="text-white/60 text-sm font-medium">Description</label>
                         <textarea
-                            className="w-full h-32 bg-white/5 border border-white/10 rounded-md px-4 py-3 text-white text-sm outline-none focus:border-primary-purple transition-all resize-none"
+                            className="w-full h-32 bg-white/5 border border-white/10 rounded-md px-4 py-3 text-white text-sm outline-none focus:border-primary-500 transition-all resize-none"
                             placeholder="Expense details..."
                             value={formData.description || ''}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -266,7 +266,7 @@ export const ExpensesModule: React.FC = () => {
                             <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
                                 <Receipt className="w-5 h-5 text-amber-400" /> Receipt
                             </h3>
-                            <a href={formData.receipt} target="_blank" rel="noreferrer" className="text-primary-purple underline text-sm">
+                            <a href={formData.receipt} target="_blank" rel="noreferrer" className="text-primary-500 underline text-sm">
                                 View attached receipt
                             </a>
                         </div>
@@ -310,7 +310,7 @@ export const ExpensesModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Reports</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{sheets.length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Pending Approval</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{sheets.filter(s => s.state === 'submitted').length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Posted to GL</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{sheets.filter(s => s.state === 'posted').length}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Amount</p><p className="text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">${sheets.reduce((s, r) => s + r.totalAmount, 0).toLocaleString()}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Amount</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">${sheets.reduce((s, r) => s + r.totalAmount, 0).toLocaleString()}</p></div>
             </div>
             <OdooListBase data={filteredSheets} onRowClick={handleSheetRowClick} keyExtractor={s => s.id.toString()} columns={[
                 { key: 'name', label: 'Report', render: s => <span className="font-bold">{s.name}</span> },
@@ -357,7 +357,7 @@ export const ExpensesModule: React.FC = () => {
                     {activeSheet && <button onClick={async () => { if (window.confirm('Delete report?')) { await deleteSheet(activeSheet.id); setCurrentView('list'); } }} className="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white px-4 py-1.5 rounded text-sm border border-red-500/30">Delete</button>}
                 </div>
             }
-            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-purple w-full" placeholder="Expense report name..." value={sheetForm.name || ''} onChange={e => setSheetForm({ ...sheetForm, name: e.target.value })} />}
+            headerContent={<input type="text" className="text-4xl font-bold bg-transparent text-white border-b border-transparent outline-none focus:border-primary-500 w-full" placeholder="Expense report name..." value={sheetForm.name || ''} onChange={e => setSheetForm({ ...sheetForm, name: e.target.value })} />}
             leftPanels={
                 <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <div className="space-y-2"><label className="text-white/60 text-sm">Employee</label>
@@ -422,7 +422,7 @@ export const ExpensesModule: React.FC = () => {
                     <div className="flex gap-1 mb-6 bg-white/5 border border-white/10 rounded-lg p-1 w-fit">
                         {[{ id: 'expenses', label: 'Expenses', icon: Receipt }, { id: 'reports', label: 'Expense Reports', icon: FileText }].map(({ id, label, icon: Icon }) => (
                             <button key={id} onClick={() => handleTabChange(id as Tab)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === id ? 'bg-primary-purple text-white' : 'text-white/60 hover:text-white'}`}>
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === id ? 'bg-primary-500 text-white' : 'text-white/60 hover:text-white'}`}>
                                 <Icon className="w-4 h-4" /> {label}
                             </button>
                         ))}

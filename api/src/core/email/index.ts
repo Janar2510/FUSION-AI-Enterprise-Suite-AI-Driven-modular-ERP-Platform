@@ -89,6 +89,35 @@ const TEMPLATES: Record<string, { subject: string; html: string }> = {
   <p style="color:#888;font-size:12px">This invitation expires in 48 hours.</p>
 </div>`,
     },
+    'shift-publish': {
+        subject: 'Shift Published: {{role}} on {{startDate}}',
+        html: `
+<div style="font-family:sans-serif;max-width:600px;margin:auto">
+  <h2 style="color:#6366f1">Shift Published</h2>
+  <p>Hello {{employeeName}},</p>
+  <p>Your shift has been confirmed and published:</p>
+  <table style="border-collapse:collapse;width:100%;margin:16px 0">
+    <tr><td style="padding:8px;font-weight:bold;color:#888">Role</td><td style="padding:8px">{{role}}</td></tr>
+    <tr style="background:#f9f9f9"><td style="padding:8px;font-weight:bold;color:#888">Date</td><td style="padding:8px">{{startDate}} – {{endDate}}</td></tr>
+    <tr><td style="padding:8px;font-weight:bold;color:#888">Hours</td><td style="padding:8px">{{hours}}h</td></tr>
+  </table>
+  <hr/><p style="color:#888;font-size:12px">FusionAI Planning</p>
+</div>`,
+    },
+    'recruitment-stage-change': {
+        subject: 'Application Update: {{jobName}} — {{stageName}}',
+        html: `
+<div style="font-family:sans-serif;max-width:600px;margin:auto">
+  <h2 style="color:#6366f1">Your Application Has Been Updated</h2>
+  <p>Dear {{applicantName}},</p>
+  <p>We wanted to let you know that your application for <strong>{{jobName}}</strong> has moved to a new stage:</p>
+  <div style="background:#f0f0ff;border-left:4px solid #6366f1;padding:12px 20px;margin:16px 0;border-radius:4px">
+    <strong style="font-size:18px">{{stageName}}</strong>
+  </div>
+  <p>Our team will be in touch soon. Thank you for your interest!</p>
+  <hr/><p style="color:#888;font-size:12px">FusionAI Recruitment</p>
+</div>`,
+    },
 };
 
 // ── Transport factory ─────────────────────────────────────────────────────────

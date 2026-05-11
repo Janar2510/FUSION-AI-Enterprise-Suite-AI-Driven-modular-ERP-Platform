@@ -13,6 +13,8 @@ import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
 
+interface PricelistOption { id: number; name: string; currencyCode: string; }
+
 export const SalesModule: React.FC = () => {
     const { orders, fetchAllOrders, createOrder, updateOrder, confirmOrder, cancelOrder, createInvoice } = useSalesStore();
     const { partners, fetchPartners } = usePartnerStore(); // We'll need this to quickly select customers
@@ -24,10 +26,12 @@ export const SalesModule: React.FC = () => {
     const [activeRecord, setActiveRecord] = useState<SaleOrder | null>(null);
     const [formData, setFormData] = useState<Partial<SaleOrder>>({});
     const [lines, setLines] = useState<SaleOrderLine[]>([]);
+    const [pricelists, setPricelists] = useState<PricelistOption[]>([]);
 
     useEffect(() => {
         fetchAllOrders();
         fetchPartners();
+        axios.get(`${API_BASE}/api/sales/pricelists`).then(r => setPricelists(r.data)).catch(() => {});
     }, []);
 
     const handleNew = () => {
@@ -123,7 +127,7 @@ export const SalesModule: React.FC = () => {
             case 'draft': return 'bg-gray-500/20 text-gray-400';
             case 'sent': return 'bg-blue-500/20 text-blue-400';
             case 'sale': return 'bg-green-500/20 text-green-400';
-            case 'done': return 'bg-purple-500/20 text-purple-400';
+            case 'done': return 'bg-amber-500/20 text-amber-400';
             case 'cancel': return 'bg-red-500/20 text-red-400';
             default: return 'bg-gray-500/20 text-gray-400';
         }
@@ -181,7 +185,7 @@ export const SalesModule: React.FC = () => {
                                 {formData.state === 'sale' && (
                                     <button
                                         onClick={handleCreateInvoice}
-                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-md shadow-lg"
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white font-bold rounded-md shadow-lg"
                                     >
                                         Create Invoice
                                     </button>
@@ -198,7 +202,7 @@ export const SalesModule: React.FC = () => {
                                 {['draft', 'sent', 'sale'].map((state, idx) => (
                                     <div key={state} className="flex items-center relative">
                                         <div className={`px-4 py-2 flex items-center pr-6 uppercase
-                      ${formData.state === state ? 'text-primary-purple font-bold' : 'text-white/40'}
+                      ${formData.state === state ? 'text-primary-500 font-bold' : 'text-white/40'}
                       ${formData.state === 'sale' && idx < 2 ? 'text-white/80' : ''}
                     `}>
                                             {state === 'draft' ? 'Quotation' : state === 'sent' ? 'Quotation Sent' : 'Sales Order'}
@@ -222,7 +226,7 @@ export const SalesModule: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-white/60 text-sm font-medium">Customer</label>
                                     <select
-                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.partnerId || ''}
                                         onChange={(e) => setFormData({ ...formData, partnerId: parseInt(e.target.value) })}
                                     >
@@ -236,12 +240,33 @@ export const SalesModule: React.FC = () => {
                                     <label className="text-white/60 text-sm font-medium">Expiration Date</label>
                                     <input
                                         type="date"
-                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.validityDate?.split('T')[0] || ''}
                                         onChange={(e) => setFormData({ ...formData, validityDate: new Date(e.target.value).toISOString() })}
                                     />
                                 </div>
                             </div>
+
+                            {/* Pricelist selector */}
+                            {pricelists.length > 0 && (
+                                <div className="grid grid-cols-2 gap-x-8">
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm font-medium">Pricelist</label>
+                                        <select
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
+                                            value={(formData as any).pricelistId || ''}
+                                            onChange={(e) => setFormData({ ...formData, pricelistId: e.target.value ? parseInt(e.target.value) : undefined } as any)}
+                                        >
+                                            <option value="" className="text-black">— No pricelist —</option>
+                                            {pricelists.map(pl => (
+                                                <option key={pl.id} value={pl.id} className="text-black">
+                                                    {pl.name} ({pl.currencyCode})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Order Lines Notebook / Tabs equivalent in Odoo */}
                             <div className="pt-6 border-t border-white/10">
@@ -353,7 +378,7 @@ const SalesDashboard: React.FC = () => {
                 {[
                     { icon: DollarSign, label: 'Revenue This Month', value: `€${fmt(data.revenueThisMonth)}`, color: 'text-green-400' },
                     { icon: TrendingUp, label: 'Revenue This Year', value: `€${fmt(data.revenueThisYear)}`, color: 'text-blue-400' },
-                    { icon: ShoppingCart, label: 'Confirmed Orders', value: (data.ordersByState?.sale ?? 0).toString(), color: 'text-purple-400' },
+                    { icon: ShoppingCart, label: 'Confirmed Orders', value: (data.ordersByState?.sale ?? 0).toString(), color: 'text-amber-400' },
                     { icon: Users, label: 'Top Partners', value: (data.topPartners?.length ?? 0).toString(), color: 'text-yellow-400' },
                 ].map(({ icon: Icon, label, value, color }) => (
                     <div key={label} className="bg-white/5 border border-white/10 rounded-xl p-5">

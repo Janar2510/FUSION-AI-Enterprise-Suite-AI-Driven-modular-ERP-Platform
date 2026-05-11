@@ -19,9 +19,9 @@ const COLOR_PALETTE = [
     '#22c55e',       // 4 — green
     '#06b6d4',       // 5 — cyan
     '#3b82f6',       // 6 — blue
-    '#8b5cf6',       // 7 — violet
+    '#f59e0b',       // 7 — violet
     '#ec4899',       // 8 — pink
-    '#6366f1',       // 9 — indigo
+    '#f59e0b',       // 9 — indigo
     '#14b8a6',       // 10 — teal
     '#64748b',       // 11 — slate
 ];
@@ -118,7 +118,7 @@ export const NotesModule: React.FC = () => {
                                                         {...provided.draggableProps}
                                                         {...provided.dragHandleProps}
                                                         onClick={() => handleRowClick(note)}
-                                                        className={`bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-all overflow-hidden ${snapshot.isDragging ? 'shadow-2xl shadow-primary-purple/20 ring-1 ring-primary-purple' : ''
+                                                        className={`bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-all overflow-hidden ${snapshot.isDragging ? 'shadow-2xl shadow-primary-500/20 ring-1 ring-primary-500' : ''
                                                             }`}
                                                     >
                                                         {note.color > 0 && (
@@ -136,7 +136,7 @@ export const NotesModule: React.FC = () => {
                                                             {note.tags?.length > 0 && (
                                                                 <div className="flex flex-wrap gap-1 mt-1">
                                                                     {note.tags.map(tag => (
-                                                                        <span key={tag} className="bg-primary-purple/20 text-purple-300 text-[10px] px-2 py-0.5 rounded-full border border-primary-purple/30">
+                                                                        <span key={tag} className="bg-primary-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-primary-500/30">
                                                                             {tag}
                                                                         </span>
                                                                     ))}
@@ -193,7 +193,7 @@ export const NotesModule: React.FC = () => {
                                     if (activeRecord) updateNote(activeRecord.id, { stage: s.id });
                                 }}
                                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${formData.stage === s.id
-                                        ? 'bg-primary-purple text-white shadow-lg'
+                                        ? 'bg-primary-500 text-white shadow-lg'
                                         : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
                                     }`}
                             >
@@ -224,7 +224,7 @@ export const NotesModule: React.FC = () => {
                 <div className="flex flex-col gap-2">
                     <input
                         type="text"
-                        className="text-4xl font-bold bg-transparent text-white border-b border-white/20 placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full pb-2 mb-4"
+                        className="text-4xl font-bold bg-transparent text-white border-b border-white/20 placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full pb-2 mb-4"
                         placeholder="Note Title..."
                         value={formData.name || ''}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -232,12 +232,12 @@ export const NotesModule: React.FC = () => {
                     {/* ── Tag chip input ─────────────────────────────────────── */}
                     <div className="flex flex-wrap items-center gap-2">
                         {(formData.tags ?? []).map(tag => (
-                            <span key={tag} className="inline-flex items-center gap-1 bg-primary-purple/20 text-purple-300 text-xs px-2.5 py-1 rounded-full border border-primary-purple/40">
+                            <span key={tag} className="inline-flex items-center gap-1 bg-primary-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full border border-primary-500/40">
                                 {tag}
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, tags: (formData.tags ?? []).filter(t => t !== tag) })}
-                                    className="text-purple-400 hover:text-white leading-none ml-0.5"
+                                    className="text-amber-400 hover:text-white leading-none ml-0.5"
                                 >×</button>
                             </span>
                         ))}
@@ -267,7 +267,7 @@ export const NotesModule: React.FC = () => {
                 <div className="space-y-6 w-full max-w-4xl col-span-2 lg:col-span-2">
                     <div className="space-y-2">
                         <textarea
-                            className="w-full h-[500px] bg-white/5 border border-white/10 rounded-xl p-6 text-white outline-none focus:border-primary-purple transition-all resize-none font-mono text-sm leading-relaxed"
+                            className="w-full h-[500px] bg-white/5 border border-white/10 rounded-xl p-6 text-white outline-none focus:border-primary-500 transition-all resize-none font-mono text-sm leading-relaxed"
                             placeholder="Write your note down here. Use markdown or plain text."
                             value={formData.body || ''}
                             onChange={(e) => setFormData({ ...formData, body: e.target.value })}

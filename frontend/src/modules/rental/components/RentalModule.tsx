@@ -5,6 +5,8 @@ import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useRentalStore, RentalOrder, RentalOrderLine } from '../stores/rentalStore';
 import { usePartnerStore } from '@/stores/partnerStore';
 import { useInventoryStore } from '@/modules/inventory/stores/inventoryStore';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 
 export const RentalModule: React.FC = () => {
     const {
@@ -143,7 +145,7 @@ export const RentalModule: React.FC = () => {
             statusRibbon={
                 <div className="flex items-center justify-between w-full">
                     <div className="flex gap-2">
-                        {formData.state === 'draft' && <button onClick={() => handleAction('pickup')} className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-1.5 rounded text-sm transition-colors">Confirm Pickup</button>}
+                        {formData.state === 'draft' && <button onClick={() => handleAction('pickup')} className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-1.5 rounded text-sm transition-colors">Confirm Pickup</button>}
                         {formData.state === 'pickup' && <button onClick={() => handleAction('return')} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded text-sm transition-colors">Register Return</button>}
                         {formData.state === 'return' && <button onClick={() => handleAction('done')} className="bg-green-600 hover:bg-green-500 text-white px-4 py-1.5 rounded text-sm transition-colors">Mark Done</button>}
                         {formData.state !== 'done' && formData.state !== 'cancel' && <button onClick={() => handleAction('cancel')} className="bg-white/10 hover:bg-white/20 text-white px-4 py-1.5 rounded text-sm transition-colors">Cancel</button>}
@@ -161,7 +163,7 @@ export const RentalModule: React.FC = () => {
                         <div className="space-y-2">
                             <label className="text-white/60 text-sm font-medium">Customer</label>
                             <select
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.partnerId || ''}
                                 onChange={(e) => setFormData({ ...formData, partnerId: parseInt(e.target.value) })}
                                 disabled={formData.state !== 'draft'}
@@ -179,7 +181,7 @@ export const RentalModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Pickup Date</label>
                             <input
                                 type="datetime-local"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.pickupDate ? new Date(formData.pickupDate).toISOString().slice(0, 16) : ''}
                                 onChange={(e) => setFormData({ ...formData, pickupDate: new Date(e.target.value).toISOString() })}
                                 disabled={formData.state !== 'draft'}
@@ -189,7 +191,7 @@ export const RentalModule: React.FC = () => {
                             <label className="text-white/60 text-sm font-medium">Return Date</label>
                             <input
                                 type="datetime-local"
-                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                 value={formData.returnDate ? new Date(formData.returnDate).toISOString().slice(0, 16) : ''}
                                 onChange={(e) => setFormData({ ...formData, returnDate: new Date(e.target.value).toISOString() })}
                                 disabled={formData.state !== 'draft' && formData.state !== 'pickup'}
@@ -209,7 +211,7 @@ export const RentalModule: React.FC = () => {
                                 <div key={line.id} className="grid grid-cols-12 gap-4 px-4 py-2 items-center hover:bg-white/5 group transition-colors">
                                     <div className="col-span-6">
                                         <select
-                                            className="w-full bg-transparent border-none text-white outline-none focus:ring-1 focus:ring-primary-purple rounded"
+                                            className="w-full bg-transparent border-none text-white outline-none focus:ring-1 focus:ring-primary-500 rounded"
                                             value={line.productId || ''}
                                             onChange={(e) => updateLine(index, 'productId', parseInt(e.target.value))}
                                             disabled={formData.state !== 'draft'}
@@ -223,7 +225,7 @@ export const RentalModule: React.FC = () => {
                                     <div className="col-span-2">
                                         <input
                                             type="number" min="1"
-                                            className="w-full bg-transparent border-none text-white outline-none focus:ring-1 focus:ring-primary-purple rounded"
+                                            className="w-full bg-transparent border-none text-white outline-none focus:ring-1 focus:ring-primary-500 rounded"
                                             value={line.productQty}
                                             onChange={(e) => updateLine(index, 'productQty', parseInt(e.target.value))}
                                             disabled={formData.state !== 'draft'}
@@ -232,7 +234,7 @@ export const RentalModule: React.FC = () => {
                                     <div className="col-span-2">
                                         <input
                                             type="number" min="0" step="0.01"
-                                            className="w-full bg-transparent border-none text-white outline-none focus:ring-1 focus:ring-primary-purple rounded"
+                                            className="w-full bg-transparent border-none text-white outline-none focus:ring-1 focus:ring-primary-500 rounded"
                                             value={line.priceUnit}
                                             onChange={(e) => updateLine(index, 'priceUnit', parseFloat(e.target.value))}
                                             disabled={formData.state !== 'draft'}
@@ -251,7 +253,7 @@ export const RentalModule: React.FC = () => {
 
                             {formData.state === 'draft' && (
                                 <div className="px-4 py-3 border-t border-white/5">
-                                    <button onClick={addLine} className="text-sm font-medium text-primary-purple hover:text-primary-purple/80">
+                                    <button onClick={addLine} className="text-sm font-medium text-primary-500 hover:text-primary-500/80">
                                         + Add a product
                                     </button>
                                 </div>
@@ -261,7 +263,14 @@ export const RentalModule: React.FC = () => {
                 </div>
             }
             rightPanels={
-                <div className="space-y-6">
+                <div className="space-y-4">
+                    {activeOrder && (
+                        <>
+                            <AiActionsPanel entityType="RentalOrder" entityId={String(activeOrder.id)} />
+                            <ChatterPanel ownerType="RentalOrder" ownerId={activeOrder.id} showTimeline />
+                        </>
+                    )}
+                    <div className="space-y-6">
                     <div className="bg-white/5 border border-white/10 rounded-xl p-6">
                         <h3 className="text-lg font-bold text-white mb-4">Rental Summary</h3>
                         <div className="space-y-3">
@@ -279,6 +288,7 @@ export const RentalModule: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             }
         />

@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../lib/utils';
+import { requireAuth } from '../core/auth';
 
 export const automationRoutes = Router();
+automationRoutes.use(requireAuth);
 
 // Get all workflows
 automationRoutes.get('/workflows', asyncHandler(async (req, res) => {

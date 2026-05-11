@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../lib/utils';
+import { requireAuth } from '../core/auth';
 
 export const dashboardRoutes = Router();
+dashboardRoutes.use(requireAuth);
 
 // Recent activity feed (last 15 timeline events)
 dashboardRoutes.get('/recent-activity', asyncHandler(async (_req, res) => {

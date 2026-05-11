@@ -92,13 +92,13 @@ export const DiscussMain: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-dark-bg via-primary-purple to-secondary-purple">
+    <div className="flex h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-purple">
       {/* Animated background orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full bg-gradient-to-r from-accent-pink/20 to-primary-purple/20 blur-3xl"
+            className="absolute rounded-full bg-gradient-to-r from-accent-pink/20 to-primary-500/20 blur-3xl"
             style={{
               width: `${400 + i * 100}px`,
               height: `${400 + i * 100}px`,
@@ -209,7 +209,7 @@ export const DiscussMain: React.FC = () => {
                   <button
                     key={suggestion}
                     onClick={() => setMessage(suggestion)}
-                    className="px-3 py-1 bg-primary-purple/20 text-primary-purple text-sm rounded-full hover:bg-primary-purple/30 transition-colors"
+                    className="px-3 py-1 bg-primary-500/20 text-primary-500 text-sm rounded-full hover:bg-primary-500/30 transition-colors"
                   >
                     {suggestion}
                   </button>
@@ -269,7 +269,7 @@ export const DiscussMain: React.FC = () => {
                 className={`
                   p-2 rounded-lg transition-all
                   ${message.trim() 
-                    ? 'bg-gradient-to-r from-primary-purple to-accent-pink text-white shadow-lg' 
+                    ? 'bg-gradient-to-r from-primary-500 to-accent-pink text-white shadow-lg' 
                     : 'bg-white/10 text-white/30'
                   }
                 `}

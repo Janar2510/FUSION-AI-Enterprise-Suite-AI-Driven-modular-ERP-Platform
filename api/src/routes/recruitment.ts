@@ -4,6 +4,7 @@ import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { requireAuth } from '../core/auth';
 import { AppError } from '../core/errors';
 import { publishEvent } from '../core/outbox';
+import sendEmail from '../core/email';
 
 export const recruitmentRoutes = Router();
 recruitmentRoutes.use(requireAuth);
@@ -127,6 +128,21 @@ recruitmentRoutes.patch('/:id/stage', asyncHandler(async (req, res) => {
                 jobName: a.job?.name ?? null,
             },
         });
+
+        // Also send direct email with recruitment template
+        try {
+            await sendEmail({
+                to: a.email,
+                templateKey: 'recruitment-stage-change',
+                vars: {
+                    applicantName: a.name,
+                    jobName: a.job?.name ?? 'Position',
+                    stageName: a.recruitStage?.name ?? stage ?? 'Next Stage',
+                },
+            });
+        } catch (_emailErr) {
+            // Non-fatal: log but don't fail the stage transition
+        }
     }
 
     res.json(a);
@@ -147,3 +163,7 @@ recruitmentRoutes.delete('/:id', asyncHandler(async (req, res) => {
     await prisma.hrApplicant.update({ where: { id: parseInt(req.params.id) }, data: { active: false } });
     res.json({ success: true });
 }));
+
+// ── Chatter (shared thread per applicant) ─────────────────────────────────────
+import { createChatterRouter } from '../core/chatter';
+recruitmentRoutes.use('/', createChatterRouter('hr.applicant'));

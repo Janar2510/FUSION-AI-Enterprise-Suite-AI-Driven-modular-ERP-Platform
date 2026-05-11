@@ -422,6 +422,7 @@ model SaleOrder {
   userId          String?         // salesperson (SpineUser.id)
   partnerId       String
   crmLeadId       Int?
+  pricelistId     Int?            // optional pricelist override
   idempotencyKey  String?         @unique
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -429,6 +430,7 @@ model SaleOrder {
   lines           SaleOrderLine[]
   crmLead         CrmLead?        @relation(fields: [crmLeadId], references: [id])
   partner         Partner         @relation(fields: [partnerId], references: [id])
+  pricelist       Pricelist?      @relation("SaleOrderPricelist", fields: [pricelistId], references: [id])
   pickings        StockPicking[]
 
   @@index([organizationId])
@@ -711,6 +713,8 @@ model StockPicking {
   warehouseId     Int?
   saleOrderId     Int?
   purchaseOrderId Int?
+  backorderId     Int?      // source picking this was created as backorder of
+  returnId        Int?      // source picking this is a return of
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -1243,20 +1247,21 @@ model HelpdeskTicket {
 }
 
 model CalendarEvent {
-  id          Int                @id @default(autoincrement())
-  name        String
-  description String?
-  start       DateTime
-  stop        DateTime
-  allday      Boolean            @default(false)
-  location    String?
-  privacy     String             @default("public")
-  showAs      String             @default("busy")
-  recurrency  Boolean            @default(false)
-  color       Int                @default(0)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  attendees   CalendarAttendee[]
+  id             Int                @id @default(autoincrement())
+  name           String
+  description    String?
+  start          DateTime
+  stop           DateTime
+  allday         Boolean            @default(false)
+  location       String?
+  privacy        String             @default("public")
+  showAs         String             @default("busy")
+  recurrency     Boolean            @default(false)
+  rrule          String?
+  color          Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  attendees      CalendarAttendee[]
 
   @@map("calendar_events")
 }
@@ -1500,24 +1505,41 @@ model EventEvent {
   dateEnd        DateTime
   location       String?
   description    String?
-  state          String              @default("draft")
+  state          String              @default("draft") // draft | confirmed | cancelled | done
   seatsMax       Int                 @default(0)
   seatsAvailable Int                 @default(0)
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   registrations  EventRegistration[]
+  tickets        EventTicket[]
 
   @@map("event_events")
 }
 
+model EventTicket {
+  id            Int                   @id @default(autoincrement())
+  name          String
+  price         Float                 @default(0)
+  availability  Int                   @default(0) // 0 = unlimited
+  seatsAvail    Int                   @default(0)
+  description   String?
+  eventId       Int
+  event         EventEvent            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  registrations EventRegistration[]
+
+  @@map("event_tickets")
+}
+
 model EventRegistration {
-  id      Int        @id @default(autoincrement())
-  name    String
-  email   String?
-  phone   String?
-  state   String     @default("draft")
-  eventId Int
-  event   EventEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id       Int          @id @default(autoincrement())
+  name     String
+  email    String?
+  phone    String?
+  state    String       @default("draft") // draft | confirmed | cancelled
+  eventId  Int
+  ticketId Int?
+  event    EventEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticket   EventTicket? @relation(fields: [ticketId], references: [id])
 
   @@map("event_registrations")
 }
@@ -1584,6 +1606,7 @@ model MaintenanceEquipment {
   active               Boolean              @default(true)
   preventiveFreqDays   Int?
   nextMaintenanceDate  DateTime?
+  nextDueDate          DateTime?
   lastMaintenanceDate  DateTime?
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
@@ -1616,6 +1639,7 @@ model Survey {
   description String?
   state       String            @default("draft")
   scoringType String            @default("no_scoring")
+  accessToken String?           @unique // for portal URL: /portal/surveys/:token
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   questions   SurveyQuestion[]
@@ -1684,11 +1708,14 @@ model KnowledgeArticle {
   category    String?
   isPublished Boolean  @default(true)
   viewCount   Int      @default(0)
+  parentId    Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   workspaceId Int?
-  workspace   KnowledgeWorkspace? @relation(fields: [workspaceId], references: [id])
+  workspace   KnowledgeWorkspace?  @relation(fields: [workspaceId], references: [id])
   revisions   KnowledgeArticleRevision[]
+  parent      KnowledgeArticle?    @relation("ArticleHierarchy", fields: [parentId], references: [id])
+  children    KnowledgeArticle[]   @relation("ArticleHierarchy")
 
   @@map("knowledge_articles")
 }
@@ -1759,6 +1786,7 @@ model WebsitePage {
   name           String
   url            String   @unique
   content        String?
+  blocks         Json?    @default("[]") // block-based content editor
   isPublished    Boolean  @default(false)
   viewCount      Int      @default(0)
   seoTitle       String?
@@ -1767,6 +1795,21 @@ model WebsitePage {
   updatedAt      DateTime @updatedAt
 
   @@map("website_pages")
+}
+
+model WebsiteMenu {
+  id        Int           @id @default(autoincrement())
+  name      String
+  url       String?
+  sequence  Int           @default(10)
+  parentId  Int?
+  isPublic  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  parent    WebsiteMenu?  @relation("MenuChildren", fields: [parentId], references: [id])
+  children  WebsiteMenu[] @relation("MenuChildren")
+
+  @@map("website_menus")
 }
 
 model MassMailing {
@@ -1970,6 +2013,7 @@ model Subscription {
   name              String?
   state             String             @default("draft")  // draft | active | paused | cancelled | expired
   plan              String             @default("starter")
+  planId            Int?
   mrr               Float              @default(0)
   startDate         DateTime           @default(now())
   nextBilling       DateTime?
@@ -1980,9 +2024,25 @@ model Subscription {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   partner           Partner?           @relation(fields: [partnerId], references: [id])
+  recurringPlan     RecurringPlan?     @relation(fields: [planId], references: [id])
   lines             SubscriptionLine[]
 
   @@map("subscriptions")
+}
+
+model RecurringPlan {
+  id             Int            @id @default(autoincrement())
+  name           String
+  code           String         @unique // monthly | quarterly | annual | custom
+  interval       Int            @default(1) // billing interval in months
+  price          Float          @default(0)
+  description    String?
+  active         Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  subscriptions  Subscription[]
+
+  @@map("recurring_plans")
 }
 
 model SubscriptionLine {
@@ -2003,19 +2063,21 @@ model SubscriptionLine {
 }
 
 model PlanningSlot {
-  id         Int             @id @default(autoincrement())
-  role       String?
-  hours      Float           @default(0)
-  startDate  DateTime
-  endDate    DateTime
-  note       String?
-  state      String          @default("draft")
-  employeeId Int?
-  projectId  Int?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  project    ProjectProject? @relation(fields: [projectId], references: [id])
-  employee   HrEmployee?     @relation(fields: [employeeId], references: [id])
+  id              Int             @id @default(autoincrement())
+  role            String?
+  hours           Float           @default(0)
+  startDate       DateTime
+  endDate         DateTime
+  note            String?
+  state           String          @default("draft")
+  isRecurring     Boolean         @default(false)
+  recurrenceRule  String?
+  employeeId      Int?
+  projectId       Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  project         ProjectProject? @relation(fields: [projectId], references: [id])
+  employee        HrEmployee?     @relation(fields: [employeeId], references: [id])
 
   @@map("planning_slots")
 }
@@ -2034,8 +2096,55 @@ model MarketingCampaign {
   description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  activities  CampaignActivity[]
+  participants CampaignParticipant[]
 
   @@map("marketing_campaigns")
+}
+
+model CampaignActivity {
+  id            Int               @id @default(autoincrement())
+  campaignId    Int
+  campaign      MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name          String
+  type          String            @default("email")
+  sequence      Int               @default(1)
+  delayValue    Int               @default(0)
+  delayUnit     String            @default("hours")
+  templateRef   String?
+  subject       String?
+  body          String?
+  serverAction  String?
+  state         String            @default("draft")
+  successCount  Int               @default(0)
+  rejectedCount Int               @default(0)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([campaignId, sequence])
+  @@index([type])
+  @@map("campaign_activities")
+}
+
+model CampaignParticipant {
+  id            Int               @id @default(autoincrement())
+  campaignId    Int
+  campaign      MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  targetModel   String
+  targetId      String
+  name          String?
+  email         String?
+  phone         String?
+  state         String            @default("queued")
+  metadata      Json?
+  lastActivityId Int?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([campaignId, targetModel, targetId])
+  @@index([campaignId, state])
+  @@index([targetModel, targetId])
+  @@map("campaign_participants")
 }
 
 model PartnerToPartnerTag {
@@ -2189,6 +2298,7 @@ model Pricelist {
   active        Boolean         @default(true)
   lines         PricelistLine[]
   partners      Partner[]       @relation("PartnerPricelist")
+  saleOrders    SaleOrder[]     @relation("SaleOrderPricelist")
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -2457,5 +2567,39 @@ model SignSigner {
   request            SignRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@map("sign_signers")
+}
+
+// ── SPRINT 19 — Documents Module ─────────────────────────────────────────────
+
+model DocumentWorkspace {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String?
+  color       String?
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  documents   IrDocument[]
+
+  @@map("document_workspaces")
+}
+
+model IrDocument {
+  id            Int                @id @default(autoincrement())
+  name          String
+  description   String?
+  mimeType      String?
+  fileUrl       String?
+  fileSize      Int?
+  workspaceId   Int?
+  tags          String[]
+  isPublic      Boolean            @default(false)
+  ownerId       String?            // SpineUser.id
+  deletedAt     DateTime?          // soft delete
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  workspace     DocumentWorkspace? @relation(fields: [workspaceId], references: [id])
+
+  @@map("ir_documents")
 }
 

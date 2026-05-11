@@ -27,7 +27,7 @@ export const ContactList: React.FC<ContactListProps> = ({
 
   const getTypeColor = (partner: Partner) => {
     if (partner.isCustomer && partner.isVendor) return 'bg-amber-500/20 text-amber-400';
-    if (partner.isCustomer) return 'bg-purple-500/20 text-purple-400';
+    if (partner.isCustomer) return 'bg-amber-500/20 text-amber-400';
     if (partner.isVendor) return 'bg-orange-500/20 text-orange-400';
     return 'bg-blue-500/20 text-blue-400';
   };
@@ -80,7 +80,7 @@ export const ContactList: React.FC<ContactListProps> = ({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+            className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           >
             <option value="name">Name</option>
             <option value="createdAt">Date Added</option>
@@ -89,7 +89,7 @@ export const ContactList: React.FC<ContactListProps> = ({
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-purple/50"
+            className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           >
             <option value="all">All ({partners.length})</option>
             <option value="customer">Customers</option>
@@ -118,7 +118,7 @@ export const ContactList: React.FC<ContactListProps> = ({
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-purple to-accent-pink flex items-center justify-center text-white font-bold text-lg">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-bold text-lg">
                       {getInitials(partner.name)}
                     </div>
                     <div>

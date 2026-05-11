@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { computeTotalsFromDb, OrderLine } from '../core/tax';
 import { asyncHandler } from '../lib/utils';
 import { v4 as uuidv4 } from 'uuid';
+import { requireAuth } from '../core/auth';
 
 export const ecommerceRoutes = Router();
 
@@ -194,7 +195,7 @@ ecommerceRoutes.post('/cart/:sessionId/checkout', asyncHandler(async (req, res) 
 }));
 
 // Advanced AI Recommendations (Real-World Patterns)
-ecommerceRoutes.post('/ai/recommendations', asyncHandler(async (req, res) => {
+ecommerceRoutes.post('/ai/recommendations', requireAuth, asyncHandler(async (req, res) => {
     const { sessionId } = req.body;
 
     // 1. Get current cart items
@@ -266,7 +267,7 @@ ecommerceRoutes.post('/ai/recommendations', asyncHandler(async (req, res) => {
 }));
 
 // AI Cart Abandonment Recovery
-ecommerceRoutes.get('/ai/cart-abandonment', asyncHandler(async (req, res) => {
+ecommerceRoutes.get('/ai/cart-abandonment', requireAuth, asyncHandler(async (req, res) => {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
     // Find active carts older than 1 hour
@@ -293,7 +294,7 @@ ecommerceRoutes.get('/ai/cart-abandonment', asyncHandler(async (req, res) => {
     })));
 }));
 
-ecommerceRoutes.post('/ai/cart-abandonment/recover', asyncHandler(async (req, res) => {
+ecommerceRoutes.post('/ai/cart-abandonment/recover', requireAuth, asyncHandler(async (req, res) => {
     const { cartId } = req.body;
 
     // Mock the AI Agent recovery process

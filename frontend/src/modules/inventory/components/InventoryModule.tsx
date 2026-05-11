@@ -6,6 +6,7 @@ import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { OdooDataGrid } from '@/components/shared/OdooDataGrid';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { MetricGrid } from '@/components/shared/MetricCard';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { useInventoryStore, Product, StockPicking, StockMove } from '../stores/inventoryStore';
 import { Package, Truck, ArrowRightLeft, Database, ChevronRight, LayoutDashboard, ListChecks, Brain, Zap, ClipboardEdit } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -116,7 +117,7 @@ export const InventoryModule: React.FC = () => {
                         } catch (e: any) {
                             toast.error("AI Optimization failed");
                         }
-                    }} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">
+                    }} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white font-bold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">
                         <Brain className="w-5 h-5" />
                         AI Reorder Optimization
                     </button>
@@ -144,7 +145,7 @@ export const InventoryModule: React.FC = () => {
                 <h3 className="text-xl font-medium text-white px-2 mt-8 mb-4">Operations</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {pickingTypes.map(pt => (
-                        <GlassCard key={pt.id} className="p-6 cursor-pointer hover:border-primary-purple/50 transition-colors" onClick={() => {
+                        <GlassCard key={pt.id} className="p-6 cursor-pointer hover:border-primary-500/50 transition-colors" onClick={() => {
                             setCurrentPickingTypeId(pt.id);
                             fetchAllPickings(pt.id);
                             handleTabChange('pickings');
@@ -160,7 +161,7 @@ export const InventoryModule: React.FC = () => {
                                         <span className="text-2xl font-bold text-white block">{pt._count?.pickings || 0}</span>
                                         <span className="text-xs text-white/50 uppercase font-semibold">To Process</span>
                                     </div>
-                                    <div className="text-primary-purple bg-primary-purple/10 p-2 rounded-lg hover:bg-primary-purple/20 transition-colors">
+                                    <div className="text-primary-500 bg-primary-500/10 p-2 rounded-lg hover:bg-primary-500/20 transition-colors">
                                         <ChevronRight className="w-5 h-5" />
                                     </div>
                                 </div>
@@ -208,18 +209,18 @@ export const InventoryModule: React.FC = () => {
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                         <div className="space-y-2"><label className="text-white/60 text-sm font-medium">Product Type</label>
-                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all" value={productFormData.type || 'consu'} onChange={(e) => setProductFormData({ ...productFormData, type: e.target.value })}>
+                            <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all" value={productFormData.type || 'consu'} onChange={(e) => setProductFormData({ ...productFormData, type: e.target.value })}>
                                 <option value="consu" className="text-black">Consumable</option><option value="service" className="text-black">Service</option><option value="product" className="text-black">Storable Product</option>
                             </select>
                         </div>
                         <div className="space-y-2"><label className="text-white/60 text-sm font-medium">Internal Reference</label>
-                            <input type="text" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all" value={productFormData.internalRef || ''} onChange={(e) => setProductFormData({ ...productFormData, internalRef: e.target.value })} />
+                            <input type="text" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all" value={productFormData.internalRef || ''} onChange={(e) => setProductFormData({ ...productFormData, internalRef: e.target.value })} />
                         </div>
                         <div className="space-y-2"><label className="text-white/60 text-sm font-medium">Sales Price</label>
-                            <input type="number" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all" value={productFormData.salePrice || 0} onChange={(e) => setProductFormData({ ...productFormData, salePrice: parseFloat(e.target.value) })} />
+                            <input type="number" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all" value={productFormData.salePrice || 0} onChange={(e) => setProductFormData({ ...productFormData, salePrice: parseFloat(e.target.value) })} />
                         </div>
                         <div className="space-y-2"><label className="text-white/60 text-sm font-medium">Cost Price</label>
-                            <input type="number" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all" value={productFormData.costPrice || 0} onChange={(e) => setProductFormData({ ...productFormData, costPrice: parseFloat(e.target.value) })} />
+                            <input type="number" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all" value={productFormData.costPrice || 0} onChange={(e) => setProductFormData({ ...productFormData, costPrice: parseFloat(e.target.value) })} />
                         </div>
                         <div className="pt-6 border-t border-white/10 mt-6">
                             <div className="flex items-center justify-between mb-4">
@@ -272,7 +273,7 @@ export const InventoryModule: React.FC = () => {
                 { key: 'createdAt', label: 'Scheduled Date', render: (p) => p.scheduledDate ? new Date(p.scheduledDate).toLocaleDateString() : '-' },
                 {
                     key: 'state', label: 'Status', render: (p) => (
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${p.state === 'done' ? 'bg-purple-500/20 text-purple-400' : p.state === 'draft' ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400'}`}>{p.state}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase ${p.state === 'done' ? 'bg-amber-500/20 text-amber-400' : p.state === 'draft' ? 'bg-gray-500/20 text-gray-400' : 'bg-blue-500/20 text-blue-400'}`}>{p.state}</span>
                     )
                 }
             ]}
@@ -302,13 +303,13 @@ export const InventoryModule: React.FC = () => {
                                 <button onClick={async () => {
                                     try { await validatePicking(activePicking.id); toast.success('Picking Validated'); setCurrentView('list'); }
                                     catch (e: any) { toast.error(e.message || 'Validation failed'); }
-                                }} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">Validate</button>
+                                }} className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">Validate</button>
                             )}
                         </div>
                         <div className="flex text-sm font-medium">
                             {['draft', 'waiting', 'ready', 'done'].map((state, idx) => (
                                 <div key={state} className="flex items-center relative">
-                                    <div className={`px-4 py-2 flex items-center pr-6 uppercase ${pickingFormData.state === state || (pickingFormData.state === 'done' && state === 'done') ? 'text-primary-purple font-bold' : 'text-white/40'}`}>{state}</div>
+                                    <div className={`px-4 py-2 flex items-center pr-6 uppercase ${pickingFormData.state === state || (pickingFormData.state === 'done' && state === 'done') ? 'text-primary-500 font-bold' : 'text-white/40'}`}>{state}</div>
                                     {idx < 3 && <ChevronRight className="w-5 h-5 absolute -right-2 text-white/20 z-10" />}
                                 </div>
                             ))}
@@ -321,14 +322,14 @@ export const InventoryModule: React.FC = () => {
                         <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                             <div className="space-y-2">
                                 <label className="text-white/60 text-sm font-medium">Operation Type</label>
-                                <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all" value={pickingFormData.pickingTypeId || ''} onChange={(e) => setPickingFormData({ ...pickingFormData, pickingTypeId: parseInt(e.target.value) })} disabled={!!activePicking}>
+                                <select className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all" value={pickingFormData.pickingTypeId || ''} onChange={(e) => setPickingFormData({ ...pickingFormData, pickingTypeId: parseInt(e.target.value) })} disabled={!!activePicking}>
                                     <option value="" className="text-black">Select Type...</option>
                                     {pickingTypes.map(pt => <option key={pt.id} value={pt.id} className="text-black">{pt.name}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-white/60 text-sm font-medium">Source Document</label>
-                                <input type="text" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all" value={pickingFormData.origin || ''} onChange={(e) => setPickingFormData({ ...pickingFormData, origin: e.target.value })} disabled={!!activePicking} />
+                                <input type="text" className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all" value={pickingFormData.origin || ''} onChange={(e) => setPickingFormData({ ...pickingFormData, origin: e.target.value })} disabled={!!activePicking} />
                             </div>
                         </div>
                         <div className="pt-6 border-t border-white/10">
@@ -337,6 +338,9 @@ export const InventoryModule: React.FC = () => {
                         </div>
                     </div>
                 }
+                rightPanels={activePicking ? (
+                    <ChatterPanel resourceModel="stock.picking" resourceId={activePicking.id} />
+                ) : undefined}
             />
         );
     };
@@ -344,10 +348,10 @@ export const InventoryModule: React.FC = () => {
     return (
         <div className="h-full flex flex-col">
             <div className="flex bg-white/5 rounded-lg border border-white/10 p-1 mb-4 w-fit ml-6 mt-4 relative z-10">
-                <button onClick={() => handleTabChange('dashboard')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-primary-purple text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><LayoutDashboard className="w-4 h-4" /> Overview</button>
-                <button onClick={() => handleTabChange('pickings')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'pickings' ? 'bg-primary-purple text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><Truck className="w-4 h-4" /> Transfers</button>
-                <button onClick={() => handleTabChange('products')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'products' ? 'bg-primary-purple text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><Package className="w-4 h-4" /> Products</button>
-                <button onClick={() => handleTabChange('adjustments')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'adjustments' ? 'bg-primary-purple text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><ClipboardEdit className="w-4 h-4" /> Adjustments</button>
+                <button onClick={() => handleTabChange('dashboard')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-primary-500 text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><LayoutDashboard className="w-4 h-4" /> Overview</button>
+                <button onClick={() => handleTabChange('pickings')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'pickings' ? 'bg-primary-500 text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><Truck className="w-4 h-4" /> Transfers</button>
+                <button onClick={() => handleTabChange('products')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'products' ? 'bg-primary-500 text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><Package className="w-4 h-4" /> Products</button>
+                <button onClick={() => handleTabChange('adjustments')} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${activeTab === 'adjustments' ? 'bg-primary-500 text-white shadow' : 'text-white/60 hover:text-white hover:bg-white/5'}`}><ClipboardEdit className="w-4 h-4" /> Adjustments</button>
             </div>
 
             <OdooViewManager
@@ -421,23 +425,23 @@ const InventoryAdjustmentsPanel: React.FC = () => {
         <div className="px-4 space-y-6">
             <div className="flex items-center justify-between">
                 <input type="search" placeholder="Filter products or locations…" value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
-                    className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-primary-purple transition-all w-72" />
+                    className="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm outline-none focus:border-primary-500 transition-all w-72" />
                 <span className="text-white/40 text-sm">{filtered.length} stock quant{filtered.length !== 1 ? 's' : ''}</span>
             </div>
 
             {loading && <div className="text-white/40 text-sm">Loading stock levels…</div>}
 
             {editing && (
-                <div className="bg-white/5 border border-primary-purple/40 rounded-xl p-4 flex items-center gap-4">
+                <div className="bg-white/5 border border-primary-500/40 rounded-xl p-4 flex items-center gap-4">
                     <div className="flex-1 text-white text-sm">
                         Adjust <strong>{quants.find(q => q.productId === editing.productId)?.product?.name}</strong> at{' '}
                         <strong>{locations.find(l => l.id === editing.locationId)?.name}</strong>
                     </div>
                     <input type="number" step="0.01" value={editing.quantity}
                         onChange={e => setEditing({ ...editing, quantity: parseFloat(e.target.value) })}
-                        className="w-28 bg-white/10 border border-white/20 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple text-right font-mono" />
+                        className="w-28 bg-white/10 border border-white/20 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-500 text-right font-mono" />
                     <button onClick={handleApply} disabled={saving}
-                        className="bg-primary-purple hover:bg-primary-purple/80 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-40">
+                        className="bg-primary-500 hover:bg-primary-500/80 text-white px-4 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-40">
                         Apply
                     </button>
                     <button onClick={() => setEditing(null)} className="bg-white/5 text-white/60 px-3 py-1.5 rounded text-sm transition-colors hover:bg-white/10">
@@ -467,7 +471,7 @@ const InventoryAdjustmentsPanel: React.FC = () => {
                             </td>
                             <td className="py-2 text-right">
                                 <button onClick={() => setEditing({ productId: q.productId, locationId: q.locationId, quantity: q.quantity })}
-                                    className="text-primary-purple hover:text-white text-xs px-2 py-1 rounded hover:bg-primary-purple/20 transition-colors">
+                                    className="text-primary-500 hover:text-white text-xs px-2 py-1 rounded hover:bg-primary-500/20 transition-colors">
                                     Adjust
                                 </button>
                             </td>

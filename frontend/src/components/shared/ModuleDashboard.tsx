@@ -10,7 +10,7 @@ interface MetricCard {
   change?: string;
   changeType?: 'positive' | 'negative' | 'neutral';
   icon: React.ComponentType<any>;
-  color?: 'purple' | 'blue' | 'green' | 'orange' | 'red' | 'pink';
+  color?: 'orange' | 'blue' | 'green' | 'orange' | 'red' | 'pink';
 }
 
 interface ChartData {
@@ -52,7 +52,7 @@ interface ModuleDashboardProps {
 }
 
 const colorClasses = {
-  purple: 'text-purple-400 bg-purple-400/10',
+  purple: 'text-amber-400 bg-amber-400/10',
   blue: 'text-blue-400 bg-blue-400/10',
   green: 'text-green-400 bg-green-400/10',
   orange: 'text-orange-400 bg-orange-400/10',
@@ -108,11 +108,11 @@ export const ModuleDashboard: React.FC<ModuleDashboardProps> = ({
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20">
-            <Icon className="w-8 h-8 text-purple-400" />
+          <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-pink-500/20">
+            <Icon className="w-8 h-8 text-amber-400" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-orange-200 bg-clip-text text-transparent">
               {title}
             </h1>
             {subtitle && (
@@ -178,7 +178,7 @@ export const ModuleDashboard: React.FC<ModuleDashboardProps> = ({
                 {recentItems.onViewAll && (
                   <button
                     onClick={recentItems.onViewAll}
-                    className="text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors"
+                    className="text-amber-400 hover:text-amber-300 text-sm font-medium transition-colors"
                   >
                     View All
                   </button>
@@ -200,7 +200,7 @@ export const ModuleDashboard: React.FC<ModuleDashboardProps> = ({
                         <p className="text-gray-400 text-sm">{item.subtitle}</p>
                       )}
                       {item.status && (
-                        <span className="inline-block mt-1 px-2 py-1 text-xs bg-purple-500/20 text-purple-400 rounded-full">
+                        <span className="inline-block mt-1 px-2 py-1 text-xs bg-amber-500/20 text-amber-400 rounded-full">
                           {item.status}
                         </span>
                       )}

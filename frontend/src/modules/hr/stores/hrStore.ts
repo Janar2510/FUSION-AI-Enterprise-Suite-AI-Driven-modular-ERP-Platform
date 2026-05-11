@@ -179,7 +179,6 @@ export const useHRStore = create<HRStore>((set, get) => ({
       set({ error: err.message, loading: false });
     }
   }
-}
 }));
 
 export default useHRStore;

@@ -148,7 +148,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
   };
 
   const getColorSchemeOptions = () => [
-    { value: 'purple', label: 'Purple', color: 'bg-purple-500' },
+    { value: 'purple', label: 'Purple', color: 'bg-amber-500' },
     { value: 'blue', label: 'Blue', color: 'bg-blue-500' },
     { value: 'green', label: 'Green', color: 'bg-green-500' },
     { value: 'red', label: 'Red', color: 'bg-red-500' },
@@ -211,7 +211,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                       className="p-4 bg-glass-bg border border-glass-border rounded-lg cursor-pointer hover:border-glass-active transition-all duration-200"
                     >
                       <div className="flex items-start space-x-3">
-                        <div className="text-purple-400">
+                        <div className="text-amber-400">
                           {getTemplateIcon(template.type)}
                         </div>
                         <div className="flex-1">
@@ -233,7 +233,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
             {step === 2 && selectedTemplate && (
               <div>
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="text-purple-400">
+                  <div className="text-amber-400">
                     {getTemplateIcon(selectedTemplate.type)}
                   </div>
                   <div>
@@ -255,7 +255,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                           type="text"
                           value={widgetConfig.title}
                           onChange={(e) => handleConfigChange('title', e.target.value)}
-                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white placeholder-gray-400 focus:border-amber-400 focus:outline-none"
                           placeholder="Enter widget title"
                         />
                       </div>
@@ -267,7 +267,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                           type="text"
                           value={widgetConfig.description}
                           onChange={(e) => handleConfigChange('description', e.target.value)}
-                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white placeholder-gray-400 focus:border-amber-400 focus:outline-none"
                           placeholder="Optional description"
                         />
                       </div>
@@ -288,7 +288,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                           max="12"
                           value={widgetConfig.width}
                           onChange={(e) => handleConfigChange('width', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                         />
                       </div>
                       <div>
@@ -301,7 +301,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                           max="12"
                           value={widgetConfig.height}
                           onChange={(e) => handleConfigChange('height', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                         />
                       </div>
                       <div>
@@ -313,7 +313,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                           min="0"
                           value={widgetConfig.position_x}
                           onChange={(e) => handleConfigChange('position_x', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                         />
                       </div>
                       <div>
@@ -325,7 +325,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                           min="0"
                           value={widgetConfig.position_y}
                           onChange={(e) => handleConfigChange('position_y', parseInt(e.target.value))}
-                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                         />
                       </div>
                     </div>
@@ -346,7 +346,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                               onClick={() => handleConfigChange('color_scheme', option.value)}
                               className={`p-2 rounded-lg border-2 transition-all ${
                                 widgetConfig.color_scheme === option.value
-                                  ? 'border-purple-400 bg-purple-500/20'
+                                  ? 'border-amber-400 bg-amber-500/20'
                                   : 'border-glass-border hover:border-glass-active'
                               }`}
                             >
@@ -363,7 +363,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                         <select
                           value={widgetConfig.theme}
                           onChange={(e) => handleConfigChange('theme', e.target.value)}
-                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                         >
                           <option value="default">Default</option>
                           <option value="dark">Dark</option>
@@ -386,7 +386,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                           type="text"
                           value={widgetConfig.data_source}
                           onChange={(e) => handleConfigChange('data_source', e.target.value)}
-                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white placeholder-gray-400 focus:border-purple-400 focus:outline-none"
+                          className="w-full px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white placeholder-gray-400 focus:border-amber-400 focus:outline-none"
                           placeholder="API endpoint or query"
                         />
                       </div>
@@ -401,7 +401,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
                             min="30"
                             value={widgetConfig.refresh_interval}
                             onChange={(e) => handleConfigChange('refresh_interval', parseInt(e.target.value))}
-                            className="flex-1 px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-purple-400 focus:outline-none"
+                            className="flex-1 px-3 py-2 bg-glass-bg border border-glass-border rounded-lg text-white focus:border-amber-400 focus:outline-none"
                           />
                         </div>
                       </div>

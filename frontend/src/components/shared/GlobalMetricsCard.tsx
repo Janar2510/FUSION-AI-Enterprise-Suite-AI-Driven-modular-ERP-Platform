@@ -73,7 +73,7 @@ export const GlobalMetricsCard: React.FC<GlobalMetricsCardProps> = ({ className 
   return (
     <GlassCard className={`p-6 ${className}`}>
       <div className="flex items-center gap-3 mb-6">
-        <Activity className="w-6 h-6 text-primary-purple" />
+        <Activity className="w-6 h-6 text-primary-500" />
         <h3 className="text-xl font-bold text-white">Live Cross-Module KPIs</h3>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -90,7 +90,7 @@ export const GlobalMetricsCard: React.FC<GlobalMetricsCardProps> = ({ className 
           label="Pipeline Value"
           value={`$${pipelineValue.toLocaleString()}`}
           subtitle="Expected revenue"
-          color="from-indigo-500 to-blue-600"
+          color="from-amber-500 to-blue-600"
         />
 
         {/* Sales KPIs */}
@@ -108,7 +108,7 @@ export const GlobalMetricsCard: React.FC<GlobalMetricsCardProps> = ({ className 
           label="Headcount"
           value={activeEmployees.toString()}
           subtitle="Active employees"
-          color="from-purple-500 to-fuchsia-600"
+          color="from-amber-500 to-fuchsia-600"
         />
         <MetricCard
           icon={CalendarOff}

@@ -63,6 +63,7 @@ export const CRMModule: React.FC = () => {
     // Current Form State
     const [formData, setFormData] = useState<Partial<CrmLead>>({});
     const [activeRecord, setActiveRecord] = useState<CrmLead | null>(null);
+    const [markLostModal, setMarkLostModal] = useState<{ open: boolean; reason: string }>({ open: false, reason: '' });
 
     // Sync form data with URL
     useEffect(() => {
@@ -129,7 +130,7 @@ export const CRMModule: React.FC = () => {
 
     const renderKanbanCard = (lead: CrmLead) => {
         const getBadgeColor = (colorIndex: number) => {
-            const colors = ['text-gray-400 bg-gray-400/10', 'text-red-400 bg-red-400/10', 'text-orange-400 bg-orange-400/10', 'text-yellow-400 bg-yellow-400/10', 'text-green-400 bg-green-400/10', 'text-teal-400 bg-teal-400/10', 'text-blue-400 bg-blue-400/10', 'text-indigo-400 bg-indigo-400/10', 'text-purple-400 bg-purple-400/10', 'text-pink-400 bg-pink-400/10'];
+            const colors = ['text-gray-400 bg-gray-400/10', 'text-red-400 bg-red-400/10', 'text-orange-400 bg-orange-400/10', 'text-yellow-400 bg-yellow-400/10', 'text-green-400 bg-green-400/10', 'text-teal-400 bg-teal-400/10', 'text-blue-400 bg-blue-400/10', 'text-amber-400 bg-amber-400/10', 'text-amber-400 bg-amber-400/10', 'text-pink-400 bg-pink-400/10'];
             return colors[(colorIndex || 0) % colors.length];
         };
 
@@ -163,7 +164,7 @@ export const CRMModule: React.FC = () => {
                                     ${lead.expectedRevenue.toLocaleString()}
                                 </span>
                             )}
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[10px] text-white font-bold shadow-sm" title="Assigned / Contact">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-orange-600 flex items-center justify-center text-[10px] text-white font-bold shadow-sm" title="Assigned / Contact">
                                 {lead.partner?.name ? lead.partner.name.charAt(0).toUpperCase() : (lead.contactName ? lead.contactName.charAt(0).toUpperCase() : 'U')}
                             </div>
                         </div>
@@ -251,7 +252,7 @@ export const CRMModule: React.FC = () => {
                                 key: 'stage',
                                 label: 'Stage',
                                 render: (l) => (
-                                    <span className="bg-primary-purple/20 text-primary-purple px-2 py-1 rounded-full text-xs font-medium">
+                                    <span className="bg-primary-500/20 text-primary-500 px-2 py-1 rounded-full text-xs font-medium">
                                         {l.stage?.name || 'Unknown'}
                                     </span>
                                 )
@@ -269,7 +270,7 @@ export const CRMModule: React.FC = () => {
                                         key={stage.id}
                                         onClick={() => setFormData({ ...formData, stageId: stage.id })}
                                         className={`px-4 py-2 border-r border-y first:border-l first:rounded-l-full last:rounded-r-full border-white/10 text-sm font-medium transition-colors
-                        ${formData.stageId === stage.id ? 'bg-primary-purple text-white shadow-inner' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+                        ${formData.stageId === stage.id ? 'bg-primary-500 text-white shadow-inner' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
                                     >
                                         {stage.name}
                                     </button>
@@ -343,7 +344,7 @@ export const CRMModule: React.FC = () => {
                                     {formData.active !== false && (
                                         <button
                                             className="px-4 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-md text-sm font-medium transition-colors"
-                                            onClick={() => setFormData(f => ({ ...f, active: false }))}
+                                            onClick={() => setMarkLostModal({ open: true, reason: '' })}
                                         >
                                             ✗ Mark Lost
                                         </button>
@@ -351,7 +352,7 @@ export const CRMModule: React.FC = () => {
                                     {/* New Quotation: shown for Won leads */}
                                     {activeRecord && pipelineStages.findIndex(s => s.id === formData.stageId) === pipelineStages.length - 1 && formData.active !== false && (
                                         <button
-                                            className="px-4 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 border border-purple-500/30 rounded-md text-sm font-medium transition-colors"
+                                            className="px-4 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 rounded-md text-sm font-medium transition-colors"
                                             onClick={async () => {
                                                 const result = await newQuotation(activeRecord.id);
                                                 if (result?.saleOrderId) {
@@ -403,7 +404,7 @@ export const CRMModule: React.FC = () => {
                                         <input
                                             type="text"
                                             placeholder="Customer Name"
-                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none active:border-white/20 focus:border-primary-purple transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none active:border-white/20 focus:border-primary-500 transition-all"
                                             value={formData.contactName || ''}
                                             onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
                                         />
@@ -414,7 +415,7 @@ export const CRMModule: React.FC = () => {
                                         </label>
                                         <input
                                             type="email"
-                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                             value={formData.emailFrom || ''}
                                             onChange={(e) => setFormData({ ...formData, emailFrom: e.target.value })}
                                         />
@@ -425,7 +426,7 @@ export const CRMModule: React.FC = () => {
                                         </label>
                                         <input
                                             type="tel"
-                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                             value={formData.phone || ''}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         />
@@ -446,7 +447,7 @@ export const CRMModule: React.FC = () => {
                                     <label className="text-white/60 text-sm font-medium">Expected Closing</label>
                                     <input
                                         type="date"
-                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all [&::-webkit-calendar-picker-indicator]:filter-invert"
+                                        className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all [&::-webkit-calendar-picker-indicator]:filter-invert"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -471,7 +472,7 @@ export const CRMModule: React.FC = () => {
                             showMessages && (
                                 <div className="bg-white/5 border border-white/10 rounded-xl p-6 mt-6">
                                     <div className="flex gap-4 border-b border-white/10 pb-4 mb-4">
-                                        <button className="text-primary-purple font-medium text-sm flex items-center gap-2">
+                                        <button className="text-primary-500 font-medium text-sm flex items-center gap-2">
                                             <Mail className="w-4 h-4" /> Send Message
                                         </button>
                                         <button className="text-white/60 font-medium text-sm hover:text-white transition-colors">
@@ -482,19 +483,19 @@ export const CRMModule: React.FC = () => {
                                         </button>
                                     </div>
                                     <textarea
-                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-primary-purple transition-colors mb-4"
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-primary-500 transition-colors mb-4"
                                         rows={3}
                                         placeholder="Type a message..."
                                     />
                                     <div className="flex justify-end">
-                                        <button className="bg-primary-purple hover:bg-primary-purple/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                        <button className="bg-primary-500 hover:bg-primary-500/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                                             Send
                                         </button>
                                     </div>
 
                                     <div className="mt-8 space-y-4">
                                         <div className="flex gap-4">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
                                                 S
                                             </div>
                                             <div>
@@ -516,6 +517,45 @@ export const CRMModule: React.FC = () => {
                 <Route path="/new" element={<Navigate to="/module/crm/leads/new" replace />} />
                 <Route path="/settings" element={<CRMSettings />} />
             </Routes>
+
+            {/* ── Mark Lost Modal ────────────────────────────────────────── */}
+            {markLostModal.open && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl">
+                        <h3 className="text-lg font-semibold text-white mb-1">Mark as Lost</h3>
+                        <p className="text-white/50 text-sm mb-4">Optionally provide a reason why this opportunity was lost.</p>
+                        <textarea
+                            className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm resize-none focus:outline-none focus:ring-1 focus:ring-red-500/50 placeholder-white/20"
+                            rows={3}
+                            placeholder="e.g. Budget constraints, chose competitor…"
+                            value={markLostModal.reason}
+                            onChange={e => setMarkLostModal(m => ({ ...m, reason: e.target.value }))}
+                        />
+                        <div className="flex justify-end gap-3 mt-4">
+                            <button
+                                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-sm transition-colors"
+                                onClick={() => setMarkLostModal({ open: false, reason: '' })}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="px-4 py-2 rounded-lg bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium transition-colors"
+                                onClick={async () => {
+                                    if (activeRecord) {
+                                        await axios.patch(`${API_BASE}/api/crm/leads/${activeRecord.id}/lost`, { lostReason: markLostModal.reason });
+                                        setFormData(f => ({ ...f, active: false, lostReason: markLostModal.reason }));
+                                        fetchPipeline();
+                                        fetchAllLeads();
+                                    }
+                                    setMarkLostModal({ open: false, reason: '' });
+                                }}
+                            >
+                                Mark Lost
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </OdooViewManager>
     );
 };
@@ -575,7 +615,7 @@ const CrmActivitiesPanel: React.FC<{ leadId: number }> = ({ leadId }) => {
             <div className="flex items-center justify-between">
                 <span className="text-white/60 text-sm font-medium uppercase tracking-wide">Activities</span>
                 <button onClick={() => setShowForm(!showForm)}
-                    className="flex items-center gap-1 text-primary-purple text-xs hover:text-primary-purple/80 transition-colors">
+                    className="flex items-center gap-1 text-primary-500 text-xs hover:text-primary-500/80 transition-colors">
                     <Plus className="w-3.5 h-3.5" /> Schedule
                 </button>
             </div>
@@ -585,20 +625,20 @@ const CrmActivitiesPanel: React.FC<{ leadId: number }> = ({ leadId }) => {
                     <div className="flex gap-2 flex-wrap">
                         {ACTIVITY_TYPES.map(t => (
                             <button key={t} onClick={() => setForm({ ...form, type: t })}
-                                className={`px-2 py-1 rounded text-xs capitalize transition-all ${form.type === t ? 'bg-primary-purple text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
+                                className={`px-2 py-1 rounded text-xs capitalize transition-all ${form.type === t ? 'bg-primary-500 text-white' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}>
                                 {TYPE_ICONS[t]} {t}
                             </button>
                         ))}
                     </div>
                     <input type="text" placeholder="Summary" value={form.summary}
                         onChange={e => setForm({ ...form, summary: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple" />
+                        className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-500" />
                     <input type="date" value={form.dueAt}
                         onChange={e => setForm({ ...form, dueAt: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-purple [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                        className="w-full bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none focus:border-primary-500 [&::-webkit-calendar-picker-indicator]:filter-invert" />
                     <div className="flex gap-2">
                         <button onClick={handleCreate} disabled={loading || !form.summary}
-                            className="bg-primary-purple hover:bg-primary-purple/80 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors disabled:opacity-40">
+                            className="bg-primary-500 hover:bg-primary-500/80 text-white px-3 py-1.5 rounded text-xs font-medium transition-colors disabled:opacity-40">
                             Save
                         </button>
                         <button onClick={() => setShowForm(false)} className="bg-white/5 text-white/60 px-3 py-1.5 rounded text-xs transition-colors hover:bg-white/10">

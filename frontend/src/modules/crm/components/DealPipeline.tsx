@@ -177,7 +177,7 @@ export const DealPipeline: React.FC = () => {
           </button>
           <button 
             onClick={() => setShowCreateDeal(true)}
-            className="px-4 py-2 bg-gradient-to-r from-primary-purple to-accent-pink text-white rounded-lg flex items-center gap-2"
+            className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             New Deal
@@ -301,7 +301,7 @@ export const DealPipeline: React.FC = () => {
                                       {deal.tags.slice(0, 3).map((tag, i) => (
                                         <span
                                           key={i}
-                                          className="px-2 py-0.5 bg-primary-purple/20 text-primary-purple text-xs rounded-full"
+                                          className="px-2 py-0.5 bg-primary-500/20 text-primary-500 text-xs rounded-full"
                                         >
                                           {tag}
                                         </span>

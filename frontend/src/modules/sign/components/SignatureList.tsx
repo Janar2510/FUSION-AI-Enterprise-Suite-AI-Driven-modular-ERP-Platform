@@ -83,7 +83,7 @@ export const SignatureList: React.FC = () => {
             onClick={() => setFilter(tab.id as any)}
             className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-all duration-200 ${
               filter === tab.id
-                ? 'bg-primary-purple text-white'
+                ? 'bg-primary-500 text-white'
                 : 'text-text-secondary hover:text-white hover:bg-glass-hover'
             }`}
           >
@@ -111,14 +111,14 @@ export const SignatureList: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               className={`p-4 rounded-lg cursor-pointer transition-all duration-200 ${
                 selectedRequest?.id === signature.requestId
-                  ? 'bg-primary-purple/30 border-primary-purple'
+                  ? 'bg-primary-500/30 border-primary-500'
                   : 'bg-glass-bg border-glass-border hover:bg-glass-hover'
               }`}
               onClick={() => handleSignatureClick(signature.requestId)}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-primary-purple rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
                     <span className="text-white font-medium">
                       {signature.name.charAt(0).toUpperCase()}
                     </span>

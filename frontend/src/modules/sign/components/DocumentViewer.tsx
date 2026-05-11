@@ -67,7 +67,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
       return (
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <ArrowPathIcon className="w-12 h-12 text-primary-purple animate-spin mx-auto mb-4" />
+            <ArrowPathIcon className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
             <p className="text-text-secondary">Loading document...</p>
           </div>
         </div>
@@ -166,7 +166,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
                 {document.signers.map((signer, index) => (
                   <div key={signer.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-primary-purple rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-medium">
                           {signer.name.charAt(0).toUpperCase()}
                         </span>

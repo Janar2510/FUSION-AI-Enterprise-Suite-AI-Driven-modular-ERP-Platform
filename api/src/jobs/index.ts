@@ -4,8 +4,12 @@
  */
 
 import { startOutboxRelay } from './outboxRelay';
+import { startSlaBreach } from './slaBreach';
+import { startSubscriptionRenewal } from './subscriptionRenewal';
 
 export function startBackgroundJobs() {
     startOutboxRelay();
+    startSlaBreach();
+    startSubscriptionRenewal();
     console.log('[Jobs] All background jobs registered');
 }

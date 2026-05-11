@@ -134,7 +134,7 @@ export const QualityModule: React.FC = () => {
                             <GlassCard
                                 key={check.id}
                                 onClick={() => handleRowClick(check)}
-                                className="p-5 cursor-pointer hover:border-primary-purple/50 transition-colors"
+                                className="p-5 cursor-pointer hover:border-primary-500/50 transition-colors"
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <span className="font-bold text-white">{check.name}</span>
@@ -233,7 +233,7 @@ export const QualityModule: React.FC = () => {
                     <div className="flex flex-col gap-2">
                         <input
                             type="text"
-                            className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-purple transition-all w-full"
+                            className="text-4xl font-bold bg-transparent text-white border-b border-transparent placeholder-white/30 outline-none focus:border-primary-500 transition-all w-full"
                             placeholder="Check Reference"
                             value={formData.name || ''}
                             readOnly={isReadonly}
@@ -249,7 +249,7 @@ export const QualityModule: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-white/60 text-sm font-medium">Product</label>
                                     <select
-                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.productId || ''}
                                         disabled={isReadonly}
                                         onChange={(e) => setFormData({ ...formData, productId: parseInt(e.target.value) })}
@@ -263,7 +263,7 @@ export const QualityModule: React.FC = () => {
                                 <div className="space-y-2">
                                     <label className="text-white/60 text-sm font-medium">Quality Point</label>
                                     <select
-                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.pointId || ''}
                                         disabled={isReadonly}
                                         onChange={(e) => setFormData({ ...formData, pointId: parseInt(e.target.value) })}
@@ -277,7 +277,7 @@ export const QualityModule: React.FC = () => {
                                 <div className="space-y-2 col-span-2">
                                     <label className="text-white/60 text-sm font-medium">Test Type</label>
                                     <select
-                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                        className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                         value={formData.testType || 'passfail'}
                                         disabled={isReadonly}
                                         onChange={(e) => setFormData({ ...formData, testType: e.target.value })}
@@ -292,7 +292,7 @@ export const QualityModule: React.FC = () => {
                                         <label className="text-white/60 text-sm font-medium">Measured Value</label>
                                         <input
                                             type="number"
-                                            className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-purple transition-all"
+                                            className="w-full bg-black/20 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
                                             value={formData.measureValue || 0}
                                             readOnly={isReadonly}
                                             onChange={(e) => setFormData({ ...formData, measureValue: parseFloat(e.target.value) })}
@@ -315,7 +315,7 @@ export const QualityModule: React.FC = () => {
                         <GlassCard className="p-6">
                             <label className="text-white/60 text-sm font-medium mb-2 block">Notes</label>
                             <textarea
-                                className="w-full min-h-[120px] bg-black/20 border border-white/10 rounded-md px-4 py-3 text-white outline-none focus:border-primary-purple transition-all resize-y"
+                                className="w-full min-h-[120px] bg-black/20 border border-white/10 rounded-md px-4 py-3 text-white outline-none focus:border-primary-500 transition-all resize-y"
                                 placeholder="Inspector notes..."
                                 value={formData.notes || ''}
                                 readOnly={isReadonly}
@@ -331,13 +331,13 @@ export const QualityModule: React.FC = () => {
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-white/60">Manufacturing Order</span>
-                                    <span className="text-white font-medium cursor-pointer hover:text-primary-purple transition-colors">
+                                    <span className="text-white font-medium cursor-pointer hover:text-primary-500 transition-colors">
                                         {formData.production?.name || 'Not Linked'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-white/60">Receipt / Transfer</span>
-                                    <span className="text-white font-medium cursor-pointer hover:text-primary-purple transition-colors">
+                                    <span className="text-white font-medium cursor-pointer hover:text-primary-500 transition-colors">
                                         {formData.picking?.name || 'Not Linked'}
                                     </span>
                                 </div>
