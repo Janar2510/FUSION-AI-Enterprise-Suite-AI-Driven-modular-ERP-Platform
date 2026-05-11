@@ -2630,3 +2630,16 @@ model IrDocument {
   @@map("ir_documents")
 }
 
+model StudioPage {
+  id             Int       @id @default(autoincrement())
+  name           String
+  slug           String    @unique
+  content        String    @default("")
+  metaTitle      String?
+  metaDescription String?
+  state          String    @default("draft")  // draft, published
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+

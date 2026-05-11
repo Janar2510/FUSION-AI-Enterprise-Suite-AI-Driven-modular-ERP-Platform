@@ -62,7 +62,7 @@ export interface VectorAdapter {
 
 // ── In-memory adapter (dev/test) ──────────────────────────────────────────────
 
-class InMemoryVectorAdapter implements VectorAdapter {
+export class InMemoryVectorAdapter implements VectorAdapter {
     private store: Map<string, DocumentChunk & { _vector: number[] }> = new Map();
 
     async upsert(chunks: DocumentChunk[]): Promise<void> {

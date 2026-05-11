@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Paperclip, Smile, Hash, Lock, Users, Bot, Search, Plus } from 'lucide-react';
+import { Send, Paperclip, Smile, Hash, Lock, Users, Bot, Search, Plus, Loader2 } from 'lucide-react';
 import { GlassCard } from '../../../components/shared/GlassCard';
 import { useWebSocket } from '../../../hooks/useWebSocket';
 import { MessageBubble } from './MessageBubble';
 import { ChannelSidebar } from './ChannelSidebar';
 import { AIAssistantPanel } from './AIAssistantPanel';
 import { useDiscussStore } from '../stores/discussStore';
+import { discussApi } from '../../../lib/api';
 import EmojiPicker from 'emoji-picker-react';
 
 export const DiscussMain: React.FC = () => {
@@ -14,6 +15,8 @@ export const DiscussMain: React.FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [aiSummary, setAiSummary] = useState<{ summary: string; topic: string | null; messageCount: number } | null>(null);
+  const [isLoadingAiSummary, setIsLoadingAiSummary] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -33,6 +36,16 @@ export const DiscussMain: React.FC = () => {
   useEffect(() => {
     if (currentChannel) loadMessages(currentChannel.id);
   }, [currentChannel?.id, loadMessages]);
+
+  // Fetch AI summary when channel changes
+  useEffect(() => {
+    if (!currentChannel) { setAiSummary(null); return; }
+    setIsLoadingAiSummary(true);
+    discussApi.getAiSummary(currentChannel.id)
+      .then(res => setAiSummary(res.data))
+      .catch(() => setAiSummary(null))
+      .finally(() => setIsLoadingAiSummary(false));
+  }, [currentChannel?.id]);
 
   // Polling for real-time messages when WebSocket server is unavailable
   useEffect(() => {
@@ -137,6 +150,15 @@ export const DiscussMain: React.FC = () => {
                   <Bot className="w-3 h-3" />
                   AI Assisted
                 </span>
+              )}
+              {aiSummary && (
+                <span className="px-2 py-1 bg-white/10 text-white/60 text-xs rounded-full flex items-center gap-1">
+                  <Bot className="w-3 h-3" />
+                  {aiSummary.topic ?? 'Summary'}
+                </span>
+              )}
+              {isLoadingAiSummary && (
+                <Loader2 className="w-4 h-4 text-white/30 animate-spin" />
               )}
             </div>
             

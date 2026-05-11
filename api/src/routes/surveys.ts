@@ -107,12 +107,12 @@ surveyRoutes.put('/:id', asyncHandler(async (req, res) => {
     res.json(s);
 }));
 
-surveyRoutes.patch('/:id/publish', asyncHandler(async (req, res) => {
+surveyRoutes.patch('/:id/publish', requireAuth, asyncHandler(async (req, res) => {
     const s = await prisma.survey.update({ where: { id: parseInt(req.params.id) }, data: { state: 'open' } });
     res.json(s);
 }));
 
-surveyRoutes.patch('/:id/close', asyncHandler(async (req, res) => {
+surveyRoutes.patch('/:id/close', requireAuth, asyncHandler(async (req, res) => {
     const s = await prisma.survey.update({ where: { id: parseInt(req.params.id) }, data: { state: 'closed' } });
     res.json(s);
 }));

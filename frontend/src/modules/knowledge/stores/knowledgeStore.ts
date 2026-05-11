@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { knowledgeApi } from '@/lib/api';
 
 export interface KnowledgeWorkspace {
     id: number;
@@ -66,7 +64,7 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
             const params: Record<string, string> = { limit: '1000' };
             if (topLevel) params.topLevel = 'true';
             else if (parentId !== undefined && parentId !== null) params.parentId = String(parentId);
-            const res = await axios.get(`${API_BASE}/api/knowledge`, { params });
+            const res = await knowledgeApi.list(params);
             set({ articles: res.data.data, loading: false });
         } catch (err: any) {
             console.error(err);
@@ -76,7 +74,7 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
 
     fetchWorkspaces: async () => {
         try {
-            const res = await axios.get(`${API_BASE}/api/knowledge/workspaces`);
+            const res = await knowledgeApi.listWorkspaces();
             set({ workspaces: res.data });
         } catch (err: any) {
             console.error(err);
@@ -86,7 +84,7 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
     fetchArticleDetails: async (id) => {
         try {
             set({ loading: true });
-            const res = await axios.get(`${API_BASE}/api/knowledge/${id}`);
+            const res = await knowledgeApi.get(id);
             set({ currentArticle: res.data, loading: false });
         } catch (err: any) {
             console.error(err);
@@ -97,7 +95,7 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
     createArticle: async (data) => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.post(`${API_BASE}/api/knowledge`, data);
+            const res = await knowledgeApi.create(data);
             await get().fetchArticles();
             set({ loading: false });
             return res.data;
@@ -110,7 +108,7 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
     updateArticle: async (id, data) => {
         try {
             set({ loading: true, error: null });
-            await axios.put(`${API_BASE}/api/knowledge/${id}`, data);
+            await knowledgeApi.update(id, data);
             await get().fetchArticles();
             if (get().currentArticle?.id === id) {
                 await get().fetchArticleDetails(id);
@@ -125,7 +123,7 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
     deleteArticle: async (id) => {
         try {
             set({ loading: true, error: null });
-            await axios.delete(`${API_BASE}/api/knowledge/${id}`);
+            await knowledgeApi.delete(id);
             await get().fetchArticles();
             set({ loading: false });
         } catch (err: any) {
@@ -136,7 +134,7 @@ export const useKnowledgeStore = create<KnowledgeStore>((set, get) => ({
 
     createWorkspace: async (data) => {
         try {
-            await axios.post(`${API_BASE}/api/knowledge/workspaces`, data);
+            await knowledgeApi.createWorkspace(data);
             await get().fetchWorkspaces();
         } catch (err: any) {
             console.error(err);

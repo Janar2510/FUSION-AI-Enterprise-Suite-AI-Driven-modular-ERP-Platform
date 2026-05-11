@@ -2,10 +2,10 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { computeTotalsFromDb, OrderLine } from '../core/tax';
 import { asyncHandler } from '../lib/utils';
-import { v4 as uuidv4 } from 'uuid';
 import { requireAuth } from '../core/auth';
 
 export const ecommerceRoutes = Router();
+ecommerceRoutes.use(requireAuth);
 
 // Get or create cart
 ecommerceRoutes.post('/cart/:sessionId', asyncHandler(async (req, res) => {

@@ -3,6 +3,7 @@ import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useFieldServiceStore, FsTask } from '../stores/fieldServiceStore';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { usePartnerStore } from '@/stores/partnerStore';
 import { useHRStore } from '@/modules/hr/stores/hrStore';
 
@@ -168,6 +169,9 @@ export const FieldServiceModule: React.FC = () => {
             }
             rightPanels={
                 <div className="space-y-6">
+                    {activeRecord && (
+                        <ChatterPanel ownerType="FsTask" ownerId={activeRecord.id} showTimeline />
+                    )}
                     <div className="space-y-2">
                         <label className="text-white/60 text-sm font-medium">Scheduled Date</label>
                         <input

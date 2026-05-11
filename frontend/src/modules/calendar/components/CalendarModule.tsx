@@ -3,6 +3,7 @@ import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { useCalendarStore, CalendarEvent } from '../stores/calendarStore';
 import { CalendarGrid } from './CalendarGrid';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { Calendar as CalendarIcon, List, Users, MapPin, LayoutGrid } from 'lucide-react';
 
 type AppView = 'grid' | 'list' | 'form';
@@ -215,8 +216,11 @@ export const CalendarModule: React.FC = () => {
             }
             rightPanels={
                 <div className="space-y-6">
+                    {activeRecord && (
+                        <ChatterPanel ownerType="CalendarEvent" ownerId={activeRecord.id} showTimeline />
+                    )}
                     <div className="rounded-xl p-6" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
-                        <h3 className="text-sm font-medium mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                        <h3 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                             <MapPin className="w-4 h-4" style={{ color: '#f87171' }} />
                             Location
                         </h3>

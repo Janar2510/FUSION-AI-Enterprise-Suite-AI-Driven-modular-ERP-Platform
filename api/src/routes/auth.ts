@@ -13,8 +13,10 @@ import type {
 } from '@simplewebauthn/server';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../lib/utils';
+import { requireAuth } from '../core/auth';
 
 export const authRoutes = Router();
+authRoutes.use(requireAuth);
 
 /**
  * ── Passkey Registration ─────────────────────────────────────────────

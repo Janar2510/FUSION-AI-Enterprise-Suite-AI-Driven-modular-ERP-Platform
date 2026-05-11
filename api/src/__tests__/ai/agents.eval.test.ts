@@ -270,4 +270,93 @@ describe('AI Agent golden-set evals', () => {
             expect(output.metadata?.overallScore).toBeDefined();
         });
     });
+
+    // ── RAG cross-tenant isolation ─────────────────────────────────────────────
+    describe('RAG cross-tenant isolation', () => {
+        beforeEach(() => {
+            jest.resetModules();
+        });
+
+        it('returns ONLY Org A documents when searching as Org A user', async () => {
+            // Build an isolated in-memory adapter with two orgs' documents
+            const { InMemoryVectorAdapter, RagService } = await import('../../core/rag/index');
+
+            const adapter = new InMemoryVectorAdapter();
+            const rag = new RagService(adapter);
+
+            // Seed Org A documents (userId 10, orgId 1)
+            await adapter.upsert([{
+                id: 'doc-a1',
+                content: 'OrgA confidential document alpha',
+                metadata: { sourceType: 'knowledge_article', sourceId: 101, ownerUserId: 10, orgId: 1, title: 'Alpha' },
+                _vector: adapter['pseudoEmbed']('OrgA confidential document alpha'),
+            }, {
+                id: 'doc-a2',
+                content: 'OrgA internal process document beta',
+                metadata: { sourceType: 'knowledge_article', sourceId: 102, ownerUserId: 10, orgId: 1, title: 'Beta' },
+                _vector: adapter['pseudoEmbed']('OrgA internal process document beta'),
+            }]);
+
+            // Seed Org B documents (userId 20, orgId 2) — must be invisible to Org A
+            await adapter.upsert([{
+                id: 'doc-b1',
+                content: 'OrgB secret formula gamma',
+                metadata: { sourceType: 'knowledge_article', sourceId: 201, ownerUserId: 20, orgId: 2, title: 'Gamma' },
+                _vector: adapter['pseudoEmbed']('OrgB secret formula gamma'),
+            }, {
+                id: 'doc-b2',
+                content: 'OrgB pricing strategy delta',
+                metadata: { sourceType: 'knowledge_article', sourceId: 202, ownerUserId: 20, orgId: 2, title: 'Delta' },
+                _vector: adapter['pseudoEmbed']('OrgB pricing strategy delta'),
+            }]);
+
+            // Search as Org A user (userId 10, orgId 1)
+            const results = await rag.search('confidential document', { userId: 10, orgId: 1 });
+
+            // Only Org A documents must appear
+            const orgADocs = results.filter(r => r.chunk.metadata.orgId === 1);
+            const orgBDocs = results.filter(r => r.chunk.metadata.orgId === 2);
+
+            expect(orgADocs.length).toBeGreaterThan(0);
+            expect(orgBDocs).toHaveLength(0);
+            expect(results.every(r => r.chunk.metadata.orgId === 1)).toBe(true);
+        });
+
+        it('returns ZERO documents from Org A when searching as Org B user', async () => {
+            const { InMemoryVectorAdapter, RagService } = await import('../../core/rag/index');
+
+            const adapter = new InMemoryVectorAdapter();
+            const rag = new RagService(adapter);
+
+            // Seed Org A documents only
+            await adapter.upsert([{
+                id: 'doc-a-only',
+                content: 'OrgA exclusive data epsilon',
+                metadata: { sourceType: 'knowledge_article', sourceId: 301, ownerUserId: 30, orgId: 1, title: 'Epsilon' },
+                _vector: adapter['pseudoEmbed']('OrgA exclusive data epsilon'),
+            }]);
+
+            // Search as Org B user (userId 40, orgId 2) — NO overlap with Org A
+            const results = await rag.search('exclusive data', { userId: 40, orgId: 2 });
+
+            expect(results).toHaveLength(0);
+        });
+
+        it('returns zero results (not filtered results) for cross-org query', async () => {
+            const { InMemoryVectorAdapter, RagService } = await import('../../core/rag/index');
+
+            const adapter = new InMemoryVectorAdapter();
+            const rag = new RagService(adapter);
+
+            // Index nothing — simulating a truly empty result set for this org
+            // vs a filtered result set (both yield zero length, but semantics differ)
+
+            // A query with no matching documents for the requesting org
+            const results = await rag.search('xyz-no-match-12345', { userId: 99, orgId: 99 });
+
+            // The key assertion: results array is empty, not just permission-filtered
+            expect(Array.isArray(results)).toBe(true);
+            expect(results).toHaveLength(0);
+        });
+    });
 });

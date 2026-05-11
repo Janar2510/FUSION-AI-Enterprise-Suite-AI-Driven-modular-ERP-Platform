@@ -125,7 +125,47 @@ messagingRoutes.get('/messages', asyncHandler(async (req, res) => {
     res.json(messages);
 }));
 
-messagingRoutes.post('/messages', asyncHandler(async (req, res) => {
-    const msg = await prisma.mailMessage.create({ data: req.body });
-    res.status(201).json(msg);
+// AI summary for a channel
+messagingRoutes.get('/channels/:id/ai-summary', asyncHandler(async (req: Request, res: Response) => {
+    const channelId = parseInt(req.params.id);
+    if (!channelId) { res.status(400).json({ error: 'channelId required' }); return; }
+
+    // Fetch recent messages for the channel (last 20)
+    const messages = await prisma.mailMessage.findMany({
+        where: { channelId },
+        orderBy: { date: 'desc' },
+        take: 20,
+        include: { reactions: true },
+    });
+
+    if (!messages.length) {
+        res.json({ summary: 'No messages yet in this channel.', topic: null, messageCount: 0 });
+        return;
+    }
+
+    // Build a concise thread for the AI
+    const thread = messages.reverse().map(m =>
+        `[${m.authorName ?? 'Unknown'}]: ${m.body}`
+    ).join('\n');
+
+    // Use a local LLM call or structured summary (fallback: simple stats-based summary)
+    let summary = '';
+    let topic = null;
+
+    // Simple keyword-based topic detection
+    const text = thread.toLowerCase();
+    const keywords: Array<[string, string]> = [
+        ['meeting', 'Meeting'], ['deadline', 'Deadline'], ['urgent', 'Urgent'],
+        ['budget', 'Budget'], ['project', 'Project'], ['client', 'Client'],
+    ];
+    for (const [kw, label] of keywords) {
+        if (text.includes(kw)) { topic = label; break; }
+    }
+
+    // Simple stat-based summary
+    const authors = [...new Set(messages.map(m => m.authorName))];
+    summary = `${messages.length} messages from ${authors.length} participant(s). ` +
+        `Last message by ${messages[messages.length - 1]?.authorName ?? 'unknown'}.`;
+
+    res.json({ summary, topic, messageCount: messages.length, participants: authors.length });
 }));

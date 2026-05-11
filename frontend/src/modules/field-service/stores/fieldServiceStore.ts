@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { fieldServiceApi } from '@/lib/api';
 
 export interface FsTask {
     id: number;
@@ -38,7 +36,7 @@ export const useFieldServiceStore = create<FieldServiceStore>((set, get) => ({
     fetchTasks: async () => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.get(`${API_BASE}/api/fs-rental/tasks?limit=1000`);
+            const res = await fieldServiceApi.listTasks({ limit: 1000 });
             set({ tasks: res.data.data, loading: false });
         } catch (err: any) {
             console.error(err);
@@ -49,7 +47,7 @@ export const useFieldServiceStore = create<FieldServiceStore>((set, get) => ({
     createTask: async (data) => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.post(`${API_BASE}/api/fs-rental/tasks`, data);
+            const res = await fieldServiceApi.createTask(data);
             await get().fetchTasks();
             set({ loading: false });
             return res.data;
@@ -62,7 +60,7 @@ export const useFieldServiceStore = create<FieldServiceStore>((set, get) => ({
     updateTask: async (id, data) => {
         try {
             set({ loading: true, error: null });
-            await axios.put(`${API_BASE}/api/fs-rental/tasks/${id}`, data);
+            await fieldServiceApi.updateTask(id, data);
             await get().fetchTasks();
             set({ loading: false });
         } catch (err: any) {

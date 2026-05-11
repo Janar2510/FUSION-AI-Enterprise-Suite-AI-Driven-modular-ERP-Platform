@@ -1,8 +1,10 @@
 import { create } from 'zustand';
-import axios from 'axios';
-import { Spreadsheet, SpreadsheetMetadata, SpreadsheetData, SpreadsheetCell } from '../types';
+import { spreadsheetApi } from '@/lib/api';
+import type { SpreadsheetData, SpreadsheetCell } from '../types';
 
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+export type { SpreadsheetData, SpreadsheetCell };
+export interface SpreadsheetMetadata { id: number; name: string; updatedAt: string; }
+export interface Spreadsheet { id: number; name: string; data: SpreadsheetData; userId: number; createdAt: string; updatedAt: string; }
 
 interface SpreadsheetStore {
     spreadsheets: SpreadsheetMetadata[];
@@ -30,7 +32,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
     fetchSpreadsheets: async () => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.get(`${API_BASE}/api/spreadsheet`);
+            const res = await spreadsheetApi.list({ limit: 1000 });
             set({ spreadsheets: res.data.data, loading: false });
         } catch (err: any) {
             console.error(err);
@@ -41,7 +43,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
     fetchSpreadsheet: async (id: number) => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.get(`${API_BASE}/api/spreadsheet/${id}`);
+            const res = await spreadsheetApi.get(id);
             set({ currentSpreadsheet: res.data.data, loading: false });
         } catch (err: any) {
             console.error(err);
@@ -53,7 +55,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
         try {
             set({ loading: true, error: null });
             const initialData = data || { rows: {}, columnWidths: {} };
-            const res = await axios.post(`${API_BASE}/api/spreadsheet`, { name, data: initialData });
+            const res = await spreadsheetApi.create({ name, data: initialData });
             await get().fetchSpreadsheets();
             set({ currentSpreadsheet: res.data.data, loading: false });
             return res.data.data;
@@ -76,7 +78,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
                 });
             }
 
-            await axios.put(`${API_BASE}/api/spreadsheet/${id}`, { data });
+            await spreadsheetApi.update(id, { data });
         } catch (err: any) {
             console.error(err);
             set({ error: err.response?.data?.error || err.message });
@@ -85,7 +87,7 @@ export const useSpreadsheetStore = create<SpreadsheetStore>((set, get) => ({
 
     deleteSpreadsheet: async (id) => {
         try {
-            await axios.delete(`${API_BASE}/api/spreadsheet/${id}`);
+            await spreadsheetApi.delete(id);
             set({
                 spreadsheets: get().spreadsheets.filter(s => s.id !== id),
                 currentSpreadsheet: get().currentSpreadsheet?.id === id ? null : get().currentSpreadsheet

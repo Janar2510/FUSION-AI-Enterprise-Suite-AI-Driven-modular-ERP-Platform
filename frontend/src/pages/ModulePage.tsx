@@ -26,8 +26,8 @@ import { KnowledgeModule } from '@/modules/knowledge/components/KnowledgeModule'
 import { WebsiteModule } from '@/modules/website/components/WebsiteModule'
 import { EmailMarketingModule } from '@/modules/email-marketing/components/EmailMarketingModule'
 import { SocialMarketingModule } from '@/modules/social-marketing/components/SocialMarketingModule'
-import StudioDashboard from '@/modules/studio/components/StudioDashboard'
-import { ManufacturingModule } from '@/modules/manufacturing/components/ManufacturingModule'
+import InvoicingDashboard from '@/modules/invoicing/components/InvoicingDashboard'
+import { StudioModule } from '@/modules/studio/components/StudioModule'
 import { PurchasesModule } from '@/modules/purchases/components/PurchasesModule'
 import MarketingDashboard from '@/modules/marketing/components/MarketingDashboard'
 import { CalendarModule } from '@/modules/calendar/components/CalendarModule'
@@ -47,7 +47,6 @@ import { PlmModule } from '@/modules/plm/components/PlmModule'
 import { SpreadsheetModule } from '@/modules/spreadsheet/components/SpreadsheetModule'
 import { AutomationModule } from '@/modules/automation/components/AutomationModule'
 import SupplyChainModule from '@/modules/supply-chain/components/SupplyChainModule'
-import InvoicingDashboard from '@/modules/invoicing/components/InvoicingDashboard'
 
 const ModulePage: React.FC = () => {
   const { moduleName } = useParams<{ moduleName: string }>()
@@ -99,7 +98,7 @@ const ModulePage: React.FC = () => {
       case 'social_marketing':
         return <SocialMarketingModule />
       case 'studio':
-        return <StudioDashboard />
+        return <StudioModule />
       case 'manufacturing':
         return <ManufacturingModule />
       case 'purchases':

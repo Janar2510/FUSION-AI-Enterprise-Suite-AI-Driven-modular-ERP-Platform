@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { notesApi } from '@/lib/api';
 
 export interface Note {
     id: number;
@@ -32,7 +30,7 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
     fetchNotes: async () => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.get(`${API_BASE}/api/notes`);
+            const res = await notesApi.list();
             set({ notes: res.data, loading: false });
         } catch (err: any) {
             console.error(err);
@@ -43,7 +41,7 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
     createNote: async (data) => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.post(`${API_BASE}/api/notes`, data);
+            const res = await notesApi.create(data);
             await get().fetchNotes();
             set({ loading: false });
             return res.data;
@@ -56,7 +54,7 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
     updateNote: async (id, data) => {
         try {
             set({ loading: true, error: null });
-            await axios.put(`${API_BASE}/api/notes/${id}`, data);
+            await notesApi.update(id, data);
             await get().fetchNotes();
             set({ loading: false });
         } catch (err: any) {
@@ -68,7 +66,7 @@ export const useNotesStore = create<NotesStore>((set, get) => ({
     deleteNote: async (id) => {
         try {
             set({ loading: true, error: null });
-            await axios.delete(`${API_BASE}/api/notes/${id}`);
+            await notesApi.delete(id);
             await get().fetchNotes();
             set({ loading: false });
         } catch (err: any) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { useSpreadsheetStore } from '../stores/spreadsheetStore';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import {
     AutoSizer,
     MultiGrid

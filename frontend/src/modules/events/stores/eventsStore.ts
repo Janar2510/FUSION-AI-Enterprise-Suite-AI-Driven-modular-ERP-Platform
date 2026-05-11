@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { eventsApi } from '@/lib/api';
 
 export interface EventRegistration {
     id: number;
@@ -46,7 +44,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     fetchEvents: async () => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.get(`${API_BASE}/api/events?limit=1000`);
+            const res = await eventsApi.list({ limit: 1000 });
             set({ events: res.data.data, loading: false });
         } catch (err: any) {
             console.error(err);
@@ -57,7 +55,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     createEvent: async (data) => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.post(`${API_BASE}/api/events`, data);
+            const res = await eventsApi.create(data);
             await get().fetchEvents();
             set({ loading: false });
             return res.data;
@@ -70,7 +68,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     updateEvent: async (id, data) => {
         try {
             set({ loading: true, error: null });
-            await axios.put(`${API_BASE}/api/events/${id}`, data);
+            await eventsApi.update(id, data);
             await get().fetchEvents();
             set({ loading: false });
         } catch (err: any) {
@@ -82,7 +80,7 @@ export const useEventsStore = create<EventsStore>((set, get) => ({
     deleteEvent: async (id) => {
         try {
             set({ loading: true, error: null });
-            await axios.delete(`${API_BASE}/api/events/${id}`);
+            await eventsApi.delete(id);
             await get().fetchEvents();
             set({ loading: false });
         } catch (err: any) {

@@ -3,7 +3,8 @@ import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useEventsStore, EventEvent } from '../stores/eventsStore';
-import { Ticket, Calendar, Users, Clock } from 'lucide-react';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
+import { Ticket, Calendar, Users, Clock, Filter } from 'lucide-react';
 
 export const EventsModule: React.FC = () => {
     const {
@@ -65,6 +66,14 @@ export const EventsModule: React.FC = () => {
 
     const upcoming = events.filter(e => new Date(e.dateBegin) >= new Date());
     const totalRegs = events.reduce((s, e) => s + (e._count?.registrations || 0), 0);
+
+    const [eventTypeFilter, setEventTypeFilter] = useState<string>('');
+
+    const filteredEvents = events.filter(e => {
+        const matchesSearch = e.name?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = !eventTypeFilter || e.state === eventTypeFilter;
+        return matchesSearch && matchesType;
+    });
 
     const renderDashboardCards = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 mb-8">
@@ -129,8 +138,23 @@ export const EventsModule: React.FC = () => {
     const renderDashboard = () => (
         <div>
             {renderDashboardCards()}
+            {/* Event type filter */}
+            <div className="flex items-center gap-2 mb-4">
+                <Filter className="w-4 h-4 text-white/40" />
+                <select
+                    className="bg-white/5 border border-white/10 rounded px-3 py-1.5 text-white text-sm outline-none"
+                    value={eventTypeFilter}
+                    onChange={e => setEventTypeFilter(e.target.value)}
+                >
+                    <option value="">All Events</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="draft">Draft</option>
+                    <option value="done">Done</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
             <OdooListBase
-                data={events.filter((t: EventEvent) => t.name?.toLowerCase().includes(searchTerm.toLowerCase()))}
+                data={filteredEvents}
                 onRowClick={handleRowClick}
                 keyExtractor={(t: EventEvent) => t.id.toString()}
                 columns={[
@@ -234,6 +258,9 @@ export const EventsModule: React.FC = () => {
             }
             rightPanels={
                 <div className="space-y-6">
+                    {activeRecord && (
+                        <ChatterPanel ownerType="EventEvent" ownerId={activeRecord.id} showTimeline />
+                    )}
                     <div className="bg-white/5 border border-white/10 rounded-xl p-6">
                         <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
                             <Users className="w-5 h-5 text-green-400" />

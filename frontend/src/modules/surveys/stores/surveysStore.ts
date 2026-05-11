@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+import { surveysApi } from '@/lib/api';
 
 export interface SurveyQuestion {
     id: number;
@@ -50,7 +48,7 @@ export const useSurveysStore = create<SurveysStore>((set, get) => ({
     fetchSurveys: async () => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.get(`${API_BASE}/api/surveys?limit=1000`);
+            const res = await surveysApi.list({ limit: 1000 });
             set({ surveys: res.data.data, loading: false });
         } catch (err: any) {
             console.error(err);
@@ -61,7 +59,7 @@ export const useSurveysStore = create<SurveysStore>((set, get) => ({
     createSurvey: async (data) => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.post(`${API_BASE}/api/surveys`, data);
+            const res = await surveysApi.create(data);
             await get().fetchSurveys();
             set({ loading: false });
             return res.data;
@@ -74,7 +72,7 @@ export const useSurveysStore = create<SurveysStore>((set, get) => ({
     updateSurvey: async (id, data) => {
         try {
             set({ loading: true, error: null });
-            await axios.put(`${API_BASE}/api/surveys/${id}`, data);
+            await surveysApi.update(id, data);
             await get().fetchSurveys();
             set({ loading: false });
         } catch (err: any) {

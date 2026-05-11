@@ -87,6 +87,7 @@ import { settingsRoutes } from './routes/settings';
 import { ecommerceRoutes } from './routes/ecommerce';
 import { skillsRoutes } from './routes/skills';
 import { spreadsheetRoutes } from './routes/spreadsheet';
+import { studioRoutes } from './routes/studio';
 import { automationRoutes } from './routes/automation';
 import aiActionsRouter from './routes/ai-actions';
 import { gdprRoutes } from './routes/gdpr';
@@ -248,6 +249,7 @@ app.use('/api/automation', automationRoutes);
 app.use('/api/ai', apiLimiter, aiActionsRouter);
 app.use('/api/invoicing', invoicingRoutes);
 app.use('/api/sign', signRoutes);
+app.use('/api/studio', studioRoutes);
 app.use('/api/gdpr', apiLimiter, gdprRoutes);
 
 // ── 404 ──────────────────────────────────────────────────────

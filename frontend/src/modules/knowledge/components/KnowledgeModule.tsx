@@ -63,6 +63,9 @@ export const KnowledgeModule: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<number | null>(null);
     const [isAIGenerating, setIsAIGenerating] = useState(false);
+    const [isDraftingWithAI, setIsDraftingWithAI] = useState(false);
+    const [aiDraftPreview, setAiDraftPreview] = useState<{ title: string; body: string; summary: string } | null>(null);
+    const [showDraftPreview, setShowDraftPreview] = useState(false);
 
     const [activeRecord, setActiveRecord] = useState<KnowledgeArticle | null>(null);
     const [formData, setFormData] = useState<Partial<KnowledgeArticle>>({
@@ -138,6 +141,32 @@ export const KnowledgeModule: React.FC = () => {
         } finally {
             setIsAIGenerating(false);
         }
+    };
+
+    const handleDraftWithAI = async () => {
+        if (!formData.title) return;
+        setIsDraftingWithAI(true);
+        try {
+            const res = await axios.post(`${API_BASE}/api/ai/run`, {
+                agentKey: 'knowledge-article-draft',
+                entityType: 'knowledge_article',
+                entityId: String(activeRecord?.id ?? 'new'),
+                input: { topic: formData.title },
+            });
+            setAiDraftPreview(res.data.output ?? res.data);
+            setShowDraftPreview(true);
+        } catch (err: any) {
+            console.error('AI draft failed', err);
+        } finally {
+            setIsDraftingWithAI(false);
+        }
+    };
+
+    const handleApplyDraft = () => {
+        if (!aiDraftPreview) return;
+        setFormData(prev => ({ ...prev, title: aiDraftPreview.title, body: aiDraftPreview.body }));
+        setShowDraftPreview(false);
+        setAiDraftPreview(null);
     };
 
     const handleGraftMetric = (metric: typeof GRAFT_METRICS[0]) => {
@@ -298,6 +327,17 @@ export const KnowledgeModule: React.FC = () => {
                                 <button onClick={() => handleAction(true)} className="bg-green-600 hover:bg-green-500 text-white px-8 py-2 rounded-none text-[10px] font-black transition-all uppercase tracking-[3px] shadow-[0_0_25px_rgba(34,197,94,0.3)]">Establish Article</button>
                             )}
                             <button
+                                onClick={handleDraftWithAI}
+                                disabled={isDraftingWithAI || !formData.title}
+                                className={`flex items-center gap-3 px-8 py-2 rounded-none text-[10px] font-black transition-all uppercase tracking-[3px] ${isDraftingWithAI ? 'bg-secondary-purple/20 text-white/40 cursor-not-allowed border border-white/5' : 'bg-secondary-purple hover:bg-secondary-purple/80 text-white shadow-[0_0_25px_rgba(168,85,247,0.4)]'}`}
+                            >
+                                {isDraftingWithAI ? (
+                                    <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 animate-spin" /> Processing...</span>
+                                ) : (
+                                    <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5" /> Draft with AI</span>
+                                )}
+                            </button>
+                            <button
                                 onClick={handleGenerateAI}
                                 disabled={isAIGenerating || !formData.title}
                                 className={`flex items-center gap-3 px-8 py-2 rounded-none text-[10px] font-black transition-all uppercase tracking-[3px] ${isAIGenerating ? 'bg-primary-500/20 text-white/40 cursor-not-allowed border border-white/5' : 'bg-primary-500 hover:bg-primary-500/80 text-white shadow-[0_0_25px_rgba(245,158,11,0.4)]'}`}
@@ -405,6 +445,9 @@ export const KnowledgeModule: React.FC = () => {
                 }
                 rightPanels={
                     <div className="space-y-8">
+                        {activeRecord && (
+                            <ChatterPanel ownerType="KnowledgeArticle" ownerId={activeRecord.id} showTimeline />
+                        )}
                         {/* Knowledge Grafting Panel */}
                         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-2xl backdrop-blur-xl ring-1 ring-white/10">
                             <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[4px] mb-8 flex items-center gap-4">
@@ -540,6 +583,71 @@ export const KnowledgeModule: React.FC = () => {
                     {(currentView === 'kanban' || currentView === 'list') && renderDashboard()}
                     {currentView === 'form' && renderForm()}
                 </motion.div>
+            </AnimatePresence>
+
+            {/* AI Draft Preview Modal */}
+            <AnimatePresence>
+                {showDraftPreview && aiDraftPreview && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                        onClick={() => setShowDraftPreview(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 20, scale: 0.98 }}
+                            transition={{ duration: 0.2 }}
+                            className="bg-white/5 border border-white/20 rounded-2xl p-8 max-w-2xl w-full mx-4 shadow-2xl backdrop-blur-xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <Sparkles className="w-5 h-5 text-secondary-purple" />
+                                    <h3 className="text-white font-black text-lg">AI Draft Preview</h3>
+                                </div>
+                                <button
+                                    onClick={() => setShowDraftPreview(false)}
+                                    className="text-white/40 hover:text-white text-xl leading-none"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 block">Title</label>
+                                    <div className="text-white font-black text-2xl">{aiDraftPreview.title}</div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 block">Summary</label>
+                                    <div className="text-white/60 text-sm">{aiDraftPreview.summary}</div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2 block">Body Preview</label>
+                                    <div className="text-white/70 text-sm leading-relaxed max-h-60 overflow-y-auto border border-white/10 rounded-xl p-4 bg-black/20">
+                                        {aiDraftPreview.body?.replace(/<[^>]+>/g, '') || 'No content generated.'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={handleApplyDraft}
+                                    className="flex-1 bg-secondary-purple hover:bg-secondary-purple/80 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition-colors shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+                                >
+                                    Apply Draft
+                                </button>
+                                <button
+                                    onClick={() => { setShowDraftPreview(false); setAiDraftPreview(null); }}
+                                    className="flex-1 bg-white/5 hover:bg-white/10 text-white/60 font-black text-xs py-3 rounded-xl uppercase tracking-widest transition-colors border border-white/10"
+                                >
+                                    Discard
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
             </AnimatePresence>
         </OdooViewManager>
     );

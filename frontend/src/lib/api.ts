@@ -400,6 +400,9 @@ export const discussApi = {
 
   removeReaction: (channelId: number, messageId: number, emoji: string) =>
     api.delete(`/api/messaging/channels/${channelId}/messages/${messageId}/reactions/${encodeURIComponent(emoji)}`),
+
+  getAiSummary: (channelId: number) =>
+    api.get(`/api/messaging/channels/${channelId}/ai-summary`),
 }
 
 // ── AI Actions (Phase 5) ──────────────────────────────────────────────────────
@@ -459,6 +462,233 @@ export const projectsApi = {
 
   stages: () =>
     api.get('/api/projects/stages'),
+}
+
+// ── Events ─────────────────────────────────────────────────────────────────────
+export const eventsApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/events', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/events/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/events', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/events/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/api/events/${id}`),
+
+  // State transition
+  updateState: (id: number, state: string) =>
+    api.patch(`/api/events/${id}/state`, { state }),
+
+  // Tickets
+  listTickets: (eventId: number) =>
+    api.get(`/api/events/${eventId}/tickets`),
+
+  createTicket: (eventId: number, data: Record<string, unknown>) =>
+    api.post(`/api/events/${eventId}/tickets`, data),
+
+  // Registrations
+  listRegistrations: (eventId: number, params?: Record<string, unknown>) =>
+    api.get(`/api/events/${eventId}/registrations`, { params }),
+
+  register: (eventId: number, data: Record<string, unknown>) =>
+    api.post(`/api/events/${eventId}/register`, data),
+}
+
+// ── Surveys ─────────────────────────────────────────────────────────────────────
+export const surveysApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/surveys', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/surveys/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/surveys', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/surveys/${id}`, data),
+
+  publish: (id: number) =>
+    api.patch(`/api/surveys/${id}/publish`),
+
+  close: (id: number) =>
+    api.patch(`/api/surveys/${id}/close`),
+
+  delete: (id: number) =>
+    api.delete(`/api/surveys/${id}`),
+
+  // Questions
+  createQuestion: (surveyId: number, data: Record<string, unknown>) =>
+    api.post(`/api/surveys/${surveyId}/questions`, data),
+
+  updateQuestion: (questionId: number, data: Record<string, unknown>) =>
+    api.put(`/api/surveys/questions/${questionId}`, data),
+
+  deleteQuestion: (questionId: number) =>
+    api.delete(`/api/surveys/questions/${questionId}`),
+
+  // Answer options
+  createAnswer: (questionId: number, data: Record<string, unknown>) =>
+    api.post(`/api/surveys/questions/${questionId}/answers`, data),
+
+  deleteAnswer: (answerId: number) =>
+    api.delete(`/api/surveys/answers/${answerId}`),
+
+  // Results
+  getResults: (surveyId: number) =>
+    api.get(`/api/surveys/${surveyId}/results`),
+
+  respond: (surveyId: number, data: Record<string, unknown>) =>
+    api.post(`/api/surveys/${surveyId}/respond`, data),
+}
+
+// ── Notes ────────────────────────────────────────────────────────────────────────
+export const notesApi = {
+  list: () =>
+    api.get('/api/notes'),
+
+  get: (id: number) =>
+    api.get(`/api/notes/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/notes', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/notes/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/api/notes/${id}`),
+}
+
+// ── Knowledge ──────────────────────────────────────────────────────────────────
+export const knowledgeApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/knowledge', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/knowledge/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/knowledge', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/knowledge/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/api/knowledge/${id}`),
+
+  // Workspaces
+  listWorkspaces: () =>
+    api.get('/api/knowledge/workspaces'),
+
+  createWorkspace: (data: Record<string, unknown>) =>
+    api.post('/api/knowledge/workspaces', data),
+
+  // AI generation
+  generate: (data: { title?: string; category?: string; existingBody?: string }) =>
+    api.post('/api/knowledge/ai/generate', data),
+}
+
+// ── Calendar ───────────────────────────────────────────────────────────────────
+export const calendarApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/calendar', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/calendar/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/calendar', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/calendar/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/api/calendar/${id}`),
+}
+
+// ── Spreadsheet ────────────────────────────────────────────────────────────────
+export const spreadsheetApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/spreadsheet', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/spreadsheet/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/spreadsheet', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/spreadsheet/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/api/spreadsheet/${id}`),
+}
+
+// ── Studio (Website Builder) ───────────────────────────────────────────────────
+export const studioApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/studio/pages', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/studio/pages/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/studio/pages', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/studio/pages/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/api/studio/pages/${id}`),
+
+  publish: (id: number) =>
+    api.post(`/api/studio/pages/${id}/publish`),
+
+  unpublish: (id: number) =>
+    api.post(`/api/studio/pages/${id}/unpublish`),
+}
+
+// ── Rental ──────────────────────────────────────────────────────────────────────
+export const rentalApi = {
+  list: (params?: Record<string, unknown>) =>
+    api.get('/api/fs-rental/rentals', { params }),
+
+  get: (id: number) =>
+    api.get(`/api/fs-rental/rentals/${id}`),
+
+  create: (data: Record<string, unknown>) =>
+    api.post('/api/fs-rental/rentals', data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/fs-rental/rentals/${id}`, data),
+
+  delete: (id: number) =>
+    api.delete(`/api/fs-rental/rentals/${id}`),
+}
+
+// ── Field Service ──────────────────────────────────────────────────────────────
+export const fieldServiceApi = {
+  listTasks: (params?: Record<string, unknown>) =>
+    api.get('/api/fs-rental/tasks', { params }),
+
+  getTask: (id: number) =>
+    api.get(`/api/fs-rental/tasks/${id}`),
+
+  createTask: (data: Record<string, unknown>) =>
+    api.post('/api/fs-rental/tasks', data),
+
+  updateTask: (id: number, data: Record<string, unknown>) =>
+    api.put(`/api/fs-rental/tasks/${id}`, data),
+
+  deleteTask: (id: number) =>
+    api.delete(`/api/fs-rental/tasks/${id}`),
 }
 
 export default api

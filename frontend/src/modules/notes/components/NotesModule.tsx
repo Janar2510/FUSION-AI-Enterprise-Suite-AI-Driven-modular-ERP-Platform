@@ -3,6 +3,7 @@ import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { useNotesStore, Note } from '../stores/notesStore';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 const STAGES = [
@@ -275,7 +276,13 @@ export const NotesModule: React.FC = () => {
                     </div>
                 </div>
             }
-            rightPanels={null}
+            rightPanels={
+                activeRecord ? (
+                    <div className="space-y-4">
+                        <ChatterPanel ownerType="Note" ownerId={activeRecord.id} showTimeline />
+                    </div>
+                ) : null
+            }
         />
     );
 

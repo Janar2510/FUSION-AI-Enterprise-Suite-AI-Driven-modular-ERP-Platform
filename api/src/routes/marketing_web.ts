@@ -4,6 +4,7 @@ import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { requireAuth } from '../core/auth';
 
 export const marketingWebRoutes = Router();
+marketingWebRoutes.use(requireAuth);
 
 // ============================================================================
 // WEBSITE PAGES (with block-based content)
