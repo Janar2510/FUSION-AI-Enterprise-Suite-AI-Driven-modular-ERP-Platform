@@ -67,14 +67,14 @@ export const ContactHubDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-purple p-6">
+    <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-500 p-6">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0">
           {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute rounded-full bg-gradient-to-r from-primary-500/20 to-accent-pink/20 blur-3xl"
+              className="absolute rounded-full bg-gradient-to-r from-primary-500/20 to-secondary-500/20 blur-3xl"
               style={{
                 width: `${200 + i * 80}px`,
                 height: `${200 + i * 80}px`,
@@ -122,7 +122,7 @@ export const ContactHubDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowAIPanel(!showAIPanel)}
-                className="px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
               >
                 <Brain className="w-5 h-5" />
                 AI Assistant
@@ -260,7 +260,7 @@ export const ContactHubDashboard: React.FC = () => {
               {activeView === view && (
                 <motion.div
                   layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-primary-500/30 to-accent-pink/30 rounded-lg"
+                  className="absolute inset-0 bg-gradient-to-r from-primary-500/30 to-secondary-500/30 rounded-lg"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
@@ -303,7 +303,7 @@ export const ContactHubDashboard: React.FC = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Brain className="w-6 h-6 text-accent-pink" />
+                    <Brain className="w-6 h-6 text-secondary-500" />
                     AI Assistant
                   </h3>
                   <button

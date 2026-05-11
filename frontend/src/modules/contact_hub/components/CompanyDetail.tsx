@@ -43,7 +43,7 @@ export const CompanyDetail: React.FC<CompanyDetailProps> = ({ company, onClose }
         <div className="sticky top-0 bg-dark-bg/80 backdrop-blur-xl border-b border-white/10 p-6 z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-bold text-2xl">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-2xl">
                 {company.name?.[0]}
               </div>
               <div>
@@ -127,7 +127,7 @@ export const CompanyDetail: React.FC<CompanyDetailProps> = ({ company, onClose }
               {activeTab === tab && (
                 <motion.div
                   layoutId="activeCompanyTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-pink"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-secondary-500"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
@@ -249,7 +249,7 @@ export const CompanyDetail: React.FC<CompanyDetailProps> = ({ company, onClose }
                     {company.technologies_used.map((tech, idx) => (
                       <span 
                         key={idx} 
-                        className="px-3 py-1 bg-gradient-to-r from-primary-500/30 to-accent-pink/30 text-white rounded-full text-sm"
+                        className="px-3 py-1 bg-gradient-to-r from-primary-500/30 to-secondary-500/30 text-white rounded-full text-sm"
                       >
                         {tech}
                       </span>

@@ -111,7 +111,7 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({
         <div className="sticky top-0 bg-dark-bg/80 backdrop-blur-xl border-b border-white/10 p-6 z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-bold text-2xl">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-2xl">
                 {contact.first_name?.[0]}{contact.last_name?.[0]}
               </div>
               <div>
@@ -185,7 +185,7 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({
               {activeTab === tab && (
                 <motion.div
                   layoutId="activeDetailTab"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-accent-pink"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-secondary-500"
                   initial={false}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
@@ -309,7 +309,7 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({
                       {contact.tags.map((tag, idx) => (
                         <span 
                           key={idx} 
-                          className="px-3 py-1 bg-gradient-to-r from-primary-500/30 to-accent-pink/30 text-white rounded-full text-sm flex items-center gap-1"
+                          className="px-3 py-1 bg-gradient-to-r from-primary-500/30 to-secondary-500/30 text-white rounded-full text-sm flex items-center gap-1"
                         >
                           <Tag className="w-3 h-3" />
                           {tag}

@@ -67,7 +67,7 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ channel, onC
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">
-            <Bot className="w-6 h-6 text-accent-pink" />
+            <Bot className="w-6 h-6 text-secondary-500" />
             <h2 className="text-xl font-semibold text-white">AI Assistant</h2>
           </div>
           <button onClick={onClose} className="p-2 text-white/50 hover:text-white transition-colors">
@@ -86,7 +86,7 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ channel, onC
                 className={`
                   flex-1 flex items-center justify-center gap-2 py-3 px-4 transition-all
                   ${activeTab === tab.id
-                    ? 'text-accent-pink border-b-2 border-accent-pink'
+                    ? 'text-secondary-500 border-b-2 border-secondary-500'
                     : 'text-white/50 hover:text-white'
                   }
                 `}
@@ -124,7 +124,7 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ channel, onC
               {summary.text && (
                 <div className="bg-white/5 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-4 h-4 text-accent-pink" />
+                    <Sparkles className="w-4 h-4 text-secondary-500" />
                     <span className="text-white font-medium">AI Generated Summary</span>
                   </div>
                   <p className="text-white/80 text-sm leading-relaxed">{summary.text}</p>
@@ -179,7 +179,7 @@ export const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ channel, onC
                 <div className="space-y-3">
                   {members.map(({ id, name }) => (
                     <div key={id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-semibold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-semibold text-sm">
                         {name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1">

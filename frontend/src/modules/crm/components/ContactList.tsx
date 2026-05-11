@@ -136,7 +136,7 @@ export const ContactList: React.FC<ContactListProps> = ({
           </select>
 
           {/* Add Contact Button */}
-          <button className="px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">
+          <button className="px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">
             <Plus className="w-5 h-5" />
             Add Contact
           </button>
@@ -160,7 +160,7 @@ export const ContactList: React.FC<ContactListProps> = ({
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-bold text-lg">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-lg">
                       {contact.first_name?.[0]}{contact.last_name?.[0]}
                     </div>
                     <div>
@@ -257,7 +257,7 @@ export const ContactList: React.FC<ContactListProps> = ({
               : 'Start by adding your first contact'
             }
           </p>
-          <button className="px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 mx-auto">
+          <button className="px-6 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2 mx-auto">
             <Plus className="w-5 h-5" />
             Add First Contact
           </button>

@@ -208,7 +208,7 @@ const SettingsPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-purple p-6">
+        <div className="min-h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-500 p-6">
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 {[...Array(3)].map((_, i) => (
                     <motion.div key={i} className="absolute rounded-full bg-gradient-to-r from-slate-500/10 to-gray-500/10 blur-3xl"

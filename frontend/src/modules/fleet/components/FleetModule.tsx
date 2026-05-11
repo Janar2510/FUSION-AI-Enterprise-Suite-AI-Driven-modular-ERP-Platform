@@ -74,7 +74,7 @@ export const FleetModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Fleet Size</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{vehicles.length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Active</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{vehicles.filter(v => v.state === 'active').length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Cost</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">${(analytics?.totalCost || 0).toLocaleString()}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Expiring Contracts</p><p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">{analytics?.expiringContracts?.length || 0}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Expiring Contracts</p><p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-secondary-500 bg-clip-text text-transparent">{analytics?.expiringContracts?.length || 0}</p></div>
             </div>
             <OdooListBase data={filteredVehicles} onRowClick={handleVehicleRowClick} keyExtractor={v => v.id.toString()} columns={[
                 { key: 'name', label: 'Vehicle', render: v => <span className="font-bold">{v.name}</span> },
@@ -257,7 +257,7 @@ export const FleetModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Vehicles</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{analytics?.totalVehicles || 0}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Cost (All)</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">${(costRollup?.grandTotal ?? analytics?.totalCost ?? 0).toLocaleString()}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Contract Cost (Ann.)</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">${(costRollup?.contractCostAnnualized ?? 0).toLocaleString()}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Expiring (30d)</p><p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">{alerts.length}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Expiring (30d)</p><p className="text-3xl font-bold bg-gradient-to-r from-red-500 to-secondary-500 bg-clip-text text-transparent">{alerts.length}</p></div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
@@ -275,7 +275,7 @@ export const FleetModule: React.FC = () => {
                                             <span className="text-white font-mono">${v.total.toLocaleString()}</span>
                                         </div>
                                         <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-2">
-                                            <div className="h-full bg-gradient-to-r from-amber-500 to-pink-500 rounded-full"
+                                            <div className="h-full bg-gradient-to-r from-amber-500 to-secondary-500 rounded-full"
                                                 style={{ width: `${Math.min(100, (v.total / (costRollup.grandTotal || 1)) * 100)}%` }} />
                                         </div>
                                         <div className="flex gap-3 flex-wrap">
@@ -294,7 +294,7 @@ export const FleetModule: React.FC = () => {
                                     <div key={c.type}>
                                         <div className="flex justify-between text-sm mb-1"><span className="text-white/60 capitalize">{c.type}</span><span className="text-white font-mono">${c.total.toLocaleString()} ({c.count} logs)</span></div>
                                         <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                                            <div className="h-full bg-gradient-to-r from-amber-500 to-pink-500 rounded-full" style={{ width: `${Math.min(100, (c.total / (analytics.totalCost || 1)) * 100)}%` }} />
+                                            <div className="h-full bg-gradient-to-r from-amber-500 to-secondary-500 rounded-full" style={{ width: `${Math.min(100, (c.total / (analytics.totalCost || 1)) * 100)}%` }} />
                                         </div>
                                     </div>
                                 ))}

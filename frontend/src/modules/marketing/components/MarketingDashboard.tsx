@@ -124,7 +124,7 @@ export const MarketingModule: React.FC = () => {
       { label: 'Total Leads', value: totalLeads, color: 'from-blue-500 to-cyan-500' },
       { label: 'Conversions', value: totalConversions, color: 'from-green-500 to-emerald-500' },
       { label: 'Conv. Rate', value: `${totalLeads > 0 ? ((totalConversions / totalLeads) * 100).toFixed(1) : 0}%`, color: 'from-orange-500 to-amber-500' },
-      { label: 'Total Spent', value: `$${totalSpent.toLocaleString()}`, color: 'from-amber-500 to-pink-500' },
+      { label: 'Total Spent', value: `$${totalSpent.toLocaleString()}`, color: 'from-amber-500 to-secondary-500' },
     ];
     return (<div className="grid grid-cols-4 gap-4 mb-6">{cards.map(c => (
       <div key={c.label} className="bg-white/5 border border-white/10 rounded-xl p-5">

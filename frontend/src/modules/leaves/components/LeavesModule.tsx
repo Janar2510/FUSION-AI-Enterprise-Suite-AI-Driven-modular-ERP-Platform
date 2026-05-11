@@ -135,7 +135,7 @@ export const LeavesModule: React.FC = () => {
                     { label: 'Total', value: leaves.length, color: 'from-blue-500 to-cyan-500' },
                     { label: 'Approved', value: leaves.filter(l => l.state === 'validate').length, color: 'from-green-500 to-emerald-500' },
                     { label: 'Pending', value: leaves.filter(l => l.state === 'draft' || l.state === 'confirm').length, color: 'from-amber-500 to-yellow-500' },
-                    { label: 'Refused', value: leaves.filter(l => l.state === 'refuse').length, color: 'from-red-500 to-pink-500' },
+                    { label: 'Refused', value: leaves.filter(l => l.state === 'refuse').length, color: 'from-red-500 to-secondary-500' },
                 ].map(c => (
                     <div key={c.label} className="bg-white/5 border border-white/10 rounded-xl p-5">
                         <p className="text-white/50 text-sm mb-1">{c.label}</p>

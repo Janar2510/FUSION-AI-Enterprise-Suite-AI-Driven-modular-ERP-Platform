@@ -146,7 +146,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
           <div className="p-6 border-b border-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-pink-500">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-secondary-500">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -290,7 +290,7 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
                 <button className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 text-sm">
                   Export Insights
                 </button>
-                <button className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg text-sm">
+                <button className="px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg text-sm">
                   Apply Recommendations
                 </button>
               </div>

@@ -90,7 +90,7 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({ contact, onClose }
           <div className="p-6 border-b border-white/10">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white text-xl font-bold">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white text-xl font-bold">
                   {contact.first_name?.[0]}{contact.last_name?.[0]}
                 </div>
                 <div>
@@ -237,8 +237,8 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({ contact, onClose }
                       </div>
                       
                       {leadScore.recommended_action && (
-                        <div className="p-3 bg-accent-pink/20 rounded-lg">
-                          <p className="text-accent-pink font-medium">Recommended Action:</p>
+                        <div className="p-3 bg-secondary-500/20 rounded-lg">
+                          <p className="text-secondary-500 font-medium">Recommended Action:</p>
                           <p className="text-white/80 mt-1">{leadScore.recommended_action}</p>
                         </div>
                       )}
@@ -279,14 +279,14 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({ contact, onClose }
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <button 
                     onClick={() => handleGenerateEmail('follow_up')}
-                    className="px-4 py-3 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg flex items-center justify-center gap-2"
+                    className="px-4 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg flex items-center justify-center gap-2"
                   >
                     <Mail className="w-4 h-4" />
                     Follow-up Email
                   </button>
                   <button 
                     onClick={() => handleGenerateEmail('proposal')}
-                    className="px-4 py-3 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg flex items-center justify-center gap-2"
+                    className="px-4 py-3 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg flex items-center justify-center gap-2"
                   >
                     <Send className="w-4 h-4" />
                     Send Proposal
@@ -314,7 +314,7 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({ contact, onClose }
                       <button className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20">
                         Save Draft
                       </button>
-                      <button className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg">
+                      <button className="px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg">
                         Send Email
                       </button>
                     </div>

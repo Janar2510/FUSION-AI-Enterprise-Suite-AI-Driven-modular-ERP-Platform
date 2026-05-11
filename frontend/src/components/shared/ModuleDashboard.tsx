@@ -10,7 +10,7 @@ interface MetricCard {
   change?: string;
   changeType?: 'positive' | 'negative' | 'neutral';
   icon: React.ComponentType<any>;
-  color?: 'orange' | 'blue' | 'green' | 'orange' | 'red' | 'pink';
+  color?: 'orange' | 'blue' | 'green' | 'red' | 'secondary';
 }
 
 interface ChartData {
@@ -52,12 +52,11 @@ interface ModuleDashboardProps {
 }
 
 const colorClasses = {
-  purple: 'text-amber-400 bg-amber-400/10',
+  secondary: 'text-amber-400 bg-amber-400/10',
   blue: 'text-blue-400 bg-blue-400/10',
   green: 'text-green-400 bg-green-400/10',
   orange: 'text-orange-400 bg-orange-400/10',
   red: 'text-red-400 bg-red-400/10',
-  pink: 'text-pink-400 bg-pink-400/10',
 };
 
 const changeTypeClasses = {
@@ -108,7 +107,7 @@ export const ModuleDashboard: React.FC<ModuleDashboardProps> = ({
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-pink-500/20">
+          <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-secondary-500/20">
             <Icon className="w-8 h-8 text-amber-400" />
           </div>
           <div>

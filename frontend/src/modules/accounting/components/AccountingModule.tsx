@@ -333,11 +333,11 @@ export const AccountingModule: React.FC = () => {
                                     <h3 className="heading-3 text-white font-bold text-xl">Vendor Bills</h3>
                                     <p className="text-white/60 text-sm mt-1">{moves.filter(m => m.moveType === 'in_invoice').length} total bills</p>
                                 </div>
-                                <div className="p-3 bg-pink-500/20 rounded-lg">
-                                    <PackageOpen className="w-6 h-6 text-pink-400" />
+                                <div className="p-3 bg-secondary-500/20 rounded-lg">
+                                    <PackageOpen className="w-6 h-6 text-secondary-400" />
                                 </div>
                             </div>
-                            <div className="flex items-center text-pink-400 text-sm font-medium mt-4">
+                            <div className="flex items-center text-secondary-400 text-sm font-medium mt-4">
                                 View Bills <ChevronRight className="w-4 h-4 ml-1" />
                             </div>
                         </GlassCard>

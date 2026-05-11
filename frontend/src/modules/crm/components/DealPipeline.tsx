@@ -177,7 +177,7 @@ export const DealPipeline: React.FC = () => {
           </button>
           <button 
             onClick={() => setShowCreateDeal(true)}
-            className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-pink text-white rounded-lg flex items-center gap-2"
+            className="px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-lg flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             New Deal

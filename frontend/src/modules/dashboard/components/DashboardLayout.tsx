@@ -244,7 +244,7 @@ const DashboardLayout: React.FC = () => {
       <div className="p-6 border-b border-glass-border">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-secondary-400 bg-clip-text text-transparent">
               Dashboard
             </h1>
             <p className="text-gray-400 mt-1">

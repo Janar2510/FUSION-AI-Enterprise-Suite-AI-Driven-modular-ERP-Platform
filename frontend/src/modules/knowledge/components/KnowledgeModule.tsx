@@ -329,7 +329,7 @@ export const KnowledgeModule: React.FC = () => {
                             <button
                                 onClick={handleDraftWithAI}
                                 disabled={isDraftingWithAI || !formData.title}
-                                className={`flex items-center gap-3 px-8 py-2 rounded-none text-[10px] font-black transition-all uppercase tracking-[3px] ${isDraftingWithAI ? 'bg-secondary-purple/20 text-white/40 cursor-not-allowed border border-white/5' : 'bg-secondary-purple hover:bg-secondary-purple/80 text-white shadow-[0_0_25px_rgba(168,85,247,0.4)]'}`}
+                                className={`flex items-center gap-3 px-8 py-2 rounded-none text-[10px] font-black transition-all uppercase tracking-[3px] ${isDraftingWithAI ? 'bg-secondary-500/20 text-white/40 cursor-not-allowed border border-white/5' : 'bg-secondary-500 hover:bg-secondary-600 text-white shadow-[0_0_25px_rgba(249,115,22,0.4)]'}`}
                             >
                                 {isDraftingWithAI ? (
                                     <span className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 animate-spin" /> Processing...</span>
@@ -605,7 +605,7 @@ export const KnowledgeModule: React.FC = () => {
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
-                                    <Sparkles className="w-5 h-5 text-secondary-purple" />
+                                    <Sparkles className="w-5 h-5 text-secondary-500" />
                                     <h3 className="text-white font-black text-lg">AI Draft Preview</h3>
                                 </div>
                                 <button
@@ -634,7 +634,7 @@ export const KnowledgeModule: React.FC = () => {
                             <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={handleApplyDraft}
-                                    className="flex-1 bg-secondary-purple hover:bg-secondary-purple/80 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition-colors shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+                                    className="flex-1 bg-secondary-500 hover:bg-secondary-600 text-white font-black text-xs py-3 rounded-xl uppercase tracking-widest transition-colors shadow-[0_0_20px_rgba(249,115,22,0.3)]"
                                 >
                                     Apply Draft
                                 </button>

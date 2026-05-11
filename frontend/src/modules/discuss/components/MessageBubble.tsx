@@ -62,7 +62,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               className={`
                 relative group px-4 py-2 rounded-2xl
                 ${isOwn 
-                  ? 'bg-gradient-to-r from-primary-500 to-secondary-purple text-white' 
+                  ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white' 
                   : 'bg-white/10 backdrop-blur-md text-white'
                 }
               `}

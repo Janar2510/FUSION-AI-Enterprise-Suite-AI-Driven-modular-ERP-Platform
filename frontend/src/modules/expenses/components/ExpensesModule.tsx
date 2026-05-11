@@ -109,7 +109,7 @@ export const ExpensesModule: React.FC = () => {
             { label: 'Total Expenses', value: `$${totalAmount.toLocaleString()}`, color: 'from-blue-500 to-cyan-500' },
             { label: 'Approved Amount', value: `$${approvedAmount.toLocaleString()}`, color: 'from-green-500 to-emerald-500' },
             { label: 'Pending', value: pending, color: 'from-amber-500 to-yellow-500' },
-            { label: 'Total Records', value: expenses.length, color: 'from-amber-500 to-pink-500' },
+            { label: 'Total Records', value: expenses.length, color: 'from-amber-500 to-secondary-500' },
         ];
         return (
             <div className="grid grid-cols-4 gap-4 mb-6">
@@ -310,7 +310,7 @@ export const ExpensesModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Reports</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{sheets.length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Pending Approval</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{sheets.filter(s => s.state === 'submitted').length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Posted to GL</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{sheets.filter(s => s.state === 'posted').length}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Amount</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">${sheets.reduce((s, r) => s + r.totalAmount, 0).toLocaleString()}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total Amount</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-secondary-500 bg-clip-text text-transparent">${sheets.reduce((s, r) => s + r.totalAmount, 0).toLocaleString()}</p></div>
             </div>
             <OdooListBase data={filteredSheets} onRowClick={handleSheetRowClick} keyExtractor={s => s.id.toString()} columns={[
                 { key: 'name', label: 'Report', render: s => <span className="font-bold">{s.name}</span> },

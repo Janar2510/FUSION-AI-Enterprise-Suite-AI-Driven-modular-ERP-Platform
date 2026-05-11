@@ -197,7 +197,7 @@ export const TimelineView: React.FC = () => {
                         <Building className="w-3 h-3" />
                         {event.company}
                       </span>
-                      <span className="px-2 py-1 bg-gradient-to-r from-primary-500/30 to-accent-pink/30 text-white text-xs rounded">
+                      <span className="px-2 py-1 bg-gradient-to-r from-primary-500/30 to-secondary-500/30 text-white text-xs rounded">
                         {event.app}
                       </span>
                     </div>

@@ -130,7 +130,7 @@ export const CRMModule: React.FC = () => {
 
     const renderKanbanCard = (lead: CrmLead) => {
         const getBadgeColor = (colorIndex: number) => {
-            const colors = ['text-gray-400 bg-gray-400/10', 'text-red-400 bg-red-400/10', 'text-orange-400 bg-orange-400/10', 'text-yellow-400 bg-yellow-400/10', 'text-green-400 bg-green-400/10', 'text-teal-400 bg-teal-400/10', 'text-blue-400 bg-blue-400/10', 'text-amber-400 bg-amber-400/10', 'text-amber-400 bg-amber-400/10', 'text-pink-400 bg-pink-400/10'];
+            const colors = ['text-gray-400 bg-gray-400/10', 'text-red-400 bg-red-400/10', 'text-orange-400 bg-orange-400/10', 'text-yellow-400 bg-yellow-400/10', 'text-green-400 bg-green-400/10', 'text-teal-400 bg-teal-400/10', 'text-blue-400 bg-blue-400/10', 'text-amber-400 bg-amber-400/10', 'text-amber-400 bg-amber-400/10', 'text-secondary-400 bg-secondary-400/10'];
             return colors[(colorIndex || 0) % colors.length];
         };
 

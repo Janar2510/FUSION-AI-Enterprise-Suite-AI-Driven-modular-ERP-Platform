@@ -57,7 +57,7 @@ export const MaintenanceModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Total</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{requests.length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Open</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{requests.filter(r => r.stage !== 'done' && r.stage !== 'cancelled').length}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Done</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{requests.filter(r => r.stage === 'done').length}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTTR (hrs)</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">{analytics?.mttrHours ?? '—'}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTTR (hrs)</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-secondary-500 bg-clip-text text-transparent">{analytics?.mttrHours ?? '—'}</p></div>
             </div>
             <OdooListBase data={filteredReqs} onRowClick={handleReqRowClick} keyExtractor={r => r.id.toString()} columns={[
                 { key: 'name', label: 'Request', render: r => <span className="font-bold">{r.name}</span> },
@@ -203,7 +203,7 @@ export const MaintenanceModule: React.FC = () => {
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Equipment</p><p className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-cyan-500 bg-clip-text text-transparent">{analytics?.totalEquipment || 0}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">Open Requests</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">{analytics?.openRequests || 0}</p></div>
                 <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTTR (hrs)</p><p className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent">{analytics?.mttrHours ?? '—'}</p></div>
-                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTBF (days)</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-pink-500 bg-clip-text text-transparent">{analytics?.mtbfDays ?? '—'}</p></div>
+                <div className="bg-white/5 border border-white/10 rounded-xl p-5"><p className="text-white/50 text-sm mb-1">MTBF (days)</p><p className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-secondary-500 bg-clip-text text-transparent">{analytics?.mtbfDays ?? '—'}</p></div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">

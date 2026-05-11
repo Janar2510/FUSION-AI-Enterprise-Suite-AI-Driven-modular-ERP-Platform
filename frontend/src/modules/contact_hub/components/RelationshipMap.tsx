@@ -118,7 +118,7 @@ export const RelationshipMap: React.FC = () => {
           >
             {/* Central Node */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white font-bold">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold">
                 You
               </div>
             </div>
@@ -193,7 +193,7 @@ export const RelationshipMap: React.FC = () => {
         {/* Legend */}
         <div className="mt-6 flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-gradient-to-r from-primary-500 to-accent-pink"></div>
+            <div className="w-4 h-4 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500"></div>
             <span className="text-white/80 text-sm">You</span>
           </div>
           <div className="flex items-center gap-2">

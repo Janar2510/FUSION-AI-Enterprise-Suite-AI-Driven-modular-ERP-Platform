@@ -105,13 +105,13 @@ export const DiscussMain: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-purple">
+    <div className="flex h-screen bg-gradient-to-br from-dark-bg via-primary-500 to-secondary-500">
       {/* Animated background orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         {[...Array(3)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full bg-gradient-to-r from-accent-pink/20 to-primary-500/20 blur-3xl"
+            className="absolute rounded-full bg-gradient-to-r from-secondary-500/20 to-primary-500/20 blur-3xl"
             style={{
               width: `${400 + i * 100}px`,
               height: `${400 + i * 100}px`,
@@ -146,7 +146,7 @@ export const DiscussMain: React.FC = () => {
                 {currentChannel?.name || 'Select a channel'}
               </h2>
               {currentChannel?.ai_assistant_enabled && (
-                <span className="px-2 py-1 bg-accent-pink/20 text-accent-pink text-xs rounded-full flex items-center gap-1">
+                <span className="px-2 py-1 bg-secondary-500/20 text-secondary-500 text-xs rounded-full flex items-center gap-1">
                   <Bot className="w-3 h-3" />
                   AI Assisted
                 </span>
@@ -258,7 +258,7 @@ export const DiscussMain: React.FC = () => {
                     }
                   }}
                   placeholder="Type a message..."
-                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 resize-none focus:outline-none focus:border-accent-pink"
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 resize-none focus:outline-none focus:border-secondary-500"
                   rows={1}
                   style={{ minHeight: '40px', maxHeight: '120px' }}
                 />
@@ -291,7 +291,7 @@ export const DiscussMain: React.FC = () => {
                 className={`
                   p-2 rounded-lg transition-all
                   ${message.trim() 
-                    ? 'bg-gradient-to-r from-primary-500 to-accent-pink text-white shadow-lg' 
+                    ? 'bg-gradient-to-r from-primary-500 to-secondary-500 text-white shadow-lg' 
                     : 'bg-white/10 text-white/30'
                   }
                 `}

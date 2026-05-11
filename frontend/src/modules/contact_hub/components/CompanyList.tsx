@@ -137,7 +137,7 @@ export const CompanyList: React.FC<CompanyListProps> = ({
                             {company.children.slice(0, 5).map((child) => (
                               <div key={child.id} className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer"
                                 onClick={() => setSelectedPartner(child)}>
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-accent-pink flex items-center justify-center text-white text-xs font-bold">
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white text-xs font-bold">
                                   {getInitials(child.name)}
                                 </div>
                                 <span className="text-white text-sm">{child.name}</span>
