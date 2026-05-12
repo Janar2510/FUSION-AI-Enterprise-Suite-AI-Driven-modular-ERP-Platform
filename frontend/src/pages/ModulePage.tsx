@@ -46,6 +46,7 @@ import { QualityModule } from '@/modules/quality/components/QualityModule'
 import { PlmModule } from '@/modules/plm/components/PlmModule'
 import { SpreadsheetModule } from '@/modules/spreadsheet/components/SpreadsheetModule'
 import { AutomationModule } from '@/modules/automation/components/AutomationModule'
+import { ManufacturingModule } from '@/modules/manufacturing'
 import SupplyChainModule from '@/modules/supply-chain/components/SupplyChainModule'
 
 const ModulePage: React.FC = () => {

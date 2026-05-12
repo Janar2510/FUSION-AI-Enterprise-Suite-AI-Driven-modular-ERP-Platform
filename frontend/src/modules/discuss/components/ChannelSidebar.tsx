@@ -46,7 +46,7 @@ export const ChannelSidebar: React.FC = () => {
         {filteredChannels.map((channel) => (
           <motion.button
             key={channel.id}
-            onClick={() => setCurrentChannel(channel)}
+            onClick={() => setCurrentChannel(channel.id)}
             className={`
               w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left
               ${currentChannel?.id === channel.id
@@ -71,7 +71,7 @@ export const ChannelSidebar: React.FC = () => {
                 </p>
               )}
             </div>
-            {channel.unread_count > 0 && (
+            {channel.unread_count != null && channel.unread_count > 0 && (
               <span className="px-2 py-1 bg-secondary-500 text-white text-xs rounded-full">
                 {channel.unread_count}
               </span>

@@ -3,7 +3,12 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { AlertCircle } from 'lucide-react'
 
-type MotionConflictingInputProps = 'onAnimationStart' | 'onAnimationEnd'
+type MotionConflictingInputProps =
+  | 'onAnimationStart'
+  | 'onAnimationEnd'
+  | 'onDragStart'
+  | 'onDrag'
+  | 'onDragEnd'
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, MotionConflictingInputProps> {
   label?: string

@@ -16,6 +16,7 @@ interface SignState {
   updateSignatureRequest: (id: number, updates: Partial<SignatureRequest>) => Promise<void>;
   selectRequest: (id: number | null) => void;
   updateSignatureStatus: (requestId: number, status: SignatureStatus) => Promise<void>;
+  updateSignerStatus: (requestId: number, signerId: number, status: SignatureStatus) => void;
   addSignature: (requestId: number, signerId: number, signatureData: string, method?: string) => Promise<void>;
   removeSignatureRequest: (id: number) => Promise<void>;
 }
@@ -96,6 +97,36 @@ export const useSignStore = create<SignState>((set, get) => ({
 
   updateSignatureStatus: async (requestId, status) => {
     await get().updateSignatureRequest(requestId, { status });
+  },
+
+  updateSignerStatus: (requestId, signerId, status) => {
+    const patchRequest = (r: SignatureRequest): SignatureRequest => {
+      if (r.id !== requestId) return r;
+      const signers = r.signers.map(s =>
+        s.id === signerId
+          ? {
+              ...s,
+              status,
+              signed_at:
+                status === 'signed'
+                  ? new Date().toISOString()
+                  : s.signed_at,
+            }
+          : s,
+      );
+      return {
+        ...r,
+        signers,
+        updated_at: new Date().toISOString(),
+      };
+    };
+    set(state => ({
+      signatureRequests: state.signatureRequests.map(patchRequest),
+      selectedRequest:
+        state.selectedRequest != null
+          ? patchRequest(state.selectedRequest)
+          : null,
+    }));
   },
 
   addSignature: async (requestId, signerId, signatureData, method = 'draw') => {

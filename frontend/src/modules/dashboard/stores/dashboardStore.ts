@@ -1,58 +1,9 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { api } from '../../../lib/api';
+import type { Widget, AIInsight, DashboardData } from '../types';
 
-export interface Widget {
-  id: number;
-  title: string;
-  description?: string;
-  widget_type: string;
-  position: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  config: Record<string, any>;
-  data_source?: string;
-  refresh_interval: number;
-  theme: string;
-  color_scheme: string;
-  is_active: boolean;
-  is_public: boolean;
-  created_at: string;
-  updated_at?: string;
-  created_by?: number;
-  data?: any;
-  loading?: boolean;
-  error?: string;
-}
-
-export interface AIInsight {
-  id: number;
-  widget_id?: number;
-  title: string;
-  content: string;
-  insight_type: string;
-  confidence_score: number;
-  data_period?: string;
-  metrics: Record<string, any>;
-  recommendations: string[];
-  model_used?: string;
-  is_active: boolean;
-  is_acknowledged: boolean;
-  priority: string;
-  generated_at: string;
-  expires_at?: string;
-  acknowledged_at?: string;
-}
-
-export interface DashboardData {
-  widgets: Widget[];
-  insights: AIInsight[];
-  layout?: Record<string, any>;
-  analytics?: Record<string, any>;
-}
+export type { Widget, AIInsight, DashboardData };
 
 export interface DashboardState {
   // Data
@@ -178,7 +129,7 @@ export const useDashboardStore = create<DashboardState>()(
               ...state.dashboardData,
               widgets: state.dashboardData.widgets.map(widget =>
                 widget.id === widgetId 
-                  ? { ...widget, data: response.data, loading: false, error: null }
+                  ? { ...widget, data: response.data, loading: false, error: undefined }
                   : widget
               )
             }

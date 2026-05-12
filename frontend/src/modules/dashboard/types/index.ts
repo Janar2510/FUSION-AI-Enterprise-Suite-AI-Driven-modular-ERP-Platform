@@ -43,7 +43,7 @@ export interface AIInsight {
   acknowledged_at?: string;
 }
 
-export interface DashboardLayout {
+export interface DashboardLayoutConfig {
   id: number;
   user_id: number;
   name: string;

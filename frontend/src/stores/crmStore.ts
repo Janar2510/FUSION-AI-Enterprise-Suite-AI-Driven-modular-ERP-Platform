@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 
-interface Contact {
+export interface Contact {
   id: number;
   email: string;
   first_name: string;
@@ -9,7 +9,7 @@ interface Contact {
   full_name: string;
   job_title: string;
   phone?: string;
-  company?: {
+  company?: string | {
     id: number;
     name: string;
     industry: string;
@@ -24,6 +24,12 @@ interface Contact {
   last_activity: string;
   created_at: string;
   updated_at: string;
+  /** Optional flat address (API may mirror nested address) */
+  city?: string;
+  state?: string;
+  country?: string;
+  ai_insights?: Record<string, unknown>;
+  next_best_action?: string | Record<string, unknown>;
 }
 
 interface Company {

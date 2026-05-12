@@ -25,6 +25,19 @@ interface StudioState {
   publish: (id: number) => Promise<boolean>;
 }
 
+function errMessage(err: unknown): string {
+  if (err && typeof err === 'object' && 'response' in err) {
+    type AxiosLike = {
+      response?: { data?: { error?: string; message?: string } };
+      message?: string;
+    };
+    const ae = err as AxiosLike;
+    const d = ae.response?.data;
+    return d?.error ?? d?.message ?? String(ae.message ?? err);
+  }
+  return String(err instanceof Error ? err.message : err);
+}
+
 export const useStudioStore = create<StudioState>((set, get) => ({
   pages: [],
   loading: false,
@@ -32,39 +45,52 @@ export const useStudioStore = create<StudioState>((set, get) => ({
 
   fetch: async () => {
     set({ loading: true, error: null });
-    const { data, error } = await api.get<StudioPage[]>('/studio/pages');
-    if (error) {
-      set({ loading: false, error });
-    } else {
-      set({ pages: data || [], loading: false });
+    try {
+      const { data } = await api.get<StudioPage[]>('/studio/pages');
+      const list = Array.isArray(data)
+        ? data
+        : (data as { data?: StudioPage[] })?.data ?? [];
+      set({ pages: list, loading: false });
+    } catch (e) {
+      set({ loading: false, error: errMessage(e) });
     }
   },
 
   create: async (data) => {
-    const { data: result, error } = await api.post<StudioPage>('/studio/pages', data);
-    if (!error && result) {
-      set(s => ({ pages: [...s.pages, result] }));
-      return result;
+    try {
+      const { data: result } = await api.post<StudioPage>('/studio/pages', data);
+      if (result) {
+        set(s => ({ pages: [...s.pages, result], error: null }));
+        return result;
+      }
+    } catch (e) {
+      set({ error: errMessage(e) });
     }
     return null;
   },
 
   update: async (id, data) => {
-    const { data: result, error } = await api.patch<StudioPage>(`/studio/pages/${id}`, data);
-    if (!error && result) {
-      set(s => ({ pages: s.pages.map(p => p.id === id ? result : p) }));
-      return true;
+    try {
+      const { data: result } = await api.patch<StudioPage>(`/studio/pages/${id}`, data);
+      if (result) {
+        set(s => ({ pages: s.pages.map(p => (p.id === id ? result : p)), error: null }));
+        return true;
+      }
+    } catch (e) {
+      set({ error: errMessage(e) });
     }
     return false;
   },
 
   remove: async (id) => {
-    const { error } = await api.delete(`/studio/pages/${id}`);
-    if (!error) {
-      set(s => ({ pages: s.pages.filter(p => p.id !== id) }));
+    try {
+      await api.delete(`/studio/pages/${id}`);
+      set(s => ({ pages: s.pages.filter(p => p.id !== id), error: null }));
       return true;
+    } catch (e) {
+      set({ error: errMessage(e) });
+      return false;
     }
-    return false;
   },
 
   publish: async (id) => {

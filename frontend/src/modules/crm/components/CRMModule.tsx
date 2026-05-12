@@ -436,7 +436,7 @@ export const CRMModule: React.FC = () => {
                         }
                         rightPanels={
                             <div className="space-y-6">
-                                {activeRecord?.partnerId && (
+                                {activeRecord?.partner && (
                                     <AiActionsPanel
                                         entityType="CrmLead"
                                         entityId={String(activeRecord.id)}

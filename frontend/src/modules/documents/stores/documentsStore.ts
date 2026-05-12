@@ -1,70 +1,9 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { api } from '../../../lib/api';
+import type { Document, DocumentFilters, DocumentSearch } from '../types';
 
-export interface Document {
-  id: number;
-  filename: string;
-  original_filename: string;
-  file_path: string;
-  file_size: number;
-  mime_type: string;
-  document_type: string;
-  storage_url?: string;
-  processing_status: string;
-  processing_started_at?: string;
-  processing_completed_at?: string;
-  processing_error?: string;
-  title?: string;
-  description?: string;
-  keywords: string[];
-  categories: string[];
-  tags: string[];
-  ocr_text?: string;
-  ocr_confidence?: number;
-  ocr_language?: string;
-  vision_analysis?: Record<string, any>;
-  detected_objects?: string[];
-  text_regions?: any[];
-  layout_analysis?: Record<string, any>;
-  classification?: string;
-  classification_confidence?: number;
-  is_invoice: boolean;
-  is_contract: boolean;
-  is_receipt: boolean;
-  invoice_number?: string;
-  invoice_date?: string;
-  invoice_amount?: number;
-  invoice_currency?: string;
-  vendor_name?: string;
-  customer_name?: string;
-  is_public: boolean;
-  is_encrypted: boolean;
-  version: number;
-  parent_document_id?: number;
-  created_at: string;
-  updated_at?: string;
-  created_by?: number;
-}
-
-export interface DocumentFilters {
-  document_type: string;
-  classification: string;
-  tags: string[];
-  is_invoice: boolean | null;
-  is_contract: boolean | null;
-  is_receipt: boolean | null;
-  processing_status: string;
-  created_after: string;
-  created_before: string;
-}
-
-export interface DocumentSearch {
-  query: string;
-  filters: DocumentFilters;
-  limit: number;
-  offset: number;
-}
+export type { Document, DocumentFilters, DocumentSearch };
 
 export interface DocumentsState {
   // Data
@@ -151,22 +90,42 @@ export const useDocumentsStore = create<DocumentsState>()(
       // Data Actions
       fetchDocuments: async (search?: DocumentSearch) => {
         set({ loading: true, error: null });
-        
+
         try {
-          const searchParams = search || get();
+          const state = get();
+          const searchParams =
+            search ??
+            ({
+              query: state.searchQuery || undefined,
+              document_type: state.filters.document_type || undefined,
+              classification: state.filters.classification || undefined,
+              tags: state.filters.tags.length > 0 ? state.filters.tags : undefined,
+              is_invoice: state.filters.is_invoice ?? undefined,
+              is_contract: state.filters.is_contract ?? undefined,
+              is_receipt: state.filters.is_receipt ?? undefined,
+              processing_status: state.filters.processing_status || undefined,
+              created_after: state.filters.created_after || undefined,
+              created_before: state.filters.created_before || undefined,
+              limit: state.pageSize,
+              offset: (state.currentPage - 1) * state.pageSize,
+            } satisfies DocumentSearch);
+
           const params = new URLSearchParams();
-          
+
           if (searchParams.query) params.append('search', searchParams.query);
-          if (searchParams.filters.document_type) params.append('document_type', searchParams.filters.document_type);
-          if (searchParams.filters.classification) params.append('classification', searchParams.filters.classification);
-          if (searchParams.filters.tags.length > 0) params.append('tags', searchParams.filters.tags.join(','));
-          if (searchParams.filters.is_invoice !== null) params.append('is_invoice', searchParams.filters.is_invoice.toString());
-          if (searchParams.filters.is_contract !== null) params.append('is_contract', searchParams.filters.is_contract.toString());
-          if (searchParams.filters.is_receipt !== null) params.append('is_receipt', searchParams.filters.is_receipt.toString());
-          if (searchParams.filters.processing_status) params.append('processing_status', searchParams.filters.processing_status);
-          if (searchParams.filters.created_after) params.append('created_after', searchParams.filters.created_after);
-          if (searchParams.filters.created_before) params.append('created_before', searchParams.filters.created_before);
-          
+          if (searchParams.document_type) params.append('document_type', searchParams.document_type);
+          if (searchParams.classification) params.append('classification', searchParams.classification);
+          if (searchParams.tags && searchParams.tags.length > 0) {
+            params.append('tags', searchParams.tags.join(','));
+          }
+          if (searchParams.is_invoice !== undefined) params.append('is_invoice', String(searchParams.is_invoice));
+          if (searchParams.is_contract !== undefined) params.append('is_contract', String(searchParams.is_contract));
+          if (searchParams.is_receipt !== undefined) params.append('is_receipt', String(searchParams.is_receipt));
+          if (searchParams.processing_status)
+            params.append('processing_status', searchParams.processing_status);
+          if (searchParams.created_after) params.append('created_after', searchParams.created_after);
+          if (searchParams.created_before) params.append('created_before', searchParams.created_before);
+
           params.append('limit', searchParams.limit.toString());
           params.append('offset', searchParams.offset.toString());
 
@@ -234,14 +193,14 @@ export const useDocumentsStore = create<DocumentsState>()(
             responseType: 'blob'
           });
           
-          const document = get().documents.find(doc => doc.id === documentId);
-          if (!document) return;
-          
+          const doc = get().documents.find((d) => d.id === documentId);
+          if (!doc) return;
+
           const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
+          const link = window.document.createElement('a');
           link.href = url;
-          link.setAttribute('download', document.original_filename);
-          document.body.appendChild(link);
+          link.setAttribute('download', doc.original_filename);
+          window.document.body.appendChild(link);
           link.click();
           link.remove();
           window.URL.revokeObjectURL(url);

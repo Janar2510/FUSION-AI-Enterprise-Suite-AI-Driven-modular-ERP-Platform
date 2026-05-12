@@ -1,6 +1,6 @@
 // Sales Module Exports for FusionAI Enterprise Suite
 
-export { SalesDashboard } from './components/SalesDashboard';
+export { SalesModule as SalesDashboard } from './components/SalesModule';
 export { useSalesStore } from './stores/salesStore';
 export * from './types';
 

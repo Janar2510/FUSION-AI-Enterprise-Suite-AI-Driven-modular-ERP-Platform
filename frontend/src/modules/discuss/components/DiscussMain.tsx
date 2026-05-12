@@ -8,7 +8,7 @@ import { ChannelSidebar } from './ChannelSidebar';
 import { AIAssistantPanel } from './AIAssistantPanel';
 import { useDiscussStore } from '../stores/discussStore';
 import { discussApi } from '../../../lib/api';
-import EmojiPicker from 'emoji-picker-react';
+import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 export const DiscussMain: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -69,9 +69,10 @@ export const DiscussMain: React.FC = () => {
         content: wsData.content,
         sender_id: wsData.sender_id ?? 0,
         sender_name: wsData.sender_name ?? 'Unknown',
+        type: 'text',
         reactions: [],
+        is_edited: false,
         is_deleted: false,
-        is_pinned: false,
       });
     } else if (wsData.type === 'typing') {
       setIsTyping(true);
@@ -278,7 +279,7 @@ export const DiscussMain: React.FC = () => {
                         setMessage(message + emoji.emoji);
                         setShowEmojiPicker(false);
                       }}
-                      theme="dark"
+                      theme={Theme.DARK}
                     />
                   </div>
                 )}

@@ -7,7 +7,12 @@ import { cn } from '@/lib/utils'
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
-type MotionConflictingButtonProps = 'onAnimationStart' | 'onAnimationEnd'
+type MotionConflictingButtonProps =
+  | 'onAnimationStart'
+  | 'onAnimationEnd'
+  | 'onDragStart'
+  | 'onDrag'
+  | 'onDragEnd'
 
 interface ButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, MotionConflictingButtonProps> {

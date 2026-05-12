@@ -198,17 +198,17 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ className = '' }) => 
   };
 
   // Handle document actions
-  const handleDownload = async (document: Document) => {
+  const handleDownload = async (doc: Document) => {
     try {
-      const response = await api.get(`/api/v1/documents/${document.id}/download`, {
+      const response = await api.get(`/api/v1/documents/${doc.id}/download`, {
         responseType: 'blob'
       });
       
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = url;
-      link.setAttribute('download', document.original_filename);
-      document.body.appendChild(link);
+      link.setAttribute('download', doc.original_filename);
+      window.document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);

@@ -49,7 +49,8 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({
     const loadTimeline = async () => {
       if (contactId) {
         try {
-          await fetchContactTimeline(contactId, 20);
+          const events = await fetchContactTimeline(contactId, 20);
+          setTimelineEvents(events ?? []);
         } catch (error) {
           console.error('Failed to load timeline:', error);
         }

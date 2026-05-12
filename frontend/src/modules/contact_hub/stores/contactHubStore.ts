@@ -1,22 +1,44 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { 
-  Contact, 
-  Company, 
-  Activity, 
-  Relationship, 
-  ContactHubState,
+import {
+  Contact,
+  Company,
+  Activity,
+  Relationship,
+  ContactTimelineResponse,
   ContactFormData,
   CompanyFormData,
   ActivityFormData,
   RelationshipFormData,
   TimelineEvent,
-  SearchResponse
+  SearchResponse,
+  ContactHubState,
 } from '../types';
 
 const API_BASE = '/api/v1/contact-hub';
 
-export const useContactHubStore = create<ContactHubState>()(
+type ContactHubStore = ContactHubState & {
+  fetchContacts: (skip?: number, limit?: number) => Promise<void>;
+  createContact: (contactData: ContactFormData) => Promise<Contact>;
+  getContact: (contactId: string) => Promise<Contact>;
+  updateContact: (contactId: string, updates: Partial<ContactFormData>) => Promise<Contact>;
+  deleteContact: (contactId: string) => Promise<void>;
+  fetchCompanies: (skip?: number, limit?: number) => Promise<void>;
+  createCompany: (companyData: CompanyFormData) => Promise<Company>;
+  getCompany: (companyId: string) => Promise<Company>;
+  updateCompany: (companyId: string, updates: Partial<CompanyFormData>) => Promise<Company>;
+  addActivity: (activityData: ActivityFormData) => Promise<Activity>;
+  fetchContactTimeline: (contactId: string, limit?: number) => Promise<TimelineEvent[]>;
+  createRelationship: (relationshipData: RelationshipFormData) => Promise<Relationship>;
+  searchContacts: (query: string, limit?: number) => Promise<SearchResponse>;
+  fetchContactInsights: (contactId: string) => Promise<unknown>;
+  setSelectedContact: (contact: Contact | null) => void;
+  setSelectedCompany: (company: Company | null) => void;
+  clearSearchResults: () => void;
+  clearError: () => void;
+};
+
+export const useContactHubStore = create<ContactHubStore>()(
   subscribeWithSelector((set, get) => ({
     // Initial State
     contacts: [],
@@ -68,7 +90,7 @@ export const useContactHubStore = create<ContactHubState>()(
         
         const newContact = await response.json();
         
-        set(state => ({
+        set((state: ContactHubState) => ({
           contacts: [...state.contacts, newContact],
           loading: { ...state.loading, contacts: false }
         }));
@@ -117,8 +139,8 @@ export const useContactHubStore = create<ContactHubState>()(
         
         const updatedContact = await response.json();
         
-        set(state => ({
-          contacts: state.contacts.map(contact =>
+        set((state: ContactHubState) => ({
+          contacts: state.contacts.map((contact: Contact) =>
             contact.id === contactId ? { ...contact, ...updatedContact } : contact
           ),
           selectedContact: state.selectedContact?.id === contactId ? { ...state.selectedContact, ...updatedContact } : state.selectedContact,
@@ -144,8 +166,8 @@ export const useContactHubStore = create<ContactHubState>()(
         
         if (!response.ok) throw new Error('Failed to delete contact');
         
-        set(state => ({
-          contacts: state.contacts.filter(contact => contact.id !== contactId),
+        set((state: ContactHubState) => ({
+          contacts: state.contacts.filter((contact: Contact) => contact.id !== contactId),
           selectedContact: state.selectedContact?.id === contactId ? null : state.selectedContact,
           loading: { ...state.loading, contacts: false }
         }));
@@ -191,7 +213,7 @@ export const useContactHubStore = create<ContactHubState>()(
         
         const newCompany = await response.json();
         
-        set(state => ({
+        set((state: ContactHubState) => ({
           companies: [...state.companies, newCompany],
           loading: { ...state.loading, companies: false }
         }));
@@ -240,8 +262,8 @@ export const useContactHubStore = create<ContactHubState>()(
         
         const updatedCompany = await response.json();
         
-        set(state => ({
-          companies: state.companies.map(company =>
+        set((state: ContactHubState) => ({
+          companies: state.companies.map((company: Company) =>
             company.id === companyId ? { ...company, ...updatedCompany } : company
           ),
           selectedCompany: state.selectedCompany?.id === companyId ? { ...state.selectedCompany, ...updatedCompany } : state.selectedCompany,
@@ -284,16 +306,18 @@ export const useContactHubStore = create<ContactHubState>()(
         const response = await fetch(`${API_BASE}/contacts/${contactId}/timeline?limit=${limit}`);
         if (!response.ok) throw new Error('Failed to fetch timeline');
         
-        const timelineData = await response.json();
+        const timelineData: ContactTimelineResponse = await response.json();
         set({ 
           timelineEvents: timelineData.events,
           loading: { ...get().loading, timeline: false }
         });
+        return timelineData.events;
       } catch (error) {
-        set({ 
+        set({
           error: error instanceof Error ? error.message : 'Unknown error',
           loading: { ...get().loading, timeline: false }
         });
+        return [];
       }
     },
 
@@ -353,8 +377,8 @@ export const useContactHubStore = create<ContactHubState>()(
     },
 
     // Utility Actions
-    setSelectedContact: (contact) => set({ selectedContact: contact }),
-    setSelectedCompany: (company) => set({ selectedCompany: company }),
+    setSelectedContact: (contact: Contact | null) => set({ selectedContact: contact }),
+    setSelectedCompany: (company: Company | null) => set({ selectedCompany: company }),
     clearSearchResults: () => set({ searchResults: [] }),
     clearError: () => set({ error: null })
   }))

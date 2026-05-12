@@ -57,7 +57,8 @@ export interface Project {
   updated_at?: string;
 }
 
-export interface ProjectTask {
+/** REST / ERP-style project task (distinct from Kanban/Odoo task shape in projectStore). */
+export interface ProjectPlanningTask {
   id: number;
   project_id: number;
   task_code: string;

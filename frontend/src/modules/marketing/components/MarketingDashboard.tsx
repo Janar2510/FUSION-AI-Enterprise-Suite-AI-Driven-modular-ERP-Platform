@@ -19,7 +19,7 @@ const ACTIVITY_ICONS: Record<string, React.ReactNode> = {
 };
 
 export const MarketingModule: React.FC = () => {
-  const { items, fetch, create, update, remove, launch, templates, fetchTemplates, createFromTemplate,
+  const { items, fetch: fetchCampaigns, create, update, remove, launch, templates, fetchTemplates, createFromTemplate,
     fetchActivities, fetchParticipants, resolveParticipants, fetchTraces, fetchAnalytics, sendTest } = useCampaignStore();
   const [currentView, setCurrentView] = useState<ViewType>('list');
   const [activeTab, setActiveTab] = useState<'details' | 'activities' | 'participants' | 'traces'>('details');
@@ -33,7 +33,7 @@ export const MarketingModule: React.FC = () => {
   const [testEmail, setTestEmail] = useState('');
   const [formData, setFormData] = useState<any>({ name: '', type: 'email', state: 'draft', budget: 0, spent: 0, leads: 0, conversions: 0 });
 
-  useEffect(() => { fetch(); fetchTemplates(); }, []);
+  useEffect(() => { fetchCampaigns(); fetchTemplates(); }, []);
 
   useEffect(() => {
     if (activeRecord?.id) {
@@ -168,7 +168,7 @@ export const MarketingModule: React.FC = () => {
             onClick={async () => {
               const name = prompt('Campaign name:');
               if (!name) return;
-              const result = await fetch(`/api/campaigns`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, type: 'email', state: 'draft' }) });
+              await globalThis.fetch(`/api/campaigns`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, type: 'email', state: 'draft' }) });
               // Simple inline add
             }}
             className="flex items-center gap-2 bg-primary-600/20 hover:bg-primary-600 text-primary-400 px-3 py-1.5 rounded-lg text-sm border border-primary-500/30">

@@ -10,6 +10,8 @@ export interface ColumnDef<T> {
     options?: { value: string | number; label: string }[];
     width?: string;
     editable?: boolean;
+    /** Custom cell renderer; column is display-only when set */
+    cell?: (row: T) => React.ReactNode;
     required?: boolean;
     align?: 'left' | 'center' | 'right';
     format?: (val: any) => string;
@@ -100,7 +102,8 @@ export function OdooDataGrid<T extends Record<string, any>>({
 
         while (nextRow >= 0 && nextRow < data.length) {
             while (nextCol >= 0 && nextCol < columns.length) {
-                if (columns[nextCol].editable !== false) {
+                const cnav = columns[nextCol];
+                if (!cnav.cell && cnav.editable !== false) {
                     setEditingCell({ row: nextRow, col: nextCol });
                     return;
                 }
@@ -116,7 +119,10 @@ export function OdooDataGrid<T extends Record<string, any>>({
             // Wait for the new row to render
             setTimeout(() => {
                 let firstEditableCol = 0;
-                while (firstEditableCol < columns.length && columns[firstEditableCol].editable === false) {
+                while (
+                    firstEditableCol < columns.length &&
+                    (columns[firstEditableCol].cell || columns[firstEditableCol].editable === false)
+                ) {
                     firstEditableCol++;
                 }
                 if (firstEditableCol < columns.length) {
@@ -170,7 +176,7 @@ export function OdooDataGrid<T extends Record<string, any>>({
                                 {columns.map((col, colIndex) => {
                                     const isEditing = editingCell?.row === rowIndex && editingCell?.col === colIndex;
                                     const value = row[col.key as keyof T] as any;
-                                    const isEditable = col.editable !== false && !readonly;
+                                    const isEditable = !col.cell && col.editable !== false && !readonly;
 
                                     return (
                                         <td
@@ -228,8 +234,11 @@ export function OdooDataGrid<T extends Record<string, any>>({
                                                 )
                                             ) : (
                                                 <div className="min-h-[24px] flex items-center">
-                                                    {col.format ? col.format(value) :
-                                                        col.type === 'boolean' ? (
+                                                    {col.cell ? (
+                                                        col.cell(row)
+                                                    ) : col.format ? (
+                                                        col.format(value)
+                                                    ) : col.type === 'boolean' ? (
                                                             value ? 'Yes' : 'No'
                                                         ) : col.type === 'select' ? (
                                                             col.options?.find(o => o.value === value)?.label || value

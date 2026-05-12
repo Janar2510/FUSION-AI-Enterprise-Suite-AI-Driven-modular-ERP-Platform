@@ -52,6 +52,8 @@ function mapChannel(ch: Record<string, unknown>): Channel {
     created_at: (ch.createdAt as string) ?? new Date().toISOString(),
     updated_at: (ch.updatedAt as string) ?? new Date().toISOString(),
     created_by: 0,
+    ai_assistant_enabled: Boolean(ch.aiAssistantEnabled ?? ch.ai_assistant_enabled),
+    unread_count: typeof ch.unreadCount === 'number' ? ch.unreadCount : typeof ch.unread_count === 'number' ? ch.unread_count : 0,
   };
 }
 
@@ -219,7 +221,16 @@ export const useDiscussStore = create<DiscussState>((set, get) => ({
     set((state) => ({
       messages: state.messages.map((msg) =>
         msg.id === messageId
-          ? { ...msg, reactions: reactions.map(r => ({ emoji: r.emoji, userId: r.authorId, count: 1 })) }
+          ? {
+              ...msg,
+              reactions: reactions.map((r, i) => ({
+                id: -(messageId * 1000 + i),
+                message_id: messageId,
+                user_id: 0,
+                emoji: r.emoji,
+                created_at: new Date().toISOString(),
+              })),
+            }
           : msg
       ),
     }));

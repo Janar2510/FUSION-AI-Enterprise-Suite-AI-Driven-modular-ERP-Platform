@@ -3,7 +3,12 @@ import { motion } from 'framer-motion'
 import { ChevronDown, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type MotionConflictingSelectProps = 'onAnimationStart' | 'onAnimationEnd'
+type MotionConflictingSelectProps =
+  | 'onAnimationStart'
+  | 'onAnimationEnd'
+  | 'onDragStart'
+  | 'onDrag'
+  | 'onDragEnd'
 
 interface SelectProps
   extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, MotionConflictingSelectProps> {

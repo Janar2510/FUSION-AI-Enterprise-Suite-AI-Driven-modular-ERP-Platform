@@ -6,17 +6,29 @@ import {
   User, DollarSign, Target, Eye
 } from 'lucide-react';
 import { GlassCard } from '@/components/shared/GlassCard';
-import { useCRMStore } from '@/stores/crmStore';
+import { useCRMStore, type Contact } from '@/stores/crmStore';
+
+interface ContactDetailUiScore {
+  qualification?: string;
+  scoring_factors?: string[];
+  recommended_action?: string;
+}
+
+interface NextBestActionUi {
+  action?: string;
+  channel?: string;
+  timing?: string;
+}
 
 interface ContactDetailProps {
-  contact: any;
+  contact: Contact;
   onClose: () => void;
 }
 
 export const ContactDetail: React.FC<ContactDetailProps> = ({ contact, onClose }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'timeline' | 'insights' | 'actions'>('overview');
-  const [leadScore, setLeadScore] = useState(null);
-  const [nextAction, setNextAction] = useState(null);
+  const [leadScore, setLeadScore] = useState<ContactDetailUiScore | null>(null);
+  const [nextAction, setNextAction] = useState<NextBestActionUi | null>(null);
   const [emailDraft, setEmailDraft] = useState('');
   
   const { 
@@ -33,8 +45,22 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({ contact, onClose }
   const loadContactDetails = async () => {
     try {
       const details = await getContact(contact.id);
-      setLeadScore(details.lead_scoring);
-      setNextAction(details.next_best_action);
+      const insights = details.ai_insights as Record<string, unknown> | undefined;
+      const rawLs = insights?.lead_scoring;
+      if (rawLs && typeof rawLs === 'object' && !Array.isArray(rawLs)) {
+        setLeadScore(rawLs as ContactDetailUiScore);
+      } else {
+        setLeadScore(null);
+      }
+
+      const nba = details.next_best_action;
+      if (typeof nba === 'string') {
+        setNextAction({ action: nba });
+      } else if (nba != null && typeof nba === 'object') {
+        setNextAction(nba as NextBestActionUi);
+      } else {
+        setNextAction(null);
+      }
     } catch (error) {
       console.error('Failed to load contact details:', error);
     }
@@ -43,7 +69,11 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({ contact, onClose }
   const handleScoreLead = async () => {
     try {
       const score = await scoreContact(contact.id);
-      setLeadScore(score);
+      setLeadScore(
+        typeof score === 'object' && score !== null && !Array.isArray(score)
+          ? (score as ContactDetailUiScore)
+          : null,
+      );
     } catch (error) {
       console.error('Failed to score lead:', error);
     }
@@ -176,13 +206,19 @@ export const ContactDetail: React.FC<ContactDetailProps> = ({ contact, onClose }
                     {contact.company && (
                       <div className="flex items-center gap-2 text-white/80">
                         <Building className="w-4 h-4 text-white/60" />
-                        <span>{contact.company.name}</span>
+                        <span>
+                          {typeof contact.company === 'string'
+                            ? contact.company
+                            : contact.company.name}
+                        </span>
                       </div>
                     )}
-                    {contact.city && (
+                    {(contact.city || contact.state || contact.country) && (
                       <div className="flex items-center gap-2 text-white/80">
                         <MapPin className="w-4 h-4 text-white/60" />
-                        <span>{contact.city}, {contact.state} {contact.country}</span>
+                        <span>
+                          {[contact.city, contact.state, contact.country].filter(Boolean).join(', ')}
+                        </span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-white/80">

@@ -21,6 +21,8 @@ export interface EventEvent {
     seatsMax: number;
     seatsAvailable: number;
     active: boolean;
+    /** Workflow / list filter stage when provided by API */
+    state?: string;
     _count?: { registrations: number };
     registrations?: EventRegistration[];
 }

@@ -339,7 +339,7 @@ export const InventoryModule: React.FC = () => {
                     </div>
                 }
                 rightPanels={activePicking ? (
-                    <ChatterPanel resourceModel="stock.picking" resourceId={activePicking.id} />
+                    <ChatterPanel ownerType="stock.picking" ownerId={activePicking.id} />
                 ) : undefined}
             />
         );

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
 import { OdooListBase } from '@/components/views/OdooListBase';
 import { OdooFormBase } from '@/components/views/OdooFormBase';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 import { useKnowledgeStore, KnowledgeArticle } from '../stores/knowledgeStore';
 import { Eye, Plus, Sparkles, History, ChevronRight, Layers, Database, BarChart3, Info, FileText, FolderOpen, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

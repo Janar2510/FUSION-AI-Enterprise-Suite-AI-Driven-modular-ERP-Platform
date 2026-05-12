@@ -2,11 +2,13 @@ export interface Channel {
   id: number;
   name: string;
   description?: string;
-  type: 'public' | 'private' | 'direct';
+  type: 'public' | 'private' | 'direct' | 'ai_assisted';
   is_archived: boolean;
   created_at: string;
   updated_at: string;
   created_by: number;
+  ai_assistant_enabled?: boolean;
+  unread_count?: number;
 }
 
 export interface Message {

@@ -1,4 +1,4 @@
-export { default as ProjectDashboard } from './components/ProjectDashboard';
+export { ProjectModule as ProjectDashboard } from './components/ProjectModule';
 export * from './types';
 export * from './stores/projectStore';
 

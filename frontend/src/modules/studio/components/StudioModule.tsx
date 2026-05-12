@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { ViewType, OdooViewManager } from '@/components/views/OdooViewManager';
-import { OdooListBase } from '@/components/views/OdooListBase';
-import { OdooFormBase } from '@/components/views/OdooFormBase';
 import { OdooDataGrid } from '@/components/shared/OdooDataGrid';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { GradientButton } from '@/components/shared/GradientButton';
 import { ChatterPanel } from '@/components/shared/ChatterPanel';
-import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 import { useStudioStore, StudioPage } from '../stores/studioStore';
-import { Eye, Pencil, Globe, FileText, Plus, Search, Clock, CheckCircle } from 'lucide-react';
+import { Pencil, Globe, CheckCircle } from 'lucide-react';
 
 const STAGE_COLORS: Record<string, string> = {
   draft: 'text-gray-400',
@@ -18,13 +15,15 @@ const STAGE_COLORS: Record<string, string> = {
 export const StudioModule: React.FC = () => {
   const { pages, fetch, create, update, remove, publish, loading } = useStudioStore();
 
-  const [currentView, setCurrentView] = useState<ViewType>('kanban');
+  const [currentView, setCurrentView] = useState<ViewType>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [activePage, setActivePage] = useState<StudioPage | null>(null);
   const [formData, setFormData] = useState<Partial<StudioPage>>({});
   const [showForm, setShowForm] = useState(false);
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => {
+    void fetch();
+  }, []);
 
   const handleNew = () => {
     setActivePage(null);
@@ -43,7 +42,10 @@ export const StudioModule: React.FC = () => {
     if (activePage?.id) {
       await update(activePage.id, formData);
     } else {
-      const slug = (formData.slug || formData.name || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      const slug = (formData.slug || formData.name || '')
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
       await create({ ...formData, slug });
     }
     setShowForm(false);
@@ -51,52 +53,78 @@ export const StudioModule: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm('Delete this page?')) await remove(id);
+    if (confirm('Delete this page?')) {
+      await remove(id);
+      setActivePage(p => (p?.id === id ? null : p));
+    }
   };
 
-  const filtered = pages.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.slug.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = pages.filter(
+    p =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.slug.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const renderList = () => (
-    <div className="space-y-4">
-      <div className="flex gap-3 items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search pages..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
-          />
-        </div>
-        <GradientButton onClick={handleNew}>
-          <Plus className="w-4 h-4 mr-1" /> New Page
-        </GradientButton>
-      </div>
-      <OdooDataGrid
-        columns={[
-          { key: 'name', label: 'Name', render: (p: StudioPage) => <span className="font-medium text-white">{p.name}</span> },
-          { key: 'slug', label: 'Slug', render: (p: StudioPage) => <span className="text-gray-400 font-mono text-sm">{p.slug}</span> },
-          { key: 'state', label: 'State', render: (p: StudioPage) => (
-            <span className={`${STAGE_COLORS[p.state] || 'text-gray-400'} capitalize text-sm`}>{p.state}</span>
-          )},
-          { key: 'publishedAt', label: 'Published', render: (p: StudioPage) => p.publishedAt ? (
-            <span className="text-gray-400 text-sm flex items-center gap-1"><CheckCircle className="w-3 h-3 text-green-400" /></span>
-          ) : <span className="text-gray-600 text-sm">—</span> },
-          { key: 'actions', label: 'Actions', render: (p: StudioPage) => (
+  const renderGrid = () => (
+    <OdooDataGrid
+      columns={[
+        {
+          key: 'name',
+          label: 'Name',
+          cell: p => <span className="font-medium text-white">{p.name}</span>,
+        },
+        {
+          key: 'slug',
+          label: 'Slug',
+          cell: p => <span className="text-gray-400 font-mono text-sm">{p.slug}</span>,
+        },
+        {
+          key: 'state',
+          label: 'State',
+          cell: p => (
+            <span className={`${STAGE_COLORS[p.state] || 'text-gray-400'} capitalize text-sm`}>
+              {p.state}
+            </span>
+          ),
+        },
+        {
+          key: 'publishedAt',
+          label: 'Published',
+          cell: p =>
+            p.publishedAt ? (
+              <span className="text-gray-400 text-sm flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-green-400" />
+              </span>
+            ) : (
+              <span className="text-gray-600 text-sm">—</span>
+            ),
+        },
+        {
+          key: 'actions',
+          label: 'Actions',
+          cell: p => (
             <div className="flex gap-2">
-              <button onClick={() => handleEdit(p)} className="p-1.5 text-primary-400 hover:bg-gray-700 rounded"><Pencil className="w-4 h-4" /></button>
-              <button onClick={() => handleDelete(p.id)} className="p-1.5 text-red-400 hover:bg-gray-700 rounded">✕</button>
+              <button
+                type="button"
+                onClick={() => handleEdit(p)}
+                className="p-1.5 text-primary-400 hover:bg-gray-700 rounded"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDelete(p.id)}
+                className="p-1.5 text-red-400 hover:bg-gray-700 rounded"
+              >
+                ✕
+              </button>
             </div>
-          )},
-        ]}
-        data={filtered}
-        loading={loading}
-      />
-    </div>
+          ),
+        },
+      ]}
+      data={filtered}
+      readonly
+    />
   );
 
   const renderForm = () => (
@@ -150,12 +178,16 @@ export const StudioModule: React.FC = () => {
           />
         </div>
         <div className="flex gap-3 pt-2">
-          <GradientButton onClick={handleSave}>Save Page</GradientButton>
-          <button onClick={() => setShowForm(false)} className="px-4 py-2 text-gray-400 hover:text-white">Cancel</button>
+          <GradientButton onClick={() => void handleSave()}>Save Page</GradientButton>
+          <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-gray-400 hover:text-white">
+            Cancel
+          </button>
         </div>
       </div>
     </GlassCard>
   );
+
+  const chatterOwnerId = activePage?.id;
 
   return (
     <div className="flex gap-4 h-full">
@@ -164,29 +196,39 @@ export const StudioModule: React.FC = () => {
           <h2 className="text-xl font-bold text-white">Website Studio</h2>
           <p className="text-sm text-gray-400">Create and manage public pages with SEO metadata</p>
         </div>
-        {showForm ? renderForm() : (
-          <>
-            <OdooViewManager currentView={currentView} onViewChange={setCurrentView} />
-            {renderList()}
-          </>
+        {showForm ? (
+          renderForm()
+        ) : (
+          <OdooViewManager
+            title="Pages"
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onNew={handleNew}
+            viewsAvailable={['list', 'kanban']}
+          >
+            {loading ? (
+              <p className="text-sm text-white/40">Loading pages…</p>
+            ) : (
+              renderGrid()
+            )}
+          </OdooViewManager>
         )}
       </div>
       {(activePage || showForm) && (
-        <div className="w-80 flex-shrink-0">
-          <ChatterPanel
-            title="Page Info"
-            messages={activePage ? [
-              { id: '1', author: 'System', content: `Created: ${new Date(activePage.createdAt).toLocaleDateString()}`, timestamp: activePage.createdAt, type: 'comment' },
-              ...(activePage.state === 'published' ? [{ id: '2', author: 'System', content: `Published: ${activePage.publishedAt ? new Date(activePage.publishedAt).toLocaleDateString() : 'N/A'}`, timestamp: activePage.publishedAt || '', type: 'comment' as const }] : []),
-            ] : []}
-            onSend={() => {}}
-          />
+        <div className="w-80 flex-shrink-0 space-y-3">
+          {chatterOwnerId ? (
+            <ChatterPanel ownerType="StudioPage" ownerId={chatterOwnerId} showTimeline />
+          ) : showForm ? (
+            <GlassCard>
+              <p className="text-sm text-white/60">Save the page to enable record chatter and timeline.</p>
+            </GlassCard>
+          ) : null}
           {activePage && !showForm && (
-            <div className="mt-3">
-              <GradientButton onClick={() => publish(activePage.id)} className="w-full">
-                <Globe className="w-4 h-4 mr-2" /> Publish
-              </GradientButton>
-            </div>
+            <GradientButton onClick={() => void publish(activePage.id)} className="w-full">
+              <Globe className="w-4 h-4 mr-2" /> Publish
+            </GradientButton>
           )}
         </div>
       )}

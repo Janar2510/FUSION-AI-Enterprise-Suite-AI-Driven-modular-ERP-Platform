@@ -345,7 +345,7 @@ export const PlmModule: React.FC = () => {
                             />
                         )}
                         {activeEco && (
-                            <ChatterPanel resourceModel="mrp.eco" resourceId={activeEco.id} />
+                            <ChatterPanel ownerType="mrp.eco" ownerId={activeEco.id} />
                         )}
                     </div>
                 }

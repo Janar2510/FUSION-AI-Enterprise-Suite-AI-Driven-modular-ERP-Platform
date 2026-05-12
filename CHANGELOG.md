@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed (frontend)
 - **Automation Studio** — workflow **`automationStore`** uses shared **`api`** client (JWT **`Authorization`**, interceptors); kanban toolbar **Resync CRON schedules** calls **`POST /api/automation/cron/sync`** with loading and inline feedback.
+- **Website Studio + data grid** — **`studioStore`** handles axios with **`try`/`catch`** and **`response.data`** (fixes invalid **`{ data, error }`** destructuring on the shared client); **StudioModule** passes required **OdooViewManager** props, uses **ChatterPanel** with **`ownerType="StudioPage"`** / **`ownerId`** for saved pages, and **OdooDataGrid** supports optional **`cell(row)`** for display-only custom columns.
 
 ### Changed (auth + CRM UI)
 - **`loadUserPermissions`** — JWT **`roles`** now use **`SpineRole.key`** (e.g. `admin`) so **`requireRole('admin')`** matches the database.
