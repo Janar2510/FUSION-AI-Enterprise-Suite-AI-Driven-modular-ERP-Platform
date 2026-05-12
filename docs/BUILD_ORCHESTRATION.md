@@ -101,7 +101,7 @@ _Update every session end or significant milestone._
 | **Current task** | Track B: **CRON** workflow polling (**needs schedule field or convention**); **`UPDATE_RECORD`** safe apply; grep remaining **`email`** paths → outbox; more **RBAC**. |
 | **Next three tasks** | 1) Email outbox — grep for stray sends, route through `publishEvent({ eventKey: 'email.send', ... })` … 2) RBAC guards on additional modules … 3) Minimal automation rules engine MVP |
 | **Blocked by** | — |
-| **Last known good** | `npx jest src/core/__tests__/outbox.test.ts` — pass; workflow **EMAIL** → **`email.send`** outbox + **`workflow-automation`** template |
+| **Last known good** | `npx jest src/core/__tests__/outbox.test.ts` — pass; workflow **EMAIL** → outbox; **NOTIFICATION** → **`TimelineEvent`** |
 
 ---
 
