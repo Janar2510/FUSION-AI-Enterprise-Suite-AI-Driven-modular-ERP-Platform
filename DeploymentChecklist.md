@@ -17,6 +17,7 @@
 - [ ] **NOTIFICATION smoke** — workflow with **`NOTIFICATION`** on e.g. partner create/update → row in **`timeline_events`** (`event_key` **`workflow.notification`** unless overridden); dashboard **`GET /api/dashboard/recent-activity`** lists **`summary`** (auth).
 - [ ] **Smoke (optional)** — activate a **`Workflow`** with **`ON_CREATE`/`ON_UPDATE`** on a non-Workflow model + **`EMAIL`** action; create/update matching row → **`Outbox`** entry with **`eventKey`** **`email.send`**; after relay, recipient receives mail (dev: use trap or mocks).
 - [ ] **`UPDATE_RECORD`** — workflow on a test model updates **`config.field`** (allowlisted identifier) for **`data.id`** or **`config.id`**, or **`config.fields`** map; confirm no runaway middleware (nested write uses skip flag).
+- [ ] **`WEBHOOK`** (optional) — test endpoint receives JSON with **`workflowId`**, **`record`** (no **`__previous`** field); **`production`** rejects non-**HTTPS** URLs; verify timeout behavior against a slow URL if stress-testing ops.
 
 ### Structured workflow conditions (Track B)
 

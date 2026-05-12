@@ -27,6 +27,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **`UPDATE_RECORD`** — optional **`config.fields`** (`Record<string, unknown>` with allowlisted keys) performs one **`update`** with multiple columns (**`config.field`** / **`config.value`** unchanged for single-field).
 - **Tests** — **`api/src/modules/spreadsheet/__tests__/workflowCondition.test.ts`**.
 
+### Changed (Track B — workflow SEQUENCE + WEBHOOK)
+
+- **`SEQUENCE`** action — **`actions`**: ordered child steps (**`executeAction`** with nesting cap **8**, step cap **50**, optional **`config.maxSteps`**). **`CRON`** supplementary **`runCondition`** still reads from the **root** action’s **`config`** (place **`condition`** on a **`SEQUENCE`** root when chaining under CRON).
+- **`WEBHOOK`** action — **`config.url`** (**http**/**https**; **https** only when **`NODE_ENV=production`**), optional **`method`**, **`headers`**, **`body`** merge; **`record`** omits **`__previous`** (**`omitPreviousRowSnapshot`** in **`automationHelpers.ts`**); **15s** **`fetch`** timeout.
+- **Tests** — **`api/src/modules/spreadsheet/__tests__/automationHelpers.test.ts`**.
+
 ### Added (API)
 - **`POST /api/calendar/events`** — Track B shared calendar adapter alias; same JSON body as `POST /api/calendar` (`name`, `start`, `stop`, optional `attendeeIds`, etc.). Frontend: `calendarApi.createEvent` in `frontend/src/lib/api.ts`.
 - **`moduleSettingsApi`** — `frontend/src/lib/api.ts` helpers for **`GET` / `PUT /api/settings/:module`** (module keys stored as `{module}.{key}` in `SystemConfig`; CRM pilot uses `crm.*`).

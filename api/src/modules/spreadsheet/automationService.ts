@@ -1,9 +1,14 @@
 import type { Prisma } from '@prisma/client';
 
 import prisma, { runAutomationSkipped } from '../../lib/prisma';
+import { omitPreviousRowSnapshot } from './automationHelpers';
 import { FormulaService } from './formulaService';
 
 type WorkflowTrigger = 'ON_CREATE' | 'ON_UPDATE';
+
+const MAX_SEQUENCE_DEPTH = 8;
+const MAX_SEQUENCE_STEPS = 50;
+const WEBHOOK_TIMEOUT_MS = 15_000;
 
 /** PascalCase model names blocked for `UPDATE_RECORD` (identity, audit, outbox, workflow meta). */
 const AUTOMATION_UPDATE_BLOCKLIST = new Set<string>([
@@ -118,7 +123,40 @@ export class AutomationService {
         }
     }
 
-    private static async executeAction(action: any, data: any, workflow: any) {
+    private static async executeAction(action: any, data: any, workflow: any, depth = 0): Promise<void> {
+        if (!action || typeof action !== 'object') {
+            console.warn('[Automation] Invalid action (expected object)');
+            return;
+        }
+        if (depth > MAX_SEQUENCE_DEPTH) {
+            console.warn('[Automation] SEQUENCE nesting exceeded max depth');
+            return;
+        }
+
+        if (action.type === 'SEQUENCE') {
+            const seqCfg =
+                action.config && typeof action.config === 'object'
+                    ? (action.config as Record<string, unknown>)
+                    : {};
+            const configuredMax =
+                typeof seqCfg.maxSteps === 'number' &&
+                Number.isFinite(seqCfg.maxSteps) &&
+                seqCfg.maxSteps > 0
+                    ? Math.floor(seqCfg.maxSteps)
+                    : MAX_SEQUENCE_STEPS;
+            const limit = Math.min(configuredMax, MAX_SEQUENCE_STEPS);
+            const raw = action.actions;
+            if (!Array.isArray(raw) || raw.length === 0) {
+                console.warn('[Automation] SEQUENCE: requires non-empty actions[]');
+                return;
+            }
+            const steps = raw.slice(0, limit);
+            for (const step of steps) {
+                await this.executeAction(step, data, workflow, depth + 1);
+            }
+            return;
+        }
+
         switch (action.type) {
             case 'NOTIFICATION': {
                 const cfg =
@@ -290,6 +328,92 @@ export class AutomationService {
                     });
                 });
                 console.log(`[Automation] UPDATE_RECORD → ${delegateKey} id=${rawId} keys=${Object.keys(updates)}`);
+                break;
+            }
+            case 'WEBHOOK': {
+                const cfg =
+                    action.config && typeof action.config === 'object'
+                        ? action.config
+                        : ({} as Record<string, unknown>);
+                const urlStr = typeof cfg.url === 'string' ? cfg.url.trim() : '';
+                if (!urlStr.length) {
+                    console.warn('[Automation] WEBHOOK: config.url is required');
+                    break;
+                }
+                let parsed: URL;
+                try {
+                    parsed = new URL(urlStr);
+                } catch {
+                    console.warn('[Automation] WEBHOOK: invalid URL');
+                    break;
+                }
+                if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+                    console.warn('[Automation] WEBHOOK: only http: and https: URLs are allowed');
+                    break;
+                }
+                if (process.env.NODE_ENV === 'production' && parsed.protocol !== 'https:') {
+                    console.warn('[Automation] WEBHOOK: https required in production');
+                    break;
+                }
+                const methodRaw =
+                    typeof cfg.method === 'string' ? cfg.method.trim().toUpperCase() : 'POST';
+                const method =
+                    methodRaw === 'GET' || methodRaw === 'PUT' || methodRaw === 'PATCH'
+                        ? methodRaw
+                        : 'POST';
+
+                const headers: Record<string, string> =
+                    method === 'GET'
+                        ? { Accept: 'application/json' }
+                        : { Accept: 'application/json', 'Content-Type': 'application/json' };
+
+                if (cfg.headers && typeof cfg.headers === 'object' && !Array.isArray(cfg.headers)) {
+                    for (const [k, v] of Object.entries(cfg.headers as Record<string, unknown>)) {
+                        if (typeof v === 'string' && k.length > 0) {
+                            headers[k] = v;
+                        }
+                    }
+                }
+
+                const envelope: Record<string, unknown> = {
+                    workflowId: workflow.id,
+                    workflowName: workflow.name,
+                    trigger: workflow.trigger,
+                    triggerModel: workflow.model,
+                    record: omitPreviousRowSnapshot(data),
+                };
+                let bodyJson: string | undefined;
+                if (method !== 'GET') {
+                    const customBody =
+                        cfg.body && typeof cfg.body === 'object' && !Array.isArray(cfg.body)
+                            ? (cfg.body as Record<string, unknown>)
+                            : null;
+                    bodyJson = JSON.stringify(
+                        customBody ? { ...envelope, ...customBody } : envelope,
+                    );
+                }
+
+                const ac = new AbortController();
+                const timer = setTimeout(() => ac.abort(), WEBHOOK_TIMEOUT_MS);
+                try {
+                    const res = await fetch(urlStr, {
+                        method,
+                        headers,
+                        body: bodyJson,
+                        signal: ac.signal,
+                    });
+                    if (!res.ok) {
+                        console.warn(
+                            `[Automation] WEBHOOK: ${method} ${parsed.hostname} returned ${res.status}`,
+                        );
+                    } else {
+                        console.log(`[Automation] WEBHOOK → ${method} ${parsed.hostname} OK`);
+                    }
+                } catch (err) {
+                    console.error('[Automation] WEBHOOK request failed:', err);
+                } finally {
+                    clearTimeout(timer);
+                }
                 break;
             }
             default:
