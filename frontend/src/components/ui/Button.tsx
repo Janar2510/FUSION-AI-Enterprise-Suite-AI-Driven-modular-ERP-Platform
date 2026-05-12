@@ -1,7 +1,10 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
+// Design System Types
+type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -9,44 +12,65 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: ButtonSize
   loading?: boolean
   icon?: React.ReactNode
+  pulse?: boolean
 }
 
-const base = `
-  inline-flex items-center justify-center gap-2
-  font-semibold cursor-pointer select-none
-  transition-all duration-150 border
-  disabled:opacity-50 disabled:cursor-not-allowed
-`
+// Animation variants following design system
+const buttonVariants = {
+  initial: { scale: 1, y: 0 },
+  hover: { scale: 1.02, y: -2 },
+  tap: { scale: 0.98 },
+}
+
+const springTransition = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 25,
+}
+
+// Design System Styles
+const baseStyles = cn(
+  "inline-flex items-center justify-center gap-2",
+  "font-semibold cursor-pointer select-none",
+  "transition-all duration-150 border",
+  "disabled:opacity-50 disabled:cursor-not-allowed",
+  "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-900"
+)
 
 const variants: Record<ButtonVariant, string> = {
   primary: `
-    bg-gradient-to-br from-[#f59e0b] to-[#f97316]
+    bg-gradient-to-br from-primary-500 to-secondary-500
     text-black border-transparent
     shadow-[0_0_16px_rgba(245,158,11,0.3)]
     hover:shadow-[0_0_24px_rgba(245,158,11,0.5)]
     hover:brightness-110
   `,
   secondary: `
-    bg-[rgba(255,255,255,0.05)] text-[rgba(255,255,255,0.6)]
-    border-[rgba(255,255,255,0.1)]
-    hover:bg-[rgba(255,255,255,0.08)] hover:text-white
+    bg-glass-bg border-glass-border
+    text-white/70 hover:text-white hover:bg-glass-hover hover:border-glass-active
   `,
   danger: `
-    bg-gradient-to-br from-[#ef4444] to-[#dc2626]
+    bg-gradient-to-br from-red-500 to-red-600
     text-white border-transparent
     shadow-[0_0_16px_rgba(239,68,68,0.2)]
     hover:shadow-[0_0_24px_rgba(239,68,68,0.35)]
   `,
   ghost: `
-    bg-transparent border-transparent text-[rgba(255,255,255,0.4)]
-    hover:bg-[rgba(255,255,255,0.06)] hover:text-white
+    bg-transparent border-transparent text-white/40
+    hover:bg-white/6 hover:text-white
+  `,
+  success: `
+    bg-gradient-to-br from-green-500 to-green-600
+    text-white border-transparent
+    shadow-[0_0_16px_rgba(34,197,94,0.2)]
+    hover:shadow-[0_0_24px_rgba(34,197,94,0.35)]
   `,
 }
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'text-[11px] px-3 py-1.5 rounded-[5px]',
-  md: 'text-[12px] px-4 py-2 rounded-[7px]',
-  lg: 'text-[13px] px-5 py-2.5 rounded-[8px]',
+  sm: 'text-xs px-3 py-1.5 rounded-md',
+  md: 'text-sm px-4 py-2 rounded-lg',
+  lg: 'text-base px-5 py-2.5 rounded-xl',
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -57,18 +81,36 @@ export const Button: React.FC<ButtonProps> = ({
   children,
   disabled,
   className = '',
+  pulse = false,
   style,
   ...rest
 }) => {
+  const isDisabled = disabled || loading
+
   return (
-    <button
-      disabled={disabled || loading}
-      className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
+    <motion.button
+      disabled={isDisabled}
+      className={cn(
+        baseStyles,
+        variants[variant],
+        sizes[size],
+        className
+      )}
       style={{ fontFamily: 'var(--font-heading)', ...style }}
+      variants={buttonVariants}
+      initial="initial"
+      whileHover={isDisabled ? "initial" : "hover"}
+      whileTap={isDisabled ? "initial" : "tap"}
+      transition={springTransition}
+      animate={pulse ? { scale: [1, 1.02, 1] } : undefined}
       {...rest}
     >
-      {loading ? <Loader2 size={14} className="animate-spin" /> : icon}
+      {loading ? (
+        <Loader2 size={14} className="animate-spin" />
+      ) : icon}
       {children}
-    </button>
+    </motion.button>
   )
 }
+
+export default Button

@@ -546,7 +546,7 @@ export const LeavesModule: React.FC = () => {
             green: 'bg-green-500/30 text-green-300 border-green-500/40',
             red: 'bg-red-500/30 text-red-300 border-red-500/40',
             orange: 'bg-orange-500/30 text-orange-300 border-orange-500/40',
-            purple: 'bg-amber-500/30 text-amber-300 border-amber-500/40',
+            amber: 'bg-amber-500/30 text-amber-300 border-amber-500/40',
         };
 
         const days: (number | null)[] = Array(firstDay).fill(null);

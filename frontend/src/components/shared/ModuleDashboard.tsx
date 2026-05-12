@@ -145,7 +145,7 @@ export const ModuleDashboard: React.FC<ModuleDashboardProps> = ({
             change: metric.change,
             trend: metric.changeType === 'positive' ? 'up' : metric.changeType === 'negative' ? 'down' : 'neutral',
             icon: metric.icon,
-            color: `${metric.color || 'purple'}-400`
+            color: `${metric.color || 'amber'}-400`
           }))}
         />
       </motion.div>

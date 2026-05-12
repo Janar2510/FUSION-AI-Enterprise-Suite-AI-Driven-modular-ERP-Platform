@@ -20,7 +20,7 @@ const COLOR_PALETTE = [
     '#22c55e',       // 4 — green
     '#06b6d4',       // 5 — cyan
     '#3b82f6',       // 6 — blue
-    '#f59e0b',       // 7 — violet
+    '#f59e0b',       // 7 — amber
     '#ec4899',       // 8 — pink
     '#f59e0b',       // 9 — indigo
     '#14b8a6',       // 10 — teal

@@ -185,7 +185,7 @@ export interface InsightSummary {
 export type WidgetType = 'kpi' | 'chart' | 'table' | 'ai_insight' | 'custom';
 export type InsightType = 'prediction' | 'anomaly' | 'recommendation' | 'trend' | 'alert';
 export type Priority = 'low' | 'medium' | 'high' | 'critical';
-export type ColorScheme = 'purple' | 'blue' | 'green' | 'red' | 'yellow' | 'gray';
+export type ColorScheme = 'amber' | 'blue' | 'green' | 'red' | 'yellow' | 'gray';
 export type Theme = 'default' | 'dark' | 'light' | 'minimal';
 
 export interface DashboardFilters {

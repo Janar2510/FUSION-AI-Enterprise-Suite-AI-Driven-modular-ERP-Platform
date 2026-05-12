@@ -20,7 +20,7 @@ const mockWidget = {
   data_source: '/api/test',
   refresh_interval: 300,
   theme: 'default',
-  color_scheme: 'purple',
+  color_scheme: 'amber',
   is_active: true,
   is_public: false,
   created_at: '2024-01-01T00:00:00Z',

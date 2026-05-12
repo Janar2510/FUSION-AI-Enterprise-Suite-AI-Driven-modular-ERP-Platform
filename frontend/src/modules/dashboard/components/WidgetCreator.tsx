@@ -53,7 +53,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
     data_source: '',
     refresh_interval: 300,
     theme: 'default',
-    color_scheme: 'purple',
+    color_scheme: 'amber',
     is_public: false
   });
   const [templates, setTemplates] = useState<WidgetTemplate[]>([]);
@@ -121,7 +121,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
         data_source: '',
         refresh_interval: 300,
         theme: 'default',
-        color_scheme: 'purple',
+        color_scheme: 'amber',
         is_public: false
       });
     } catch (err) {
@@ -148,7 +148,7 @@ const WidgetCreator: React.FC<WidgetCreatorProps> = ({
   };
 
   const getColorSchemeOptions = () => [
-    { value: 'purple', label: 'Purple', color: 'bg-amber-500' },
+    { value: 'amber', label: 'Amber', color: 'bg-amber-500' },
     { value: 'blue', label: 'Blue', color: 'bg-blue-500' },
     { value: 'green', label: 'Green', color: 'bg-green-500' },
     { value: 'red', label: 'Red', color: 'bg-red-500' },

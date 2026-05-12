@@ -14,6 +14,44 @@ interface GlassCardProps {
   style?: React.CSSProperties
 }
 
+// Design System Blur levels
+const blurClasses = {
+  sm: 'backdrop-blur-sm',
+  md: 'backdrop-blur-md',
+  lg: 'backdrop-blur-lg',
+}
+
+// Animation variants following design system
+const cardVariants = {
+  initial: {
+    scale: 1,
+    y: 0,
+  },
+  hover: {
+    scale: 1.02,
+    y: -4,
+  },
+  tap: {
+    scale: 0.98,
+  },
+}
+
+// Glow variants with amber/orange design system
+const glowVariants = {
+  initial: {
+    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)',
+  },
+  hover: {
+    boxShadow: '0 12px 40px 0 rgba(245, 158, 11, 0.25), 0 0 0 1px rgba(245, 158, 11, 0.15)',
+  },
+}
+
+const springTransition = {
+  type: "spring" as const,
+  stiffness: 300,
+  damping: 30,
+}
+
 export const GlassCard: React.FC<GlassCardProps> = ({
   children,
   className,
@@ -25,55 +63,24 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   onClick,
   style,
 }) => {
-  const blurClasses = {
-    sm: 'backdrop-blur-sm',
-    md: 'backdrop-blur-md',
-    lg: 'backdrop-blur-lg',
-  }
-
-  const cardVariants = {
-    initial: {
-      scale: 1,
-      y: 0,
-    },
-    hover: {
-      scale: hover ? 1.02 : 1,
-      y: hover ? -4 : 0,
-    },
-    tap: {
-      scale: 0.98,
-    },
-  }
-
-  const glowVariants = {
-    initial: {
-      boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
-    },
-    hover: {
-      boxShadow: glow
-        ? '0 12px 40px 0 rgba(139, 92, 246, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.2)'
-        : '0 12px 40px 0 rgba(31, 38, 135, 0.5)',
-    },
-  }
-
   const CardComponent = animated ? motion.div : 'div'
-  const cardProps = animated ? {
-    variants: cardVariants,
-    initial: "initial",
-    whileHover: "hover",
-    whileTap: "tap",
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 30,
-    },
-  } : {}
+
+  const cardProps = animated
+    ? {
+        variants: cardVariants,
+        initial: "initial",
+        whileHover: hover ? "hover" : "initial",
+        whileTap: "tap",
+        transition: springTransition,
+      }
+    : {}
 
   return (
     <CardComponent
       {...cardProps}
       className={cn(
         'glass-card',
+        'bg-glass-bg border border-glass-border rounded-xl',
         blurClasses[blur],
         gradient && 'gradient-border',
         glow && 'animate-glow',
@@ -100,6 +107,4 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   )
 }
 
-
-
-
+export default GlassCard
