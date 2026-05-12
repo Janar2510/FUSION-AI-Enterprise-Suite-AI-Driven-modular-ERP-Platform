@@ -3,6 +3,8 @@ import type { Prisma } from '@prisma/client';
 import prisma, { runAutomationSkipped } from '../../lib/prisma';
 import { FormulaService } from './formulaService';
 
+type WorkflowTrigger = 'ON_CREATE' | 'ON_UPDATE';
+
 /** PascalCase model names blocked for `UPDATE_RECORD` (identity, audit, outbox, workflow meta). */
 const AUTOMATION_UPDATE_BLOCKLIST = new Set<string>([
     'Workflow',
@@ -27,7 +29,7 @@ export class AutomationService {
     /**
      * Handle model change events and trigger workflows
      */
-    static async handleEvent(model: string, trigger: 'ON_CREATE' | 'ON_UPDATE', data: any) {
+    static async handleEvent(model: string, trigger: WorkflowTrigger, data: any) {
         console.log(`[Automation] Event intercepted: ${model} ${trigger}`);
 
         const workflows = await prisma.workflow.findMany({
@@ -42,7 +44,15 @@ export class AutomationService {
             try {
                 // 1. Evaluate Condition
                 if (workflow.condition) {
-                    const isConditionMet = await FormulaService.evaluateFormula(workflow.condition, data);
+                    const ctx =
+                        data && typeof data === 'object' && !Array.isArray(data)
+                            ? (data as Record<string, unknown>)
+                            : { value: data as unknown };
+                    const isConditionMet = await FormulaService.evaluateWorkflowCondition(
+                        workflow.condition,
+                        ctx,
+                        trigger,
+                    );
                     if (!isConditionMet) {
                         console.log(`[Automation] Condition not met for workflow: ${workflow.name}`);
                         continue;
@@ -88,7 +98,12 @@ export class AutomationService {
                 ? ((cfg as Record<string, unknown>).condition as string)
                 : undefined;
         if (runCondition && runCondition.trim().length > 0) {
-            const ok = await FormulaService.evaluateFormula(runCondition, data);
+            const ok = await FormulaService.evaluateWorkflowCondition(
+                runCondition,
+                data,
+                'ON_CREATE',
+                { supplementaryCronGate: true },
+            );
             if (!ok) {
                 console.log(`[Automation] CRON "${workflow.name}": run condition not met`);
                 return;
@@ -212,9 +227,34 @@ export class AutomationService {
                 const field =
                     typeof cfg.field === 'string' ? cfg.field.trim() : '';
                 const value = cfg.value;
+                const fieldsBulk =
+                    cfg.fields && typeof cfg.fields === 'object' && !Array.isArray(cfg.fields)
+                        ? (cfg.fields as Record<string, unknown>)
+                        : null;
                 const rawId = data?.id ?? cfg.id;
-                if (!field || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(field)) {
-                    console.warn('[Automation] UPDATE_RECORD: invalid or missing field name');
+                const fieldNameRe = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+                const updates: Record<string, unknown> = {};
+                if (fieldsBulk) {
+                    let fieldsOk = true;
+                    for (const [k, v] of Object.entries(fieldsBulk)) {
+                        if (!fieldNameRe.test(k)) {
+                            console.warn(`[Automation] UPDATE_RECORD: invalid field name "${k}" in config.fields`);
+                            fieldsOk = false;
+                            break;
+                        }
+                        updates[k] = v;
+                    }
+                    if (!fieldsOk) {
+                        break;
+                    }
+                } else if (field && fieldNameRe.test(field)) {
+                    updates[field] = value;
+                }
+
+                if (Object.keys(updates).length === 0) {
+                    console.warn(
+                        '[Automation] UPDATE_RECORD: provide config.fields object or valid config.field name',
+                    );
                     break;
                 }
                 if (rawId == null || String(rawId).length === 0) {
@@ -246,12 +286,10 @@ export class AutomationService {
                 await runAutomationSkipped(async () => {
                     await delegate.update({
                         where: { id: rawId },
-                        data: { [field]: value },
+                        data: updates,
                     });
                 });
-                console.log(
-                    `[Automation] UPDATE_RECORD → ${delegateKey} id=${rawId} ${field}=`
-                );
+                console.log(`[Automation] UPDATE_RECORD → ${delegateKey} id=${rawId} keys=${Object.keys(updates)}`);
                 break;
             }
             default:

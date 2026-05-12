@@ -20,6 +20,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **`BUILD_STATE.md`** — phase moved to Track B; queues point to RuFlo + Track B infra.
 - **`docs/BUILD_ORCHESTRATION.md`** — checkpoint on Track B; Track A gains RuFlo spawn/swarm completion link; expanded Ruflo section with `init` subcommands and flags from `npx ruflo@latest init --help` (verified 2026-05-12); PATH troubleshooting when global `ruflo` is not found after `npm install -g`.
 
+### Changed (Track B — workflow conditions + multi-field UPDATE_RECORD)
+
+- **`Workflow.condition`** — supports **structured JSON** (composable **`all`** / **`any`** / **`not`**, **`field`** predicates, **`changed: true`** on **`ON_UPDATE`**) beside legacy snippet and **`=MODULE.METRIC`** neural formulas via **`FormulaService.evaluateWorkflowCondition`**. Document events: JSON shaped only as **`{ "cron" | "schedule": "..." }`** evaluates **false** (avoids accidental **`ON_*`** matches). **`CRON`** supplementary **`action.config.condition`**: same evaluator; cron-only JSON does **not** block the tick.
+- **Prisma automation middleware** — before **`update`**, loads prior row (**`findUnique`** with **`params.args.where`**) and merges **`__previous`** into the **`AutomationService.handleEvent`** payload for condition evaluation.
+- **`UPDATE_RECORD`** — optional **`config.fields`** (`Record<string, unknown>` with allowlisted keys) performs one **`update`** with multiple columns (**`config.field`** / **`config.value`** unchanged for single-field).
+- **Tests** — **`api/src/modules/spreadsheet/__tests__/workflowCondition.test.ts`**.
+
 ### Added (API)
 - **`POST /api/calendar/events`** — Track B shared calendar adapter alias; same JSON body as `POST /api/calendar` (`name`, `start`, `stop`, optional `attendeeIds`, etc.). Frontend: `calendarApi.createEvent` in `frontend/src/lib/api.ts`.
 - **`moduleSettingsApi`** — `frontend/src/lib/api.ts` helpers for **`GET` / `PUT /api/settings/:module`** (module keys stored as `{module}.{key}` in `SystemConfig`; CRM pilot uses `crm.*`).

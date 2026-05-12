@@ -1,5 +1,14 @@
 import prisma from '../../lib/prisma';
 
+import type { WorkflowEventTrigger } from './workflowCondition';
+import {
+    evaluateStructuredCondition,
+    isCronOnlyConditionSpec,
+    looksLikeStructuredConditionSpec,
+} from './workflowCondition';
+
+export type { WorkflowEventTrigger } from './workflowCondition';
+
 export class FormulaService {
     /**
      * Evaluates a "Neural Formula" by fetching live data from other modules.
@@ -132,5 +141,37 @@ export class FormulaService {
             console.error(`Error evaluating condition ${formula}:`, e);
             return false;
         }
+    }
+
+    /**
+     * Workflow `Workflow.condition`: legacy JS snippet, neural `=CRM.METRIC`, or JSON structured rules.
+     * Document events (`ON_CREATE`/`ON_UPDATE`): cron-only `{ "cron": "..." }` JSON must not arm as a rule — returns false.
+     * CRON supplementary `action.config.condition` only: pass `supplementaryCronGate: true` so cron-shaped JSON does not veto the tick.
+     */
+    static async evaluateWorkflowCondition(
+        condition: string,
+        context: Record<string, unknown>,
+        trigger: WorkflowEventTrigger,
+        options?: { supplementaryCronGate?: boolean },
+    ): Promise<boolean> {
+        if (!condition || typeof condition !== 'string') return true;
+        const trimmed = condition.trim();
+        if (!trimmed.length) return true;
+
+        if (trimmed.startsWith('{')) {
+            try {
+                const parsed: unknown = JSON.parse(trimmed);
+                if (isCronOnlyConditionSpec(parsed)) {
+                    return options?.supplementaryCronGate === true ? true : false;
+                }
+                if (looksLikeStructuredConditionSpec(parsed)) {
+                    return evaluateStructuredCondition(parsed, context, trigger);
+                }
+            } catch {
+                // invalid JSON → fall through to legacy evaluator
+            }
+        }
+
+        return Boolean(await this.evaluateFormula(trimmed, context));
     }
 }

@@ -15,7 +15,7 @@
 
 1. Parallel dev: **[docs/RUFLO_AGENTS.md](docs/RUFLO_AGENTS.md)** — `ruflo agent spawn` / `ruflo swarm` + Cursor for implementation.
 2. User: Open **`docs/`** as an Obsidian vault ([docs/OBSIDIAN_VAULT.md](docs/OBSIDIAN_VAULT.md)).
-3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅; workflow actions ✅ + **`UPDATE_RECORD`** blocklist ✅ + **`CRON`** ✅; **`/api/campaigns`** + **`/api/marketing-web` RBAC** ✅; **`POST /api/settings`** + **`GET /api/settings/users`** require **`settings.write`** ✅; **`/api/ai`** **`ai.run`** / **`ai.approve`** guards ✅; next: richer automation conditions.
+3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅; workflow actions ✅ + **`UPDATE_RECORD`** blocklist ✅ + **`CRON`** ✅; **`/api/campaigns`** + **`/api/marketing-web` RBAC** ✅; **`POST /api/settings`** + **`GET /api/settings/users`** require **`settings.write`** ✅; **`/api/ai`** **`ai.run`** / **`ai.approve`** guards ✅; structured **`Workflow.condition`** JSON + **`__previous`** + **`evaluateWorkflowCondition`** ✅; next: more workflow action types.
 
 ## Track B note (automation)
 

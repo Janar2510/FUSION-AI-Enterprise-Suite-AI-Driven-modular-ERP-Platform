@@ -16,7 +16,11 @@
 - [ ] **Outbox relay** — same as other **`email.send`** paths: API job bootstrap runs **`outboxRelay`** so queued rows are delivered.
 - [ ] **NOTIFICATION smoke** — workflow with **`NOTIFICATION`** on e.g. partner create/update → row in **`timeline_events`** (`event_key` **`workflow.notification`** unless overridden); dashboard **`GET /api/dashboard/recent-activity`** lists **`summary`** (auth).
 - [ ] **Smoke (optional)** — activate a **`Workflow`** with **`ON_CREATE`/`ON_UPDATE`** on a non-Workflow model + **`EMAIL`** action; create/update matching row → **`Outbox`** entry with **`eventKey`** **`email.send`**; after relay, recipient receives mail (dev: use trap or mocks).
-- [ ] **`UPDATE_RECORD`** — workflow on a test model updates **`config.field`** (allowlisted identifier) for **`data.id`** or **`config.id`**; confirm no runaway middleware (nested write uses skip flag).
+- [ ] **`UPDATE_RECORD`** — workflow on a test model updates **`config.field`** (allowlisted identifier) for **`data.id`** or **`config.id`**, or **`config.fields`** map; confirm no runaway middleware (nested write uses skip flag).
+
+### Structured workflow conditions (Track B)
+
+- [ ] **`Workflow.condition`** smoke: JSON rule with **`all`/`any`**; **`ON_UPDATE`** with **`changed: true`** fires only when the leaf field differs from **`__previous`**; cron-only JSON **`{ "cron": "..." }`** stored on a **CRON** row still schedules; optional **`ON_*`** row with malformed vs structured JSON documented in studio.
 - [ ] **`CRON` workflows** — API bootstrap registers **`startWorkflowCronSchedules`** (with **`campaignWorkflowRunner`** / **`outboxRelay`**). **`Workflow.condition`** must be a valid **`node-cron`** expression (optionally JSON `{ "cron": "..." }`). Schedules reload from DB on a timer (default **120s**; set **`WORKFLOW_CRON_REFRESH_MS`** env to override, minimum **5000**). For an immediate resync (e.g. after deploy or editing schedules), call **`POST /api/automation/cron/sync`** with a user that has **`automation.write`**.
 
 ### CRM module settings + JWT roles (Track B, 2026-05-12)
