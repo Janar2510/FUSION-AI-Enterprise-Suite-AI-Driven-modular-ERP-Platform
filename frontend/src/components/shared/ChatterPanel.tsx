@@ -188,8 +188,8 @@ export const ChatterPanel: React.FC<Props> = ({
                                             {msg.authorId ? `User ${msg.authorId.slice(0, 6)}…` : 'System'}
                                         </span>
                                         {msg.isInternal
-                                            ? <Lock className="w-2.5 h-2.5 text-yellow-400/70" title="Internal note" />
-                                            : <Globe className="w-2.5 h-2.5 text-green-400/70" title="Customer message" />
+                                            ? <Lock className="w-2.5 h-2.5 text-yellow-400/70" aria-label="Internal note" />
+                                            : <Globe className="w-2.5 h-2.5 text-green-400/70" aria-label="Customer message" />
                                         }
                                         <span className="text-[10px] text-white/30">{timeAgo(msg.createdAt)}</span>
                                     </div>

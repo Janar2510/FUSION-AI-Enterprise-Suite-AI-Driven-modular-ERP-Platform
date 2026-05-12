@@ -3,7 +3,10 @@ import { motion } from 'framer-motion'
 import { ChevronDown, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+type MotionConflictingSelectProps = 'onAnimationStart' | 'onAnimationEnd'
+
+interface SelectProps
+  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, MotionConflictingSelectProps> {
   label?: string
   error?: string
   options: Array<{ value: string; label: string }>

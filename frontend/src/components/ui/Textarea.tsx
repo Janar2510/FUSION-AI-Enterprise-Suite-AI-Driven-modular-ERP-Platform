@@ -3,7 +3,10 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { AlertCircle } from 'lucide-react'
 
-interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+type MotionConflictingTextareaProps = 'onAnimationStart' | 'onAnimationEnd'
+
+interface TextareaProps
+  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, MotionConflictingTextareaProps> {
   label?: string
   error?: string
 }

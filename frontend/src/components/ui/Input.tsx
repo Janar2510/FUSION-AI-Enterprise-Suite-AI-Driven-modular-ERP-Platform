@@ -3,7 +3,9 @@ import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { AlertCircle } from 'lucide-react'
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+type MotionConflictingInputProps = 'onAnimationStart' | 'onAnimationEnd'
+
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, MotionConflictingInputProps> {
   label?: string
   error?: string
   icon?: React.ReactNode

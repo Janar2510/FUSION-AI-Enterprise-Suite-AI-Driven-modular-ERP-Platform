@@ -149,7 +149,10 @@ export const AiActionsPanel: React.FC<Props> = ({ entityType, entityId, agentKey
                                         {Math.round(action.confidence * 100)}%
                                     </span>
                                     {action.confidence < 0.6 && (
-                                        <AlertTriangle className="w-3 h-3 text-yellow-400" title="Low confidence — review carefully" />
+                                        <AlertTriangle
+                                          className="w-3 h-3 text-yellow-400"
+                                          aria-label="Low confidence — review carefully"
+                                        />
                                     )}
                                 </div>
                                 <p className="text-xs text-white/70 leading-relaxed">{action.output.summary}</p>

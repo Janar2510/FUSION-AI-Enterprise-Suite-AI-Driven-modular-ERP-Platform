@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import type { LucideIcon } from 'lucide-react';
 import { GlassCard } from './GlassCard';
 import { GradientButton } from './GradientButton';
 import { MetricGrid } from './MetricCard';
@@ -9,7 +10,7 @@ interface MetricCard {
   value: string | number;
   change?: string;
   changeType?: 'positive' | 'negative' | 'neutral';
-  icon: React.ComponentType<any>;
+  icon: LucideIcon;
   color?: 'orange' | 'blue' | 'green' | 'red' | 'secondary';
 }
 
@@ -31,7 +32,7 @@ interface RecentItem {
 interface ModuleDashboardProps {
   title: string;
   subtitle?: string;
-  icon: React.ComponentType<any>;
+  icon: LucideIcon;
   metrics: MetricCard[];
   charts?: {
     title: string;
@@ -126,7 +127,9 @@ export const ModuleDashboard: React.FC<ModuleDashboardProps> = ({
               <GradientButton
                 key={index}
                 onClick={action.onClick}
-                variant={action.variant || 'primary'}
+                variant={
+                  action.variant === 'outline' ? 'ghost' : action.variant ?? 'primary'
+                }
                 size="md"
               >
                 {action.label}
