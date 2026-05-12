@@ -2,9 +2,16 @@ import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../lib/utils';
 import { requireAuth, requirePermission } from '../core/auth';
+import { requestWorkflowCronSync } from '../jobs/workflowCronBootstrap';
 
 export const automationRoutes = Router();
 automationRoutes.use(requireAuth);
+
+/** Re-read CRON workflows from DB and reschedule `node-cron` tasks (same serialization as the refresh timer). */
+automationRoutes.post('/cron/sync', requirePermission('automation.write'), asyncHandler(async (_req, res) => {
+    await requestWorkflowCronSync();
+    res.json({ ok: true });
+}));
 
 // Get all workflows
 automationRoutes.get('/workflows', requirePermission('automation.read'), asyncHandler(async (req, res) => {

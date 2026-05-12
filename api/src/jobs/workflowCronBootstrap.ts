@@ -41,8 +41,18 @@ function workflowCronRefreshMs(): number {
 }
 
 /**
- * Loads active CRON workflows from DB and matches `node-cron` tasks (creates / updates / removes).
+ * Runs `syncWorkflowCronSchedules` after any in-flight refresh (timer or another caller).
+ * Use this for on-demand sync (e.g. admin API) so the task map stays consistent.
  */
+export function requestWorkflowCronSync(): Promise<void> {
+    const p = workflowCronSyncChain.then(() => syncWorkflowCronSchedules());
+    workflowCronSyncChain = p.catch(err => {
+        logger.error({ err }, '[WorkflowCron] sync failed');
+    });
+    return p;
+}
+
+/** Loads active CRON workflows from DB and matches `node-cron` tasks (creates / updates / removes). */
 export async function syncWorkflowCronSchedules(): Promise<void> {
     const rows = await prisma.workflow.findMany({
         where: { trigger: 'CRON', active: true },
@@ -92,9 +102,7 @@ export async function syncWorkflowCronSchedules(): Promise<void> {
 
 export function startWorkflowCronSchedules(): void {
     const enqueue = (): void => {
-        workflowCronSyncChain = workflowCronSyncChain
-            .then(() => syncWorkflowCronSchedules())
-            .catch(err => logger.error({ err }, '[WorkflowCron] sync failed'));
+        void requestWorkflowCronSync();
     };
 
     enqueue();

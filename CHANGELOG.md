@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **`POST /api/calendar/events`** — Track B shared calendar adapter alias; same JSON body as `POST /api/calendar` (`name`, `start`, `stop`, optional `attendeeIds`, etc.). Frontend: `calendarApi.createEvent` in `frontend/src/lib/api.ts`.
 - **`moduleSettingsApi`** — `frontend/src/lib/api.ts` helpers for **`GET` / `PUT /api/settings/:module`** (module keys stored as `{module}.{key}` in `SystemConfig`; CRM pilot uses `crm.*`).
 - **Workflow spreadsheet automation** — **`UPDATE_RECORD`** (Prisma update + **`runAutomationSkipped`** so **`$use`** does not recurse; blocklist denies writes to **`Workflow`**, spine auth, **`OutboxEvent`**, **`AuditLog`**, **`TimelineEvent`**, etc.); **`CRON`** via **`workflowCronBootstrap`**: parses **`Workflow.condition`** (cron string or JSON **`{ "cron": "..." }`**), **`runCronWorkflow`** with optional **`action.config.condition`** gate; cron schedules re-sync from the database on **`WORKFLOW_CRON_REFRESH_MS`** (**default 120s**, minimum **5000**).
+- **`POST /api/automation/cron/sync`** — requires **`automation.write`**; queues the same serialized DB → **`node-cron`** resync used by the refresh timer (optional immediate apply after CRON workflow edits).
 
 ### Changed (auth + CRM UI)
 - **`loadUserPermissions`** — JWT **`roles`** now use **`SpineRole.key`** (e.g. `admin`) so **`requireRole('admin')`** matches the database.
