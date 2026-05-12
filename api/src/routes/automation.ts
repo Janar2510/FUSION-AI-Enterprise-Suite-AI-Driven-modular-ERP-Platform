@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../lib/utils';
-import { requireAuth } from '../core/auth';
+import { requireAuth, requirePermission } from '../core/auth';
 
 export const automationRoutes = Router();
 automationRoutes.use(requireAuth);
 
 // Get all workflows
-automationRoutes.get('/workflows', asyncHandler(async (req, res) => {
+automationRoutes.get('/workflows', requirePermission('automation.read'), asyncHandler(async (req, res) => {
     const workflows = await prisma.workflow.findMany({
         orderBy: { updatedAt: 'desc' }
     });
@@ -15,7 +15,7 @@ automationRoutes.get('/workflows', asyncHandler(async (req, res) => {
 }));
 
 // Create workflow
-automationRoutes.post('/workflows', asyncHandler(async (req, res) => {
+automationRoutes.post('/workflows', requirePermission('automation.write'), asyncHandler(async (req, res) => {
     const { name, description, model, trigger, condition, action, active } = req.body;
     const workflow = await prisma.workflow.create({
         data: {
@@ -32,7 +32,7 @@ automationRoutes.post('/workflows', asyncHandler(async (req, res) => {
 }));
 
 // Update workflow
-automationRoutes.put('/workflows/:id', asyncHandler(async (req, res) => {
+automationRoutes.put('/workflows/:id', requirePermission('automation.write'), asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { name, description, model, trigger, condition, action, active } = req.body;
 
@@ -52,7 +52,7 @@ automationRoutes.put('/workflows/:id', asyncHandler(async (req, res) => {
 }));
 
 // Delete workflow
-automationRoutes.delete('/workflows/:id', asyncHandler(async (req, res) => {
+automationRoutes.delete('/workflows/:id', requirePermission('automation.write'), asyncHandler(async (req, res) => {
     const { id } = req.params;
     await prisma.workflow.delete({
         where: { id: parseInt(id) }
@@ -61,7 +61,7 @@ automationRoutes.delete('/workflows/:id', asyncHandler(async (req, res) => {
 }));
 
 // Toggle workflow active state
-automationRoutes.patch('/workflows/:id/toggle', asyncHandler(async (req, res) => {
+automationRoutes.patch('/workflows/:id/toggle', requirePermission('automation.write'), asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { active } = req.body;
     const workflow = await prisma.workflow.update({

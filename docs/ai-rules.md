@@ -8,6 +8,7 @@ FusionAI uses layered instructions. This file points to them so tools and humans
 | --- | --- |
 | [AGENT_RULES.md](./AGENT_RULES.md) | Agent behavior: safety, tools, patterns, BaseAgent expectations |
 | Root [CLAUDE.md](../CLAUDE.md) | Skills table + `skillkit read` usage; project marketing skills |
+| [RUFLO_AGENTS.md](./RUFLO_AGENTS.md) | Optional: spawn multiple Claude-capable terminals with `ruflo agent spawn` / `ruflo swarm`; pair **one skill per task** in Cursor separately |
 | `.cursor/rules` / user Cursor rules | Editor-specific constraints (TypeScript, surgical diffs, design tokens) |
 
 ## When building product code

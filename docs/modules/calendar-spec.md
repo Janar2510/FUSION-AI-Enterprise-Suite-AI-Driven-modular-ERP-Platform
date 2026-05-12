@@ -55,6 +55,7 @@
 - [x] GET  /calendar?start=&stop= (date-range filter) — ✅
 - [x] GET  /calendar/:id — ✅
 - [x] POST /calendar (with attendeeIds) — ✅
+- [x] POST /calendar/events — ✅ (Track B module adapter; same body as POST /calendar; `calendarApi.createEvent` in frontend)
 - [x] PUT  /calendar/:id — ✅
 - [x] DELETE /calendar/:id — ✅
 - [ ] POST /calendar/:id/accept — ❌ (attendee RSVP action)

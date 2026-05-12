@@ -144,6 +144,18 @@ export const dashboardApi = {
     api.get('/api/dashboard/notifications'),
 }
 
+/** GET/PUT `/api/settings/:module` — keys stored as `{module}.{key}` in SystemConfig */
+export const moduleSettingsApi = {
+  get: (module: string) =>
+    api.get<Record<string, unknown>>(`/api/settings/${encodeURIComponent(module)}`),
+
+  put: (module: string, body: Record<string, unknown>) =>
+    api.put<{ module: string; saved: number }>(
+      `/api/settings/${encodeURIComponent(module)}`,
+      body,
+    ),
+}
+
 // ── Partners ─────────────────────────────────────────────────────────────────
 export const partnersApi = {
   list: (params?: Record<string, unknown>) =>
@@ -605,6 +617,10 @@ export const calendarApi = {
 
   create: (data: Record<string, unknown>) =>
     api.post('/api/calendar', data),
+
+  /** Same body as `create`; preferred path for cross-module calendar pushes (Track B adapter). */
+  createEvent: (data: Record<string, unknown>) =>
+    api.post('/api/calendar/events', data),
 
   update: (id: number, data: Record<string, unknown>) =>
     api.put(`/api/calendar/${id}`, data),

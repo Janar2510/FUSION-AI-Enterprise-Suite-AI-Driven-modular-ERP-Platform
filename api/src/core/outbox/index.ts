@@ -9,8 +9,8 @@
  *   import { publishEvent } from '../core/outbox';
  *   await publishEvent({
  *     organizationId: 'org_xxx',
- *     topic: 'partner.created',
- *     payload: { id: partner.id, name: partner.name },
+ *     eventKey: 'email.send',
+ *     payload: { to: 'user@x.com', templateKey: 'invoice', vars: { ... } },
  *   });
  *
  *   // Or inside an existing Prisma transaction (recommended for atomicity):
@@ -18,7 +18,7 @@
  *     const partner = await tx.partner.create({ data: ... });
  *     await publishEvent({
  *       organizationId: org.id,
- *       topic: 'partner.created',
+ *       eventKey: 'partner.created',
  *       payload: partner,
  *       tx,
  *     });
@@ -26,16 +26,17 @@
  */
 
 import prisma from '../../lib/prisma';
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, Prisma } from '@prisma/client';
 
 export interface PublishEventOptions {
   organizationId: string;
-  topic: string;
+  /** Handled by OutboxRelay handlers (e.g. `email.send`). */
+  eventKey?: string;
+  /** @deprecated Use `eventKey` — same value stored in DB. */
+  topic?: string;
   payload: Record<string, unknown>;
   /** Supply the tx context to write atomically inside a Prisma transaction. */
   tx?: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
-  /** Optional correlation / trace ID */
-  correlationId?: string;
 }
 
 /**
@@ -45,16 +46,19 @@ export interface PublishEventOptions {
  * it uses the global prisma client.
  */
 export async function publishEvent(opts: PublishEventOptions): Promise<void> {
+  const eventKey = opts.eventKey ?? opts.topic;
+  if (!eventKey) {
+    console.error('[Outbox] publishEvent: missing eventKey (or deprecated topic)');
+    return;
+  }
   try {
     const db: any = opts.tx ?? prisma;
 
     await db.outboxEvent.create({
       data: {
         organizationId: opts.organizationId,
-        topic: opts.topic,
-        payload: JSON.stringify(opts.payload),
-        correlationId: opts.correlationId ?? null,
-        status: 'PENDING',
+        eventKey,
+        payload: opts.payload as Prisma.InputJsonValue,
         attempts: 0,
       },
     });

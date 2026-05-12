@@ -142,7 +142,11 @@ export function requirePermission(key: string) {
             next(AppError.unauthorized());
             return;
         }
-        if (!req.user.permissions.includes(key) && !req.user.permissions.includes('*')) {
+        const hasPerm =
+            req.user.permissions.includes(key) ||
+            req.user.permissions.includes('*') ||
+            req.user.roles.some((r) => r === 'admin' || r === 'Administrator');
+        if (!hasPerm) {
             next(AppError.forbidden(`Missing permission: ${key}`));
             return;
         }
@@ -159,7 +163,10 @@ export function requireRole(role: string) {
             next(AppError.unauthorized());
             return;
         }
-        if (!req.user.roles.includes(role) && !req.user.roles.includes('admin')) {
+        const hasPrivilegedRole = req.user.roles.some(
+            (r) => r === 'admin' || r === 'Administrator',
+        );
+        if (!req.user.roles.includes(role) && !hasPrivilegedRole) {
             next(AppError.forbidden(`Required role: ${role}`));
             return;
         }
@@ -195,7 +202,7 @@ export async function loadUserPermissions(
     const permSet = new Set<string>();
 
     for (const ur of user.userRoles ?? []) {
-        if (ur.role?.name) roles.push(ur.role.name);
+        if (ur.role?.key) roles.push(ur.role.key);
         for (const rp of ur.role?.rolePermissions ?? []) {
             if (rp.permission?.key) permSet.add(rp.permission.key);
         }

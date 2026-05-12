@@ -30,4 +30,5 @@ Decisions live under [docs/adr/](./adr/). Start with:
 ## Related
 
 - Live build plan and resume checkpoints: [BUILD_ORCHESTRATION.md](./BUILD_ORCHESTRATION.md) and root `BUILD_STATE.md`.
+- RuFlo parallel agents (`agent spawn`, `swarm`) + skill pairing: [RUFLO_AGENTS.md](./RUFLO_AGENTS.md).
 - AI/agent rules index: [ai-rules.md](./ai-rules.md).

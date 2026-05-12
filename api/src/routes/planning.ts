@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { PlanningIntelligence } from '../lib/planning_intelligence';
 import { requireAuth } from '../core/auth';
+import { publishEvent } from '../core/outbox';
 
 export const planningRoutes = Router();
 planningRoutes.use(requireAuth);
@@ -103,28 +104,34 @@ planningRoutes.patch('/publish', asyncHandler(async (req, res) => {
         // Fetch slots with employee email for notification
         const slots = await prisma.planningSlot.findMany({
             where,
-            include: { employee: { select: { name: true } } },
+            include: { employee: { select: { name: true, workEmail: true } } },
         });
 
-        // Import email service (best-effort, non-fatal)
-        try {
-            const { sendEmail } = await import('../core/email');
-            for (const slot of slots) {
-                if (!slot.employee) continue;
-                await sendEmail({
-                    to: `${slot.employee.name.toLowerCase().replace(/\s+/g, '.')}@company.com`,
-                    subject: `Shift Published: ${slot.role ?? 'Shift'} on ${slot.startDate.toLocaleDateString()}`,
-                    templateKey: 'shift-publish',
-                    vars: {
-                        employeeName: slot.employee.name,
-                        role: slot.role ?? 'Shift',
-                        startDate: slot.startDate.toLocaleDateString(),
-                        endDate: slot.endDate.toLocaleDateString(),
-                        hours: String(slot.hours),
+        for (const slot of slots) {
+            if (!slot.employee) continue;
+            const displayTo =
+                slot.employee.workEmail?.trim() ||
+                `${slot.employee.name.toLowerCase().replace(/\s+/g, '.')}@company.com`;
+            const subject = `Shift Published: ${slot.role ?? 'Shift'} on ${slot.startDate.toLocaleDateString()}`;
+            try {
+                await publishEvent({
+                    organizationId: req.user?.orgId ?? 'default',
+                    eventKey: 'email.send',
+                    payload: {
+                        to: displayTo,
+                        subject,
+                        templateKey: 'shift-publish',
+                        vars: {
+                            employeeName: slot.employee.name,
+                            role: slot.role ?? 'Shift',
+                            startDate: slot.startDate.toLocaleDateString(),
+                            endDate: slot.endDate.toLocaleDateString(),
+                            hours: String(slot.hours),
+                        },
                     },
-                }).catch(() => {});
-            }
-        } catch (_) {}
+                });
+            } catch (_) {}
+        }
     }
 
     res.json({ updated: updated.count });

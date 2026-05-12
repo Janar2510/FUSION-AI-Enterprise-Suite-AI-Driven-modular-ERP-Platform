@@ -4,6 +4,11 @@
 
 This checklist ensures proper implementation and configuration of the AI-driven features in FusionAI Enterprise Suite, including multi-agent orchestration, specialized AI agents, and intelligent automation.
 
+## API guardrails (workflow + email, 2026-05)
+
+- **`/api/automation`**: requests require spine permissions **`automation.read`** (list workflows) and **`automation.write`** (create/update/delete/toggle). After deploy when permission keys change, run **`cd api && npx tsx scripts/seed-roles.ts`**.
+- **Module emails**: use **`publishEvent`** with **`eventKey: 'email.send'`** so **`outboxRelay`** sends via the transactional outbox; avoid ad-hoc **`sendEmail`** in HTTP handlers unless explicitly out-of-band.
+
 ## Pre-Implementation Checklist
 
 ### ✅ AI Infrastructure Setup

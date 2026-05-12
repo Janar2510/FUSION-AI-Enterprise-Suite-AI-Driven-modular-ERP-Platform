@@ -21,6 +21,7 @@ These map the earlier strategy: tooling + platform, shared infrastructure, then 
 | --- | --- | --- |
 | Obsidian: open `docs/` as vault (see `docs/OBSIDIAN_VAULT.md`) | ☐ | Local GUI step; `.obsidian/` may be created by Obsidian |
 | Ruflo CLI: install/init in this repo | ✅ | PATH: `export PATH="$HOME/.npm-global/bin:$PATH"` if `command not found`. If init warns “already initialized”, **No** keeps `.claude/`; use `ruflo init --force` only to replace config |
+| RuFlo **spawn / swarm** recipes (different agent types + skills) | ✅ | See **[RUFLO_AGENTS.md](./RUFLO_AGENTS.md)** — `ruflo agent spawn`, `ruflo swarm start`, task↔skill mapping |
 | Claude Mem / MCP: confirm `user-claude-mem` search works for this project | ☐ | Optionally set `CLAUDE_MEM_RUNTIME=server-beta` for full-text context |
 | Missing skills / MCPs logged | ☐ | Use **Outbound requests** section |
 
@@ -28,10 +29,11 @@ These map the earlier strategy: tooling + platform, shared infrastructure, then 
 
 Ordered for leverage (edit checkboxes as you complete).
 
-- [ ] Email outbox relay wired to all module “send” paths that should use it
-- [ ] Module settings page **pattern** + first pilot modules (e.g. Accounting, CRM)
-- [ ] Role-per-module RBAC middleware pattern on API routes (decorator/guard pattern)
-- [ ] Shared calendar adapter (`POST /api/calendar/events` or agreed contract)
+- [ ] Email outbox relay wired to all module “send” paths that should use it (done: **`email.send`** via `publishEvent` for recruitment stage change, planning shift notify, campaigns; **`publishEvent`** aligned with Prisma `eventKey` + JSON `payload`; audit remaining callers)
+- [x] Module settings **pattern** — CRM pilot: **Settings** UI ↔ **`GET` / `PUT /api/settings/crm`** (`crm.*` keys). Accounting (or second module) still optional as follow-up pilot.
+- [x] **`/api/automation`** RBAC — `requirePermission('automation.read')` / `requirePermission('automation.write')`; spine permissions `automation.read` / `automation.write` (`roles.ts` + idempotent **`seed-roles`**)
+- [ ] Role-per-module RBAC on remaining high-risk routes (reuse same `requirePermission` pattern)
+- [x] Shared calendar adapter — `POST /api/calendar/events` (same payload as `POST /api/calendar`; module integration path)
 - [ ] Minimal automation rules engine (trigger + action MVP)
 
 ### Track C — P1 revenue-critical depth
@@ -48,6 +50,8 @@ Do **not** start until Track B foundations are underway or explicitly deprioriti
 ## Ruflo (CLI)
 
 [Ruflo](https://github.com/ruvnet/ruflo) is a Claude Code orchestration toolkit (skills, agents, hooks). **It is not required** to compile or run FusionAI — it assists development workflows.
+
+**Recipes for multiple agents / swarms:** **[RUFLO_AGENTS.md](./RUFLO_AGENTS.md)** (`ruflo agent spawn`, `ruflo swarm`, task↔Fusion track mapping).
 
 **Install (pick one):**
 
@@ -93,11 +97,11 @@ _Update every session end or significant milestone._
 | Field | Value |
 | --- | --- |
 | **UTC date** | 2026-05-12 |
-| **Active track** | A |
-| **Current task** | Initial orchestration docs + Obsidian instructions + doc aliases (`architecture.md`, `ai-rules.md`) |
-| **Next three tasks** | 1) Run Ruflo init locally … 2) Open `docs/` in Obsidian … 3) Start Track B item 1 (outbox/module settings — user to confirm priority) |
+| **Active track** | **B** — shared infrastructure (see checklist above) |
+| **Current task** | Track B: audit remaining **direct `sendEmail`** / outbox paths; extend **RBAC** to next route families; **automation MVP** if prioritized. |
+| **Next three tasks** | 1) Email outbox — grep for stray sends, route through `publishEvent({ eventKey: 'email.send', ... })` … 2) RBAC guards on additional modules … 3) Minimal automation rules engine MVP |
 | **Blocked by** | — |
-| **Last known good** | Repo state before this doc sweep; run `npm --prefix api run lint` / frontend lint when touching code |
+| **Last known good** | `npx jest src/core/__tests__/outbox.test.ts src/core/__tests__/auth.test.ts` — pass (after outbox + automation RBAC changes) |
 
 ---
 

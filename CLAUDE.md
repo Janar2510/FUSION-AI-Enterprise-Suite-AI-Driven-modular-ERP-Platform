@@ -1,4 +1,4 @@
-> **Orchestration:** Each session — read root [`BUILD_STATE.md`](BUILD_STATE.md), then [`docs/BUILD_ORCHESTRATION.md`](docs/BUILD_ORCHESTRATION.md). Architecture index: [`docs/architecture.md`](docs/architecture.md). AI rules index: [`docs/ai-rules.md`](docs/ai-rules.md). Obsidian: [`docs/OBSIDIAN_VAULT.md`](docs/OBSIDIAN_VAULT.md).
+> **Orchestration:** Each session — read root [`BUILD_STATE.md`](BUILD_STATE.md), then [`docs/BUILD_ORCHESTRATION.md`](docs/BUILD_ORCHESTRATION.md). Architecture index: [`docs/architecture.md`](docs/architecture.md). AI rules index: [`docs/ai-rules.md`](docs/ai-rules.md). RuFlo parallel agents: [`docs/RUFLO_AGENTS.md`](docs/RUFLO_AGENTS.md). Obsidian: [`docs/OBSIDIAN_VAULT.md`](docs/OBSIDIAN_VAULT.md).
 
 <skills_system priority="1">
 

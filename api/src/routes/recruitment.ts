@@ -4,7 +4,6 @@ import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { requireAuth } from '../core/auth';
 import { AppError } from '../core/errors';
 import { publishEvent } from '../core/outbox';
-import sendEmail from '../core/email';
 
 export const recruitmentRoutes = Router();
 recruitmentRoutes.use(requireAuth);
@@ -115,23 +114,12 @@ recruitmentRoutes.patch('/:id/stage', asyncHandler(async (req, res) => {
         include: { job: true, recruitStage: { select: { id: true, name: true } } },
     });
 
-    // Queue stage-change notification via outbox relay
+    // Stage-change notification via transactional outbox (email.send relay)
     if (a.email) {
         await publishEvent({
             organizationId: req.user?.orgId ?? 'default',
-            topic: 'recruitment.stage_changed',
+            eventKey: 'email.send',
             payload: {
-                applicantId: id,
-                applicantName: a.name,
-                applicantEmail: a.email,
-                stageName: a.recruitStage?.name ?? stage ?? 'Unknown',
-                jobName: a.job?.name ?? null,
-            },
-        });
-
-        // Also send direct email with recruitment template
-        try {
-            await sendEmail({
                 to: a.email,
                 templateKey: 'recruitment-stage-change',
                 vars: {
@@ -139,10 +127,8 @@ recruitmentRoutes.patch('/:id/stage', asyncHandler(async (req, res) => {
                     jobName: a.job?.name ?? 'Position',
                     stageName: a.recruitStage?.name ?? stage ?? 'Next Stage',
                 },
-            });
-        } catch (_emailErr) {
-            // Non-fatal: log but don't fail the stage transition
-        }
+            },
+        });
     }
 
     res.json(a);

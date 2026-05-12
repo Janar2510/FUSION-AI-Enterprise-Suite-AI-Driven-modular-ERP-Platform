@@ -177,6 +177,24 @@ describe('requirePermission()', () => {
         expect(err.status).toBe(403);
     });
 
+    test('calls next() when user has admin role but not the permission key', () => {
+        const req = reqWithUser([], ['admin']);
+        const next = jest.fn();
+
+        requirePermission('settings.write')(req, makeRes(), next);
+
+        expect(next).toHaveBeenCalledWith();
+    });
+
+    test('calls next() when user has legacy Administrator role', () => {
+        const req = reqWithUser([], ['Administrator']);
+        const next = jest.fn();
+
+        requirePermission('settings.write')(req, makeRes(), next);
+
+        expect(next).toHaveBeenCalledWith();
+    });
+
     test('calls next(AppError 401) when req.user is absent', () => {
         const req = { user: undefined, headers: {} } as unknown as Request;
         const next = jest.fn();
@@ -202,6 +220,15 @@ describe('requireRole()', () => {
 
     test('calls next() when user is admin', () => {
         const req = reqWithUser([], ['admin']);
+        const next = jest.fn();
+
+        requireRole('any-role')(req, makeRes(), next);
+
+        expect(next).toHaveBeenCalledWith();
+    });
+
+    test('calls next() when user has legacy Administrator role', () => {
+        const req = reqWithUser([], ['Administrator']);
         const next = jest.fn();
 
         requireRole('any-role')(req, makeRes(), next);

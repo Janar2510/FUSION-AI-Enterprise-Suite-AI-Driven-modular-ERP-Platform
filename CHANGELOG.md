@@ -8,15 +8,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 - **`docs/architecture.md`** — canonical architecture index linking `SYSTEM_DESIGN.md`, `MODULE_SPECS.md`, ADRs.
-- **`docs/ai-rules.md`** — canonical AI/agent rules index linking `AGENT_RULES.md`, skills selection, and MCP/skill gap logging.
+- **`docs/ai-rules.md`** — canonical AI/agent rules index linking `AGENT_RULES.md`, skills selection, MCP/skill gap logging, and RuFlo agent pairing notes.
 - **`docs/BUILD_ORCHESTRATION.md`** — live plan with Tracks A/B/C (tooling, Sprint 1 infra, P1 depth), Ruflo install notes, checkpoint template, interrupt log, outbound requests.
 - **`BUILD_STATE.md` (repo root)** — short snapshot pointer for any agent or human after a pause.
 - **`docs/OBSIDIAN_VAULT.md`** — instructions to open `docs/` (or repo root) as Obsidian vault.
 - **`docs/.obsidian/app.json`** — minimal Obsidian settings when using `docs/` as vault.
+- **`docs/RUFLO_AGENTS.md`** — how to run `ruflo start`, `ruflo agent spawn`, `ruflo swarm`, and map agent types/tasks to Fusion build tracks alongside project skills.
 - **`CLAUDE.md`** — orchestration block pointing to the files above.
 
 ### Changed
-- **`docs/BUILD_ORCHESTRATION.md`** — expanded Ruflo section with `init` subcommands and flags from `npx ruflo@latest init --help` (verified 2026-05-12); added PATH troubleshooting when global `ruflo` is not found after `npm install -g`.
+- **`BUILD_STATE.md`** — phase moved to Track B; queues point to RuFlo + Track B infra.
+- **`docs/BUILD_ORCHESTRATION.md`** — checkpoint on Track B; Track A gains RuFlo spawn/swarm completion link; expanded Ruflo section with `init` subcommands and flags from `npx ruflo@latest init --help` (verified 2026-05-12); PATH troubleshooting when global `ruflo` is not found after `npm install -g`.
+
+### Added (API)
+- **`POST /api/calendar/events`** — Track B shared calendar adapter alias; same JSON body as `POST /api/calendar` (`name`, `start`, `stop`, optional `attendeeIds`, etc.). Frontend: `calendarApi.createEvent` in `frontend/src/lib/api.ts`.
+- **`moduleSettingsApi`** — `frontend/src/lib/api.ts` helpers for **`GET` / `PUT /api/settings/:module`** (module keys stored as `{module}.{key}` in `SystemConfig`; CRM pilot uses `crm.*`).
+
+### Changed (auth + CRM UI)
+- **`loadUserPermissions`** — JWT **`roles`** now use **`SpineRole.key`** (e.g. `admin`) so **`requireRole('admin')`** matches the database.
+- **`requirePermission`** / **`requireRole`** — **`admin`** and legacy display role **`Administrator`** both grant privileged access (e.g. **`PUT /api/settings/:module`** without an explicit **`settings.write`** spine permission row).
+- **`CRMSettings`** (`/module/crm/settings`) — feature toggles load/save via React Query + **`moduleSettingsApi`**, backed by **`GET` / `PUT /api/settings/crm`** (includes **Rule-Based Assignment** checkbox alongside multi-teams, lead mining, predictive scoring).
+
+### Changed (Track B — automation RBAC + email outbox breadth)
+- **`PERMISSIONS`** — **`automation.read`** and **`automation.write`**; **`DEFAULT_ROLE_PERMISSIONS`** includes them for **`sales_manager`**, **`crm_manager`**, and **`hr_manager`** (**`admin`** receives all permissions via **`Object.values(PERMISSIONS)`**).
+- **`/api/automation/*`** — **`requirePermission`** on each handler (read vs write). After deploy, run **`cd api && npx tsx scripts/seed-roles.ts`** so **`SpinePermission`** rows exist for the new keys.
+- **Outbox / email path** — **`publishEvent`** matches Prisma **`eventKey`** + JSON **`payload`**; recruitment stage change and planning shift notify emit **`email.send`** for **`outboxRelay`** (with campaign flow already on outbox). Tests: **`api/src/core/__tests__/outbox.test.ts`**.
 
 ## [Unreleased] — Marketing Automation Activities — 2026-05-11
 

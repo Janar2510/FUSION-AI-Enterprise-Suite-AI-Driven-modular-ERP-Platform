@@ -30,9 +30,9 @@
 ## Shared Infrastructure Gaps
 *Cross-cutting features missing from most or all modules — build these FIRST before rebuilding individual modules*
 
-- **Module Settings page** — every module needs a `/settings` sub-nav page with configurable options; fewer than 5 modules have any settings UI, and those that do have non-functional toggles (CRM, Purchases, Inventory)
+- **Module Settings page** — every module needs a `/settings` sub-nav page with configurable options; **CRM pilot** persists feature toggles via **`GET` / `PUT /api/settings/crm`** (`crm.*` keys, Track B 2026-05-12). Purchases, Inventory, and others remain non-functional or missing.
 - **Role-per-module RBAC** — zero modules enforce server-side role checks. Every route is protected only by `requireAuth` (authenticated = full access). Need role definitions with read/write/delete/admin controls per module and per record scope
-- **Calendar integration layer** — CRM, HR, Leaves, Maintenance, Fleet, Planning, Recruitment, Events, and Field Service all need calendar events wired; a shared `POST /calendar/events` adapter is required instead of each module reimplementing
+- **Calendar integration layer** — CRM, HR, Leaves, Maintenance, Fleet, Planning, Recruitment, Events, and Field Service still need to **call** the shared adapter; **`POST /api/calendar/events`** exists (same body as `POST /api/calendar`; Track B 2026-05-12). Wiring each module remains open.
 - **Mail/Discuss chatter** — ChatterPanel component exists and works in Accounting, Manufacturing, Project, Helpdesk, Timesheets, HR, and Sales; missing from Appraisals, Attendance, Fleet, Leaves, Maintenance, Payroll, PLM, Purchases, Rental, and Sign
 - **Automation rules engine** — no module has a working automation trigger system; all spec "Automation" rows are `❌ Missing`. Needed by at least 30 modules for stage-change emails, escalation, recurring creation
 - **Claude AI action dispatcher** — AIPanel/AiActionsPanel component exists but is wired with hardcoded `agentKey` strings and mock responses in most modules; only Manufacturing, Helpdesk, Timesheets, and Project make real AI calls. Need a shared dispatcher that routes `agentKey` to real Claude API calls
@@ -114,9 +114,9 @@
 Build the cross-cutting pieces that all modules depend on. Without these, each module fix creates duplicated patterns.
 
 - **Email outbox relay wired** — wire existing `api/src/core` relay to all module send actions (ChatterPanel, invoice send, sign invites, recruitment stage emails)
-- **Module settings system** — settings page template + API pattern that all modules can adopt; start with Accounting, CRM, Purchases, Inventory
+- **Module settings system** — **`/api/settings/:module`** pattern + **`moduleSettingsApi`** (`frontend/src/lib/api.ts`) + CRM Settings UI (**Track B 2026-05-12**); extend to Accounting, Purchases, Inventory next
 - **Role-per-module RBAC** — role definition middleware (HR User / Officer / Manager, Sales User / Manager, Accounting / Billing, etc.) that can be applied to any route with a single decorator
-- **Calendar integration adapter** — shared `POST /api/calendar/events` helper that modules call instead of each implementing calendar sync independently
+- **Calendar integration adapter** — **`POST /api/calendar/events`** shipped; modules must call it when creating calendar rows from CRM/HR/etc. (recurrence/sync UX still separate)
 - **Automation rules engine (basic)** — trigger/action model with at least: stage-change, record-create, record-update triggers; email-send and webhook-call actions
 - **Claude AI action dispatcher** — replace all hardcoded `agentKey` stubs with a real dispatcher that routes to Claude API; ensures all modules benefit immediately
 

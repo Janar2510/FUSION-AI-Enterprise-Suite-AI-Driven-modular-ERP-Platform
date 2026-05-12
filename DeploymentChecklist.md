@@ -8,6 +8,15 @@
 - [ ] **Ruflo (optional dev tooling):** run `npm install -g ruflo@latest` then `ruflo init` locally if using Ruflo swarm; not required for production deploy (see `docs/BUILD_ORCHESTRATION.md`).
 - [ ] **Orchestration docs:** Keep [`BUILD_STATE.md`](BUILD_STATE.md) and [`docs/BUILD_ORCHESTRATION.md`](docs/BUILD_ORCHESTRATION.md) aligned after major milestones (pause/resume handshake).
 
+### Calendar adapter (Track B, 2026-05-12)
+- [ ] Smoke: authenticated `POST /api/calendar/events` with `{ "name": "Test", "start": "<ISO>", "stop": "<ISO>" }` → 201 (same as `POST /api/calendar`)
+
+### CRM module settings + JWT roles (Track B, 2026-05-12)
+- [ ] After deploy, **re-login** so access tokens pick up **`roles` = `SpineRole.key`** (e.g. `admin`) from `loadUserPermissions`.
+- [ ] Smoke: **`GET /api/settings/crm`** (auth) → 200 JSON (possibly `{}` first load).
+- [ ] Smoke: **`PUT /api/settings/crm`** with `{ "multiTeams": true, "leadMining": false, "predictiveScoring": true, "ruleBasedAssignment": false }` → 200; verify rows in `SystemConfig` with keys `crm.multiTeams`, etc.
+- [ ] UI: open **CRM → Settings**, toggle features, **Save** → success toast; reload page → values persist.
+
 ## Marketing Automation Activities + Audience Targeting (2026-05-11)
 
 ### Database Steps
@@ -65,7 +74,7 @@
 
 ### Auth on Every Route (Sprint 20 Audit)
 Routes that now require `requireAuth` (added this sprint):
-- [x] `automation.ts` — `router.use(requireAuth)`
+- [x] `automation.ts` — `router.use(requireAuth)` + **`requirePermission('automation.read'|'automation.write')`** per route (2026-05-12)
 - [x] `calendar.ts` — `router.use(requireAuth)`
 - [x] `campaigns.ts` — `router.use(requireAuth)`
 - [x] `dashboard.ts` — `router.use(requireAuth)`
@@ -161,8 +170,8 @@ Routes that now require `requireAuth` (added this sprint):
 ## Sprint 10 — Shared Infrastructure Layer: Pre-Deployment Notes (2026-05-10)
 
 ### Database Steps
-- [ ] Run roles seed: `cd api && npx ts-node scripts/seed-roles.ts`
-  - Idempotent upsert of all roles, permissions, and role-permission links.
+- [ ] Run roles seed: `cd api && npx tsx scripts/seed-roles.ts` (use **`tsx`**, not **`ts-node`**, for path-aligned runs)
+  - Idempotent upsert of all roles, permissions, and role-permission links. **Re-run after introducing new `PERMISSIONS` keys** (e.g. `automation.read` / `automation.write`).
 - [ ] No schema migration needed — `SpineRole`, `SpinePermission`, `SystemConfig`, `ChatterMessage` models already exist.
 
 ### Environment Variables

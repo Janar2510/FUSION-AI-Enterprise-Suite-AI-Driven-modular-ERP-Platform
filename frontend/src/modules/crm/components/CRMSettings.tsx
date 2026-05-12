@@ -1,24 +1,69 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Save, Settings2, ShieldCheck, Users, Zap } from 'lucide-react';
+import { Save, Settings2, ShieldCheck, Shuffle, Users, Zap } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import { useCRMStore } from '../stores/crmStore';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { BreadcrumbHeader } from '@/components/shared/BreadcrumbHeader';
+import { moduleSettingsApi } from '@/lib/api';
+
+const CRM_FEATURE_DEFAULTS = {
+    multiTeams: false,
+    leadMining: false,
+    predictiveScoring: true,
+    ruleBasedAssignment: false,
+};
+
+type CrmFeatureSettings = typeof CRM_FEATURE_DEFAULTS;
+
+function mergeCrmSettings(raw: Record<string, unknown>): CrmFeatureSettings {
+    const bool = (v: unknown, d: boolean) =>
+        typeof v === 'boolean' ? v : v === 'true' ? true : v === 'false' ? false : d;
+    return {
+        multiTeams: bool(raw.multiTeams, CRM_FEATURE_DEFAULTS.multiTeams),
+        leadMining: bool(raw.leadMining, CRM_FEATURE_DEFAULTS.leadMining),
+        predictiveScoring: bool(raw.predictiveScoring, CRM_FEATURE_DEFAULTS.predictiveScoring),
+        ruleBasedAssignment: bool(raw.ruleBasedAssignment, CRM_FEATURE_DEFAULTS.ruleBasedAssignment),
+    };
+}
 
 export const CRMSettings: React.FC = () => {
     const { pipelineStages } = useCRMStore();
+    const queryClient = useQueryClient();
     const [saved, setSaved] = useState(false);
 
-    const [settings, setSettings] = useState({
-        multiTeams: false,
-        leadMining: false,
-        predictiveScoring: true,
-        ruleBasedAssignment: false
+    const [settings, setSettings] = useState<CrmFeatureSettings>(CRM_FEATURE_DEFAULTS);
+
+    const { data: crmPayload, isLoading } = useQuery({
+        queryKey: ['settings', 'crm'],
+        queryFn: async () => {
+            const res = await moduleSettingsApi.get('crm');
+            return mergeCrmSettings(res.data ?? {});
+        },
+    });
+
+    useEffect(() => {
+        if (crmPayload) setSettings(crmPayload);
+    }, [crmPayload]);
+
+    const saveMutation = useMutation({
+        mutationFn: async (body: CrmFeatureSettings) => {
+            await moduleSettingsApi.put('crm', body);
+        },
+        onSuccess: () => {
+            toast.success('CRM settings saved');
+            queryClient.invalidateQueries({ queryKey: ['settings', 'crm'] });
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+        },
+        onError: () => {
+            toast.error('Could not save CRM settings');
+        },
     });
 
     const handleSave = () => {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        saveMutation.mutate(settings);
     };
 
     return (
@@ -26,7 +71,12 @@ export const CRMSettings: React.FC = () => {
             <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-20">
                 <BreadcrumbHeader customLabels={{ '/module/crm/settings': 'Settings' }} />
                 <div className="flex items-center gap-4">
-                    <button onClick={handleSave} className="px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white rounded-md font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={isLoading || saveMutation.isPending}
+                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-orange-600 text-white rounded-md font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+                    >
                         <Save className="w-4 h-4" /> Save
                     </button>
                     {saved && <span className="text-green-400 text-sm">Saved!</span>}
@@ -81,6 +131,20 @@ export const CRMSettings: React.FC = () => {
                                         <Zap className="w-4 h-4 text-white/50" /> Predictive Lead Scoring
                                     </div>
                                     <p className="text-white/50 text-sm mt-1">Use AI to automatically assign probability and priority to incoming leads.</p>
+                                </div>
+                            </label>
+                        </GlassCard>
+
+                        <GlassCard className="p-6">
+                            <label className="flex items-start gap-4 cursor-pointer group">
+                                <div className="mt-1">
+                                    <input type="checkbox" checked={settings.ruleBasedAssignment} onChange={e => setSettings(s => ({ ...s, ruleBasedAssignment: e.target.checked }))} className="w-4 h-4 bg-transparent border-white/20 rounded text-primary-500 focus:ring-primary-500" />
+                                </div>
+                                <div>
+                                    <div className="text-white font-medium flex items-center gap-2">
+                                        <Shuffle className="w-4 h-4 text-white/50" /> Rule-Based Assignment
+                                    </div>
+                                    <p className="text-white/50 text-sm mt-1">Distribute new leads by territory, load, or custom rules.</p>
                                 </div>
                             </label>
                         </GlassCard>

@@ -45,10 +45,10 @@
 - [ ] Sales Manager / Administrator — full access + configuration; ❌ Missing (settings page exists but roles not tied to actual access control)
 
 ### Module Configuration (Settings page)
-- [x] Multi Teams — ✅ Toggle present in CRMSettings (not wired to backend)
-- [x] Lead Mining — ✅ Toggle present (not wired to backend)
-- [x] Predictive Lead Scoring — ✅ Toggle present (partially wired via AI actions panel)
-- [x] Rule-Based Assignment — ✅ Toggle present (not wired to backend)
+- [x] Multi Teams — ✅ persisted via **`PUT /api/settings/crm`** as **`crm.multiTeams`** (`GET /api/settings/crm` hydrates CRM Settings)
+- [x] Lead Mining — ✅ **`crm.leadMining`**
+- [x] Predictive Lead Scoring — ✅ **`crm.predictiveScoring`**
+- [x] Rule-Based Assignment — ✅ **`crm.ruleBasedAssignment`**
 - [ ] Pipeline stage CRUD (add/rename/delete stages) — 🟡 Partial (read-only table shown, Edit button noop)
 - [ ] Default probability per stage — ❌ Missing
 - [ ] Automated actions / custom email templates — ❌ Missing
@@ -78,7 +78,8 @@
 - [x] POST /api/crm/leads/:id/mark-won — ✅ exists
 - [x] POST /api/crm/leads/:id/new-quotation — ✅ exists
 - [x] DELETE /api/crm/leads/:id — ✅ exists (soft delete via active=false)
-- [x] GET /api/crm/pipeline — ✅ exists (stages + leads grouped)
+- [x] GET **`/api/settings/crm`** — ✅ module-scoped keys (`crm.*` in `SystemConfig`)
+- [x] PUT **`/api/settings/crm`** — ✅ requires auth; **`settings.write`** permission **or** **`admin`** / **`Administrator`** role (JWT Track B 2026-05-12)
 - [ ] POST /api/crm/leads/:id/mark-lost — ❌ missing (currently done via PUT active=false, no lost reason)
 - [ ] GET/POST /api/crm/activities — ❌ missing
 - [ ] POST /api/crm/leads/:id/merge — ❌ missing

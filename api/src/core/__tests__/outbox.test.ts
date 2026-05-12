@@ -14,21 +14,18 @@ describe('publishEvent()', () => {
 
         await publishEvent({
             organizationId: 'org-1',
-            topic: 'partner.created',
+            eventKey: 'partner.created',
             payload: { id: 'p-1', name: 'Acme' },
-            correlationId: 'corr-abc',
         });
 
         const data = (prisma as any).outboxEvent.create.mock.calls[0][0].data;
         expect(data.organizationId).toBe('org-1');
-        expect(data.topic).toBe('partner.created');
-        expect(JSON.parse(data.payload)).toEqual({ id: 'p-1', name: 'Acme' });
-        expect(data.correlationId).toBe('corr-abc');
-        expect(data.status).toBe('PENDING');
+        expect(data.eventKey).toBe('partner.created');
+        expect(data.payload).toEqual({ id: 'p-1', name: 'Acme' });
         expect(data.attempts).toBe(0);
     });
 
-    test('sets correlationId to null when not provided', async () => {
+    test('maps deprecated topic to eventKey', async () => {
         (prisma as any).outboxEvent.create.mockResolvedValue({});
 
         await publishEvent({
@@ -38,7 +35,7 @@ describe('publishEvent()', () => {
         });
 
         const data = (prisma as any).outboxEvent.create.mock.calls[0][0].data;
-        expect(data.correlationId).toBeNull();
+        expect(data.eventKey).toBe('order.confirmed');
     });
 
     test('uses the supplied tx client instead of global prisma', async () => {
@@ -46,7 +43,7 @@ describe('publishEvent()', () => {
 
         await publishEvent({
             organizationId: 'org-1',
-            topic: 'invoice.posted',
+            eventKey: 'invoice.posted',
             payload: { id: 'inv-1' },
             tx: txMock as any,
         });
@@ -59,18 +56,22 @@ describe('publishEvent()', () => {
         (prisma as any).outboxEvent.create.mockRejectedValue(new Error('Outbox DB error'));
 
         await expect(
-            publishEvent({ organizationId: 'org-1', topic: 'x', payload: {} })
+            publishEvent({ organizationId: 'org-1', eventKey: 'x', payload: {} })
         ).resolves.toBeUndefined();
     });
 
-    test('serialises complex nested payload as JSON string', async () => {
+    test('skips DB when eventKey and topic are both missing', async () => {
+        await expect(publishEvent({ organizationId: 'org-1', payload: {} })).resolves.toBeUndefined();
+        expect((prisma as any).outboxEvent.create).not.toHaveBeenCalled();
+    });
+
+    test('stores nested JSON payload as Json (not string)', async () => {
         (prisma as any).outboxEvent.create.mockResolvedValue({});
 
         const payload = { lines: [{ id: 1, qty: 2 }, { id: 2, qty: 5 }], meta: { source: 'api' } };
-        await publishEvent({ organizationId: 'org-1', topic: 'order.lines', payload });
+        await publishEvent({ organizationId: 'org-1', eventKey: 'order.lines', payload });
 
         const data = (prisma as any).outboxEvent.create.mock.calls[0][0].data;
-        expect(() => JSON.parse(data.payload)).not.toThrow();
-        expect(JSON.parse(data.payload)).toEqual(payload);
+        expect(data.payload).toEqual(payload);
     });
 });

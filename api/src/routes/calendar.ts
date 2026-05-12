@@ -1,10 +1,26 @@
 import { Router } from 'express';
+import type { Request, Response } from 'express';
 import prisma from '../lib/prisma';
-import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
+import { asyncHandler } from '../lib/utils';
 import { requireAuth } from '../core/auth';
 
 export const calendarRoutes = Router();
 calendarRoutes.use(requireAuth);
+
+/** Shared create handler: `POST /api/calendar` and `POST /api/calendar/events` (module adapter path). */
+async function createCalendarEvent(req: Request, res: Response): Promise<void> {
+    const { attendeeIds, ...data } = req.body;
+    const ev = await prisma.calendarEvent.create({
+        data: {
+            ...data,
+            attendees: attendeeIds
+                ? { create: (attendeeIds as number[]).map((pid: number) => ({ partnerId: pid })) }
+                : undefined,
+        },
+        include: { attendees: { include: { partner: true } } },
+    });
+    res.status(201).json(ev);
+}
 
 calendarRoutes.get('/', asyncHandler(async (req, res) => {
     const start = req.query.start ? new Date(req.query.start as string) : new Date(new Date().setMonth(new Date().getMonth() - 1));
@@ -24,14 +40,10 @@ calendarRoutes.get('/:id', asyncHandler(async (req, res) => {
     res.json(ev);
 }));
 
-calendarRoutes.post('/', asyncHandler(async (req, res) => {
-    const { attendeeIds, ...data } = req.body;
-    const ev = await prisma.calendarEvent.create({
-        data: { ...data, attendees: attendeeIds ? { create: attendeeIds.map((pid: number) => ({ partnerId: pid })) } : undefined },
-        include: { attendees: { include: { partner: true } } },
-    });
-    res.status(201).json(ev);
-}));
+calendarRoutes.post('/', asyncHandler(createCalendarEvent));
+
+/** Cross-module calendar integration (see docs/modules/00-master-gap-summary.md, docs/BUILD_ORCHESTRATION Track B). */
+calendarRoutes.post('/events', asyncHandler(createCalendarEvent));
 
 calendarRoutes.put('/:id', asyncHandler(async (req, res) => {
     const { attendeeIds, ...data } = req.body;
