@@ -3,6 +3,21 @@ import type { Prisma } from '@prisma/client';
 import prisma, { runAutomationSkipped } from '../../lib/prisma';
 import { FormulaService } from './formulaService';
 
+/** PascalCase model names blocked for `UPDATE_RECORD` (identity, audit, outbox, workflow meta). */
+const AUTOMATION_UPDATE_BLOCKLIST = new Set<string>([
+    'Workflow',
+    'SpineUser',
+    'SpineRole',
+    'SpinePermission',
+    'SpineUserRole',
+    'SpineRolePermission',
+    'OutboxEvent',
+    'AuditLog',
+    'UserPasskey',
+    'TimelineEvent',
+    'Organization',
+]);
+
 function modelToPrismaDelegateKey(model: string): string {
     if (!model.length) return model;
     return model.charAt(0).toLowerCase() + model.slice(1);
@@ -209,6 +224,10 @@ export class AutomationService {
                 const modelLabel = typeof workflow.model === 'string' ? workflow.model : '';
                 if (!modelLabel || !/^[A-Za-z][A-Za-z0-9_]*$/.test(modelLabel)) {
                     console.warn('[Automation] UPDATE_RECORD: invalid workflow.model');
+                    break;
+                }
+                if (AUTOMATION_UPDATE_BLOCKLIST.has(modelLabel)) {
+                    console.warn(`[Automation] UPDATE_RECORD: model "${modelLabel}" is not automation-writable`);
                     break;
                 }
                 const delegateKey = modelToPrismaDelegateKey(modelLabel);

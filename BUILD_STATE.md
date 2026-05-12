@@ -15,11 +15,11 @@
 
 1. Parallel dev: **[docs/RUFLO_AGENTS.md](docs/RUFLO_AGENTS.md)** — `ruflo agent spawn` / `ruflo swarm` + Cursor for implementation.
 2. User: Open **`docs/`** as an Obsidian vault ([docs/OBSIDIAN_VAULT.md](docs/OBSIDIAN_VAULT.md)).
-3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** for recruitment + planning + campaigns ✅; workflow actions **`EMAIL`** / **`NOTIFICATION`** / **`UPDATE_RECORD`** + **`CRON`** bootstrap ✅; next: grep remaining direct sends, more RBAC, cron hot-reload / more actions.
+3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅; workflow actions ✅ + **`UPDATE_RECORD`** security blocklist ✅ + **`CRON`** periodic resync ✅; next: grep remaining direct sends, more RBAC, more action types / conditions.
 
 ## Track B note (automation)
 
-- **`AutomationService`** — **`NOTIFICATION`** → **`timelineEvent`**; **`EMAIL`** → outbox **`email.send`**; **`UPDATE_RECORD`** guarded by **`runAutomationSkipped`** (no middleware loops); **`CRON`** via **`startWorkflowCronSchedules`** (restart to pick up schedule edits).
+- **`AutomationService`** — **`NOTIFICATION`** → **`timelineEvent`**; **`EMAIL`** → outbox **`email.send`**; **`UPDATE_RECORD`** uses **`runAutomationSkipped`** + model blocklist; **`CRON`** resynced on a timer (**`WORKFLOW_CRON_REFRESH_MS`**).
 
 ---
 
