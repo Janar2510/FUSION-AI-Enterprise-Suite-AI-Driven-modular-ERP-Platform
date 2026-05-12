@@ -167,6 +167,9 @@ pytest tests/integration/
 
 ## 📚 Documentation
 
+- [Architecture index](docs/architecture.md) · [AI rules index](docs/ai-rules.md)
+- [Build orchestration plan](docs/BUILD_ORCHESTRATION.md) · [Build state snapshot](BUILD_STATE.md)
+- [Obsidian vault (docs folder)](docs/OBSIDIAN_VAULT.md)
 - [System Design](docs/SYSTEM_DESIGN.md)
 - [API Documentation](docs/api-docs/)
 - [Module Specifications](docs/MODULE_SPECS.md)

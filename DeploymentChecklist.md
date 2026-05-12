@@ -1,5 +1,13 @@
 # FusionAI Enterprise Suite - Deployment Checklist
 
+## Agent orchestration & knowledge (2026-05-12)
+
+- [ ] **Read first on any long session:** [`BUILD_STATE.md`](BUILD_STATE.md) → [`docs/BUILD_ORCHESTRATION.md`](docs/BUILD_ORCHESTRATION.md) (checkpoint + active track A/B/C).
+- [ ] **Doc aliases in place:** [`docs/architecture.md`](docs/architecture.md), [`docs/ai-rules.md`](docs/ai-rules.md) (stable paths for tools expecting `architecture.md` / `ai-rules.md`).
+- [ ] **Obsidian (optional):** open **`docs/`** as a vault per [`docs/OBSIDIAN_VAULT.md`](docs/OBSIDIAN_VAULT.md); decide whether `docs/.obsidian/` is committed or gitignored.
+- [ ] **Ruflo (optional dev tooling):** run `npm install -g ruflo@latest` then `ruflo init` locally if using Ruflo swarm; not required for production deploy (see `docs/BUILD_ORCHESTRATION.md`).
+- [ ] **Orchestration docs:** Keep [`BUILD_STATE.md`](BUILD_STATE.md) and [`docs/BUILD_ORCHESTRATION.md`](docs/BUILD_ORCHESTRATION.md) aligned after major milestones (pause/resume handshake).
+
 ## Marketing Automation Activities + Audience Targeting (2026-05-11)
 
 ### Database Steps

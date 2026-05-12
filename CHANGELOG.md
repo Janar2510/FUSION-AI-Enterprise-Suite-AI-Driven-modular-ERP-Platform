@@ -4,6 +4,20 @@ All notable changes to FusionAI Enterprise Suite will be documented in this file
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
+## [Unreleased] — Build orchestration + doc aliases — 2026-05-12
+
+### Added
+- **`docs/architecture.md`** — canonical architecture index linking `SYSTEM_DESIGN.md`, `MODULE_SPECS.md`, ADRs.
+- **`docs/ai-rules.md`** — canonical AI/agent rules index linking `AGENT_RULES.md`, skills selection, and MCP/skill gap logging.
+- **`docs/BUILD_ORCHESTRATION.md`** — live plan with Tracks A/B/C (tooling, Sprint 1 infra, P1 depth), Ruflo install notes, checkpoint template, interrupt log, outbound requests.
+- **`BUILD_STATE.md` (repo root)** — short snapshot pointer for any agent or human after a pause.
+- **`docs/OBSIDIAN_VAULT.md`** — instructions to open `docs/` (or repo root) as Obsidian vault.
+- **`docs/.obsidian/app.json`** — minimal Obsidian settings when using `docs/` as vault.
+- **`CLAUDE.md`** — orchestration block pointing to the files above.
+
+### Changed
+- **`docs/BUILD_ORCHESTRATION.md`** — expanded Ruflo section with `init` subcommands and flags from `npx ruflo@latest init --help` (verified 2026-05-12); added PATH troubleshooting when global `ruflo` is not found after `npm install -g`.
+
 ## [Unreleased] — Marketing Automation Activities — 2026-05-11
 
 ### Added
