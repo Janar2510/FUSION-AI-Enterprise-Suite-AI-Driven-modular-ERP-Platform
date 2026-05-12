@@ -1,5 +1,12 @@
-import prisma from '../../lib/prisma';
+import type { Prisma } from '@prisma/client';
+
+import prisma, { runAutomationSkipped } from '../../lib/prisma';
 import { FormulaService } from './formulaService';
+
+function modelToPrismaDelegateKey(model: string): string {
+    if (!model.length) return model;
+    return model.charAt(0).toLowerCase() + model.slice(1);
+}
 
 export class AutomationService {
     /**
@@ -35,6 +42,49 @@ export class AutomationService {
             } catch (error) {
                 console.error(`[Automation] Failed to execute workflow ${workflow.name}:`, error);
             }
+        }
+    }
+
+    /**
+     * Run a single CRON-triggered workflow by id (scheduled from `workflowCronBootstrap`).
+     * `Workflow.condition` holds the cron expression for registration; it is not re-evaluated as a formula on tick.
+     */
+    static async runCronWorkflow(workflowId: number): Promise<void> {
+        const workflow = await prisma.workflow.findUnique({ where: { id: workflowId } });
+        if (!workflow || workflow.trigger !== 'CRON' || !workflow.active) {
+            return;
+        }
+        const data: Record<string, unknown> = { organizationId: 'default' };
+        let action: any;
+        try {
+            action = JSON.parse(workflow.action);
+        } catch (e) {
+            console.error(`[Automation] CRON workflow ${workflowId}: invalid action JSON`, e);
+            return;
+        }
+        const cfg = action?.config && typeof action.config === 'object' ? action.config : {};
+        const orgRaw = (cfg as Record<string, unknown>).organizationId;
+        if (typeof orgRaw === 'string' && orgRaw.length > 0) {
+            data.organizationId = orgRaw;
+        }
+
+        const runCondition =
+            typeof (cfg as Record<string, unknown>).condition === 'string'
+                ? ((cfg as Record<string, unknown>).condition as string)
+                : undefined;
+        if (runCondition && runCondition.trim().length > 0) {
+            const ok = await FormulaService.evaluateFormula(runCondition, data);
+            if (!ok) {
+                console.log(`[Automation] CRON "${workflow.name}": run condition not met`);
+                return;
+            }
+        }
+
+        try {
+            await this.executeAction(action, data, workflow);
+            console.log(`[Automation] CRON workflow OK: ${workflow.name}`);
+        } catch (error) {
+            console.error(`[Automation] CRON workflow failed: ${workflow.name}`, error);
         }
     }
 
@@ -80,9 +130,8 @@ export class AutomationService {
                 if (cfg.meta && typeof cfg.meta === 'object' && !Array.isArray(cfg.meta)) {
                     Object.assign(payload, cfg.meta as Record<string, unknown>);
                 }
-                const { default: prismaClient } = await import('../../lib/prisma');
                 try {
-                    await prismaClient.timelineEvent.create({
+                    await prisma.timelineEvent.create({
                         data: {
                             organizationId,
                             ...(partnerId ? { partnerId } : {}),
@@ -90,7 +139,7 @@ export class AutomationService {
                             ownerId,
                             eventKey,
                             summary: message,
-                            payload,
+                            payload: payload as Prisma.InputJsonValue,
                         },
                     });
                     console.log(`[Automation] NOTIFICATION → timeline (${ownerType}/${ownerId})`);
@@ -140,14 +189,52 @@ export class AutomationService {
                 console.log(`[Automation] EMAIL queued via outbox for ${to} (${templateKey})`);
                 break;
             }
-            case 'UPDATE_RECORD':
-                const { field, value } = action.config;
-                if (field && value !== undefined) {
-                    console.log(`[Automation] Updating ${workflow.model} ID ${data.id}: ${field} = ${value}`);
-                    // We avoid recursion by checking if it's the same field/value or using a flag
-                    // (prisma as any)[workflow.model.toLowerCase()].update({ where: { id: data.id }, data: { [field]: value } });
+            case 'UPDATE_RECORD': {
+                const cfg =
+                    action.config && typeof action.config === 'object'
+                        ? action.config
+                        : ({} as Record<string, unknown>);
+                const field =
+                    typeof cfg.field === 'string' ? cfg.field.trim() : '';
+                const value = cfg.value;
+                const rawId = data?.id ?? cfg.id;
+                if (!field || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(field)) {
+                    console.warn('[Automation] UPDATE_RECORD: invalid or missing field name');
+                    break;
                 }
+                if (rawId == null || String(rawId).length === 0) {
+                    console.warn('[Automation] UPDATE_RECORD: missing record id (trigger data or config.id)');
+                    break;
+                }
+                const modelLabel = typeof workflow.model === 'string' ? workflow.model : '';
+                if (!modelLabel || !/^[A-Za-z][A-Za-z0-9_]*$/.test(modelLabel)) {
+                    console.warn('[Automation] UPDATE_RECORD: invalid workflow.model');
+                    break;
+                }
+                const delegateKey = modelToPrismaDelegateKey(modelLabel);
+                const delegate = (
+                    prisma as unknown as Record<
+                        string,
+                        { update: (args: Record<string, unknown>) => Promise<unknown> }
+                    >
+                )[delegateKey];
+                if (!delegate || typeof delegate.update !== 'function') {
+                    console.warn(
+                        `[Automation] UPDATE_RECORD: no Prisma delegate "${delegateKey}" for model "${modelLabel}"`
+                    );
+                    break;
+                }
+                await runAutomationSkipped(async () => {
+                    await delegate.update({
+                        where: { id: rawId },
+                        data: { [field]: value },
+                    });
+                });
+                console.log(
+                    `[Automation] UPDATE_RECORD → ${delegateKey} id=${rawId} ${field}=`
+                );
                 break;
+            }
             default:
                 console.warn(`[Automation] Unknown action type: ${action.type}`);
         }

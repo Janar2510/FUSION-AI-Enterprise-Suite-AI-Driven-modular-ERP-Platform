@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added (API)
 - **`POST /api/calendar/events`** — Track B shared calendar adapter alias; same JSON body as `POST /api/calendar` (`name`, `start`, `stop`, optional `attendeeIds`, etc.). Frontend: `calendarApi.createEvent` in `frontend/src/lib/api.ts`.
 - **`moduleSettingsApi`** — `frontend/src/lib/api.ts` helpers for **`GET` / `PUT /api/settings/:module`** (module keys stored as `{module}.{key}` in `SystemConfig`; CRM pilot uses `crm.*`).
+- **Workflow spreadsheet automation** — **`UPDATE_RECORD`** (Prisma update + **`runAutomationSkipped`** so **`$use`** does not recurse); **`CRON`** workflows registered at API start (**`workflowCronBootstrap`** reads **`Workflow.condition`** as cron or JSON **`{ "cron": "..." }`**; **`runCronWorkflow`** runs actions, optional **`action.config.condition`** gate); cron edits in DB need process restart until a refresh job exists.
 
 ### Changed (auth + CRM UI)
 - **`loadUserPermissions`** — JWT **`roles`** now use **`SpineRole.key`** (e.g. `admin`) so **`requireRole('admin')`** matches the database.

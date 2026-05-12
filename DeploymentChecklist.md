@@ -16,6 +16,8 @@
 - [ ] **Outbox relay** — same as other **`email.send`** paths: API job bootstrap runs **`outboxRelay`** so queued rows are delivered.
 - [ ] **NOTIFICATION smoke** — workflow with **`NOTIFICATION`** on e.g. partner create/update → row in **`timeline_events`** (`event_key` **`workflow.notification`** unless overridden); dashboard **`GET /api/dashboard/recent-activity`** lists **`summary`** (auth).
 - [ ] **Smoke (optional)** — activate a **`Workflow`** with **`ON_CREATE`/`ON_UPDATE`** on a non-Workflow model + **`EMAIL`** action; create/update matching row → **`Outbox`** entry with **`eventKey`** **`email.send`**; after relay, recipient receives mail (dev: use trap or mocks).
+- [ ] **`UPDATE_RECORD`** — workflow on a test model updates **`config.field`** (allowlisted identifier) for **`data.id`** or **`config.id`**; confirm no runaway middleware (nested write uses skip flag).
+- [ ] **`CRON` workflows** — API bootstrap registers **`startWorkflowCronSchedules`** (with **`campaignWorkflowRunner`** / **`outboxRelay`**). **`Workflow.condition`** must be a valid **`node-cron`** expression (optionally JSON `{ "cron": "..." }`). After changing cron rows in DB, **restart API** until a refresh mechanism exists.
 
 ### CRM module settings + JWT roles (Track B, 2026-05-12)
 - [ ] After deploy, **re-login** so access tokens pick up **`roles` = `SpineRole.key`** (e.g. `admin`) from `loadUserPermissions`.
@@ -33,7 +35,7 @@
 - [ ] Confirm migration applied: `cd api && npx prisma migrate status`
 
 ### Runtime / ops
-- [ ] API process runs with **`api/src/jobs/index.ts`** job bootstrap (includes **`campaignWorkflowRunner`** cron ~30s); without it, launched campaigns will not advance past scheduled `nextActionAt`.
+- [ ] API process runs with **`api/src/jobs/index.ts`** job bootstrap (includes **`campaignWorkflowRunner`** cron ~30s and **`startWorkflowCronSchedules`** for **`Workflow.trigger === 'CRON'`**); without it, launched campaigns will not advance past scheduled `nextActionAt` and spreadsheet CRON rules will not run.
 - [ ] **SMTP / outbox** — marketing email uses the same transactional outbox + relay as bulk mail; ensure SMTP (or configured provider) is valid in the target environment or traces will show failures.
 
 ### New API Endpoints (smoke-test after deploy)

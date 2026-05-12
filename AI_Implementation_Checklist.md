@@ -7,7 +7,7 @@ This checklist ensures proper implementation and configuration of the AI-driven 
 ## API guardrails (workflow + email, 2026-05)
 
 - **`/api/automation`**: requests require spine permissions **`automation.read`** (list workflows) and **`automation.write`** (create/update/delete/toggle). After deploy when permission keys change, run **`cd api && npx tsx scripts/seed-roles.ts`**.
-- **Prisma workflow rules**: active **`Workflow`** rows with **`trigger`** **`ON_CREATE`** / **`ON_UPDATE`** run after matching model writes (**`AutomationService`**). **`EMAIL`** actions enqueue **`email.send`** via the transactional outbox (relay delivers **`sendEmail`**).
+- **Prisma workflow rules**: active **`Workflow`** rows with **`trigger`** **`ON_CREATE`** / **`ON_UPDATE`** run after matching model writes (**`AutomationService`**). **`EMAIL`** actions enqueue **`email.send`** via the transactional outbox (relay delivers **`sendEmail`**). **`NOTIFICATION`** writes **`TimelineEvent`** (default **`workflow.notification`**). **`UPDATE_RECORD`** updates a field on **`workflow.model`** inside **`runAutomationSkipped`** to avoid Prisma middleware recursion. **`CRON`** workflows register at API start from **`Workflow.condition`** (cron string or JSON); **`AutomationService.runCronWorkflow`** executes the action bundle (optional **`action.config.condition`** formula gate).
 - **Module emails**: use **`publishEvent`** with **`eventKey: 'email.send'`** so **`outboxRelay`** sends via the transactional outbox; avoid ad-hoc **`sendEmail`** in HTTP handlers unless explicitly out-of-band.
 
 ## Pre-Implementation Checklist

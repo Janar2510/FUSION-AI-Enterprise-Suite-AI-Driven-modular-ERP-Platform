@@ -7,11 +7,13 @@ import { startOutboxRelay } from './outboxRelay';
 import { startSlaBreach } from './slaBreach';
 import { startSubscriptionRenewal } from './subscriptionRenewal';
 import { startCampaignWorkflowRunner } from './campaignWorkflowRunner';
+import { startWorkflowCronSchedules } from './workflowCronBootstrap';
 
 export function startBackgroundJobs() {
     startOutboxRelay();
     startSlaBreach();
     startSubscriptionRenewal();
     startCampaignWorkflowRunner();
+    startWorkflowCronSchedules();
     console.log('[Jobs] All background jobs registered');
 }

@@ -34,7 +34,7 @@ Ordered for leverage (edit checkboxes as you complete).
 - [x] **`/api/automation`** RBAC — `requirePermission('automation.read')` / `requirePermission('automation.write')`; spine permissions `automation.read` / `automation.write` (`roles.ts` + idempotent **`seed-roles`**)
 - [ ] Role-per-module RBAC on remaining high-risk routes (reuse same `requirePermission` pattern)
 - [x] Shared calendar adapter — `POST /api/calendar/events` (same payload as `POST /api/calendar`; module integration path)
-- [ ] Minimal automation rules engine (trigger + action MVP — **partial:** Prisma **`$use`** middleware invokes **`AutomationService`** on create/update (non-Workflow models); **`EMAIL`** action enqueues **`email.send`** via outbox + **`workflow-automation`** template; **`NOTIFICATION`** action persists **`TimelineEvent`** (feed/dashboard); **`UPDATE_RECORD`** still stubbed; **CRON** triggers not polled yet)
+- [ ] Minimal automation rules engine (trigger + action MVP — **partial:** Prisma **`$use`** middleware invokes **`AutomationService`** on create/update (non-Workflow models); **`EMAIL`** / **`NOTIFICATION`** / **`UPDATE_RECORD`** implemented; **`CRON`** schedules load at process start via **`workflowCronBootstrap`**; deeper items: hot-reload schedules, richer conditions, action coverage)
 
 ### Track C — P1 revenue-critical depth
 
