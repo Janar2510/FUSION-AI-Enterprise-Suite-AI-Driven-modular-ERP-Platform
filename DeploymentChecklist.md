@@ -25,6 +25,9 @@
 - [ ] Smoke: **`PUT /api/settings/crm`** with `{ "multiTeams": true, "leadMining": false, "predictiveScoring": true, "ruleBasedAssignment": false }` → 200; verify rows in `SystemConfig` with keys `crm.multiTeams`, etc.
 - [ ] UI: open **CRM → Settings**, toggle features, **Save** → success toast; reload page → values persist.
 
+### Legacy flat settings (Track B, 2026-05-12)
+- [ ] **`POST /api/settings`** (flat bulk upsert) and **`GET /api/settings/users`** require **`settings.write`** — same as **`PUT /api/settings/:module`**. Users who only saved module JSON before may need **`settings.write`** on their role for the bulk save or user roster.
+
 ## Marketing Automation Activities + Audience Targeting (2026-05-11)
 
 ### Database Steps

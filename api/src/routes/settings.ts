@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth, requirePermission } from '../core/auth';
+import { PERMISSIONS } from '../core/auth/roles';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -37,8 +38,8 @@ router.get('/', async (req: Request, res: Response) => {
     }
 });
 
-// Update or create settings
-router.post('/', async (req: Request, res: Response) => {
+// Update or create settings (legacy flat map — unrestricted key space; restrict to settings.write)
+router.post('/', requirePermission(PERMISSIONS.SETTINGS_WRITE), async (req: Request, res: Response) => {
     try {
         const settings = req.body;
 
@@ -67,7 +68,7 @@ router.post('/', async (req: Request, res: Response) => {
 // ── Admin: list platform users ─────────────────────────────────────────────────
 // NOTE: must be registered BEFORE /:module or the path is swallowed by that param.
 
-router.get('/users', async (req: Request, res: Response) => {
+router.get('/users', requirePermission(PERMISSIONS.SETTINGS_WRITE), async (req: Request, res: Response) => {
     try {
         const users = await (prisma as any).spineUser?.findMany?.({
             select: { id: true, name: true, email: true, active: true },
@@ -111,7 +112,7 @@ router.get('/:module', async (req: Request, res: Response) => {
  * Body: { lead_expiry_days: 30, auto_assign: true }
  * Requires SETTINGS_WRITE permission.
  */
-router.put('/:module', requirePermission('settings.write'), async (req: Request, res: Response) => {
+router.put('/:module', requirePermission(PERMISSIONS.SETTINGS_WRITE), async (req: Request, res: Response) => {
     const prefix = `${req.params.module}.`;
     const body = req.body;
 
