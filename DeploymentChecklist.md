@@ -14,7 +14,7 @@
 ### Workflow automation EMAIL → outbox (Track B, 2026-05-12)
 
 - [ ] **Outbox relay** — same as other **`email.send`** paths: API job bootstrap runs **`outboxRelay`** so queued rows are delivered.
-- [ ] **SMTP / SendGrid fallback** — `workflow-automation` template merges **`message`** / **`subject`** from payload; misconfigured mail means stuck or failed **`Outbox`** rows (check logs / `ERROR` statuses).
+- [ ] **NOTIFICATION smoke** — workflow with **`NOTIFICATION`** on e.g. partner create/update → row in **`timeline_events`** (`event_key` **`workflow.notification`** unless overridden); dashboard **`GET /api/dashboard/recent-activity`** lists **`summary`** (auth).
 - [ ] **Smoke (optional)** — activate a **`Workflow`** with **`ON_CREATE`/`ON_UPDATE`** on a non-Workflow model + **`EMAIL`** action; create/update matching row → **`Outbox`** entry with **`eventKey`** **`email.send`**; after relay, recipient receives mail (dev: use trap or mocks).
 
 ### CRM module settings + JWT roles (Track B, 2026-05-12)

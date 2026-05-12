@@ -40,10 +40,65 @@ export class AutomationService {
 
     private static async executeAction(action: any, data: any, workflow: any) {
         switch (action.type) {
-            case 'NOTIFICATION':
-                console.log(`[Automation] Sending Notification: ${action.config.message || 'Workflow Triggered'}`);
-                // In a real app, emit a socket.io event or create a Notify record
+            case 'NOTIFICATION': {
+                const cfg =
+                    action.config && typeof action.config === 'object'
+                        ? action.config
+                        : ({} as Record<string, unknown>);
+                const message = String(cfg.message ?? cfg.title ?? 'Workflow triggered');
+                const orgRaw = data.organizationId ?? cfg.organizationId;
+                const organizationId =
+                    typeof orgRaw === 'string' && orgRaw.length > 0 ? orgRaw : 'default';
+                const ownerType =
+                    typeof cfg.ownerType === 'string' && cfg.ownerType.length > 0
+                        ? cfg.ownerType
+                        : workflow.model;
+                const rawOwner = cfg.ownerId ?? data?.id;
+                const ownerId = rawOwner != null && String(rawOwner).length > 0 ? String(rawOwner) : '';
+                if (!ownerId) {
+                    console.warn(
+                        '[Automation] NOTIFICATION: missing owner — set config.ownerId or ensure record has id'
+                    );
+                    break;
+                }
+                let partnerId: string | undefined;
+                if (cfg.partnerId != null && String(cfg.partnerId).length > 0) {
+                    partnerId = String(cfg.partnerId);
+                } else if (data?.partnerId != null && String(data.partnerId).length > 0) {
+                    partnerId = String(data.partnerId);
+                }
+                const eventKey =
+                    typeof cfg.eventKey === 'string' && cfg.eventKey.length > 0
+                        ? cfg.eventKey
+                        : 'workflow.notification';
+                const payload: Record<string, unknown> = {
+                    workflowId: workflow.id,
+                    workflowName: workflow.name,
+                    triggerModel: workflow.model,
+                    message,
+                };
+                if (cfg.meta && typeof cfg.meta === 'object' && !Array.isArray(cfg.meta)) {
+                    Object.assign(payload, cfg.meta as Record<string, unknown>);
+                }
+                const { default: prismaClient } = await import('../../lib/prisma');
+                try {
+                    await prismaClient.timelineEvent.create({
+                        data: {
+                            organizationId,
+                            ...(partnerId ? { partnerId } : {}),
+                            ownerType,
+                            ownerId,
+                            eventKey,
+                            summary: message,
+                            payload,
+                        },
+                    });
+                    console.log(`[Automation] NOTIFICATION → timeline (${ownerType}/${ownerId})`);
+                } catch (err) {
+                    console.error('[Automation] NOTIFICATION timeline write failed:', err);
+                }
                 break;
+            }
             case 'EMAIL': {
                 const cfg =
                     action.config && typeof action.config === 'object' ? action.config : ({} as Record<string, unknown>);

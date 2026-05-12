@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **`/api/automation/*`** — **`requirePermission`** on each handler (read vs write). After deploy, run **`cd api && npx tsx scripts/seed-roles.ts`** so **`SpinePermission`** rows exist for the new keys.
 - **Outbox / email path** — **`publishEvent`** matches Prisma **`eventKey`** + JSON **`payload`**; recruitment stage change and planning shift notify emit **`email.send`** for **`outboxRelay`** (with campaign flow already on outbox). Tests: **`api/src/core/__tests__/outbox.test.ts`**.
 - **`AutomationService` (EMAIL)** — **`publishEvent`** with **`eventKey: 'email.send'`**, default template **`workflow-automation`** or **`config.templateKey`**; new template in **`api/src/core/email/index.ts`** (replaces console-only stub).
+- **`AutomationService` (NOTIFICATION)** — writes **`TimelineEvent`** (**`workflow.notification`** or **`config.eventKey`**); **`ownerType`** / **`ownerId`** from config or **`workflow.model`** + record **`id`**; optional **`partnerId`**; **`payload`** includes workflow meta + **`config.meta`**.
 
 ## [Unreleased] — Marketing Automation Activities — 2026-05-11
 

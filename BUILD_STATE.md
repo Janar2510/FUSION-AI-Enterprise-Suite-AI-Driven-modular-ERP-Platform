@@ -19,7 +19,7 @@
 
 ## Track B note (automation)
 
-- **`AutomationService`** (Prisma **`$use`**) fires on model create/update; rule action **`EMAIL`** publishes **`email.send`** to the transactional outbox → relay uses **`sendEmail`** (template key default **`workflow-automation`**).
+- **`AutomationService`** — **`NOTIFICATION`** → **`timelineEvent`** (dashboard **recent activity** path); **`EMAIL`** → outbox **`email.send`** → relay **`sendEmail`**.
 
 ---
 
