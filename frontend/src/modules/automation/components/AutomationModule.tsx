@@ -24,10 +24,14 @@ export const AutomationModule: React.FC = () => {
         createWorkflow,
         updateWorkflow,
         deleteWorkflow,
-        toggleWorkflow
+        toggleWorkflow,
+        syncCronSchedules,
+        cronSyncing,
+        error
     } = useAutomationStore();
 
     const [currentView, setCurrentView] = useState<'kanban' | 'form'>('kanban');
+    const [cronSyncNotice, setCronSyncNotice] = useState<'ok' | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeWorkflow, setActiveWorkflow] = useState<Workflow | null>(null);
     const [formData, setFormData] = useState<Partial<Workflow>>({});
@@ -67,6 +71,38 @@ export const AutomationModule: React.FC = () => {
         const filtered = workflows.filter(w => w.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
         return (
+            <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 pt-4 border-b border-white/5 pb-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/35 max-w-xl">
+                    After changing CRON expressions or activating schedules, reload server timers without restarting the API.
+                </p>
+                <div className="flex flex-col items-end gap-1">
+                    <button
+                        type="button"
+                        disabled={cronSyncing}
+                        onClick={async () => {
+                            setCronSyncNotice(null);
+                            const ok = await syncCronSchedules();
+                            if (ok) {
+                                setCronSyncNotice('ok');
+                                window.setTimeout(() => setCronSyncNotice(null), 4000);
+                            }
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-primary-500/40 bg-primary-500/15 text-primary-400 text-[10px] font-black uppercase tracking-widest hover:bg-primary-500/25 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${cronSyncing ? 'animate-spin' : ''}`} />
+                        Resync CRON schedules
+                    </button>
+                    {cronSyncNotice === 'ok' && (
+                        <span className="text-[10px] font-bold text-primary-400 uppercase tracking-tight">
+                            Schedules synced with the API.
+                        </span>
+                    )}
+                    {error && (
+                        <span className="text-[10px] font-bold text-white/50 max-w-sm text-right">{error}</span>
+                    )}
+                </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                 <AnimatePresence>
                     {filtered.map((w) => (
@@ -154,6 +190,7 @@ export const AutomationModule: React.FC = () => {
                     </div>
                     <span className="text-xs font-black uppercase tracking-[0.2em]">New Workflow</span>
                 </motion.button>
+            </div>
             </div>
         );
     };

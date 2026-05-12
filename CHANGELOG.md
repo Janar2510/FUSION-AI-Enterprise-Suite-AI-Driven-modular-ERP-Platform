@@ -26,6 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Workflow spreadsheet automation** — **`UPDATE_RECORD`** (Prisma update + **`runAutomationSkipped`** so **`$use`** does not recurse; blocklist denies writes to **`Workflow`**, spine auth, **`OutboxEvent`**, **`AuditLog`**, **`TimelineEvent`**, etc.); **`CRON`** via **`workflowCronBootstrap`**: parses **`Workflow.condition`** (cron string or JSON **`{ "cron": "..." }`**), **`runCronWorkflow`** with optional **`action.config.condition`** gate; cron schedules re-sync from the database on **`WORKFLOW_CRON_REFRESH_MS`** (**default 120s**, minimum **5000**).
 - **`POST /api/automation/cron/sync`** — requires **`automation.write`**; queues the same serialized DB → **`node-cron`** resync used by the refresh timer (optional immediate apply after CRON workflow edits).
 
+### Changed (frontend)
+- **Automation Studio** — workflow **`automationStore`** uses shared **`api`** client (JWT **`Authorization`**, interceptors); kanban toolbar **Resync CRON schedules** calls **`POST /api/automation/cron/sync`** with loading and inline feedback.
+
 ### Changed (auth + CRM UI)
 - **`loadUserPermissions`** — JWT **`roles`** now use **`SpineRole.key`** (e.g. `admin`) so **`requireRole('admin')`** matches the database.
 - **`requirePermission`** / **`requireRole`** — **`admin`** and legacy display role **`Administrator`** both grant privileged access (e.g. **`PUT /api/settings/:module`** without an explicit **`settings.write`** spine permission row).

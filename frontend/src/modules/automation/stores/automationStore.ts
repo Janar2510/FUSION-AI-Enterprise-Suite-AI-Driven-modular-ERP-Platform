@@ -1,77 +1,99 @@
 import { create } from 'zustand';
-import axios from 'axios';
+import { api } from '@/lib/api';
 import { Workflow } from '../types';
 
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'http://localhost:3001';
+function axiosMessage(err: unknown): string {
+    if (err && typeof err === 'object' && 'response' in err) {
+        const r = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
+        if (typeof r === 'string' && r.length) return r;
+    }
+    if (err instanceof Error) return err.message;
+    return 'Request failed';
+}
 
 interface AutomationState {
     workflows: Workflow[];
     loading: boolean;
+    cronSyncing: boolean;
     error: string | null;
     fetchWorkflows: () => Promise<void>;
     createWorkflow: (data: Partial<Workflow>) => Promise<Workflow | void>;
     updateWorkflow: (id: number, data: Partial<Workflow>) => Promise<void>;
     deleteWorkflow: (id: number) => Promise<void>;
     toggleWorkflow: (id: number, active: boolean) => Promise<void>;
+    syncCronSchedules: () => Promise<boolean>;
 }
 
 export const useAutomationStore = create<AutomationState>((set, get) => ({
     workflows: [],
     loading: false,
+    cronSyncing: false,
     error: null,
 
     fetchWorkflows: async () => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.get(`${API_BASE}/api/automation/workflows`);
+            const res = await api.get<{ data: Workflow[] }>('/api/automation/workflows');
             set({ workflows: res.data.data, loading: false });
-        } catch (err: any) {
-            set({ error: err.message, loading: false });
+        } catch (err: unknown) {
+            set({ error: axiosMessage(err), loading: false });
         }
     },
 
     createWorkflow: async (data: Partial<Workflow>) => {
         try {
             set({ loading: true, error: null });
-            const res = await axios.post(`${API_BASE}/api/automation/workflows`, data);
+            const res = await api.post<{ data: Workflow }>('/api/automation/workflows', data);
             await get().fetchWorkflows();
             set({ loading: false });
             return res.data.data;
-        } catch (err: any) {
-            set({ error: err.message, loading: false });
+        } catch (err: unknown) {
+            set({ error: axiosMessage(err), loading: false });
         }
     },
 
     updateWorkflow: async (id: number, data: Partial<Workflow>) => {
         try {
             set({ loading: true, error: null });
-            await axios.put(`${API_BASE}/api/automation/workflows/${id}`, data);
+            await api.put(`/api/automation/workflows/${id}`, data);
             await get().fetchWorkflows();
             set({ loading: false });
-        } catch (err: any) {
-            set({ error: err.message, loading: false });
+        } catch (err: unknown) {
+            set({ error: axiosMessage(err), loading: false });
         }
     },
 
     deleteWorkflow: async (id: number) => {
         try {
             set({ loading: true, error: null });
-            await axios.delete(`${API_BASE}/api/automation/workflows/${id}`);
+            await api.delete(`/api/automation/workflows/${id}`);
             await get().fetchWorkflows();
             set({ loading: false });
-        } catch (err: any) {
-            set({ error: err.message, loading: false });
+        } catch (err: unknown) {
+            set({ error: axiosMessage(err), loading: false });
         }
     },
 
     toggleWorkflow: async (id: number, active: boolean) => {
         try {
-            await axios.patch(`${API_BASE}/api/automation/workflows/${id}/toggle`, { active });
+            await api.patch(`/api/automation/workflows/${id}/toggle`, { active });
             set({
-                workflows: get().workflows.map(w => w.id === id ? { ...w, active } : w)
+                workflows: get().workflows.map(w => (w.id === id ? { ...w, active } : w))
             });
-        } catch (err: any) {
-            set({ error: err.message });
+        } catch (err: unknown) {
+            set({ error: axiosMessage(err) });
+        }
+    },
+
+    syncCronSchedules: async () => {
+        try {
+            set({ cronSyncing: true, error: null });
+            await api.post('/api/automation/cron/sync');
+            set({ cronSyncing: false });
+            return true;
+        } catch (err: unknown) {
+            set({ error: axiosMessage(err), cronSyncing: false });
+            return false;
         }
     }
 }));
