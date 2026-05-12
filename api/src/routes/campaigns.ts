@@ -3,7 +3,8 @@ import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { firstStepScheduledAt } from '../lib/marketingWorkflow';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
-import { requireAuth } from '../core/auth';
+import { requireAuth, requirePermission } from '../core/auth';
+import { PERMISSIONS } from '../core/auth/roles';
 
 export const campaignRoutes = Router();
 campaignRoutes.use(requireAuth);
@@ -180,7 +181,7 @@ async function ensureCampaignExists(campaignId: number) {
     return true;
 }
 
-campaignRoutes.get('/', asyncHandler(async (req, res) => {
+campaignRoutes.get('/', requirePermission(PERMISSIONS.MARKETING_READ), asyncHandler(async (req, res) => {
     const { page, limit, skip } = getPagination(req.query);
     const [data, total] = await Promise.all([
         prisma.marketingCampaign.findMany({ skip, take: limit, orderBy: { createdAt: 'desc' } }),
@@ -189,11 +190,11 @@ campaignRoutes.get('/', asyncHandler(async (req, res) => {
     res.json(paginatedResponse(data, total, page, limit));
 }));
 
-campaignRoutes.get('/templates', asyncHandler(async (_req, res) => {
+campaignRoutes.get('/templates', requirePermission(PERMISSIONS.MARKETING_READ), asyncHandler(async (_req, res) => {
     res.json(CAMPAIGN_TEMPLATES);
 }));
 
-campaignRoutes.post('/from-template', asyncHandler(async (req, res) => {
+campaignRoutes.post('/from-template', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const { templateId, name, ...rest } = req.body as { templateId: string; name?: string };
     const template = CAMPAIGN_TEMPLATES.find((t) => t.id === templateId);
     if (!template) {
@@ -230,7 +231,7 @@ campaignRoutes.post('/from-template', asyncHandler(async (req, res) => {
     res.status(201).json({ ...campaign, activities });
 }));
 
-campaignRoutes.get('/:id/traces', asyncHandler(async (req, res) => {
+campaignRoutes.get('/:id/traces', requirePermission(PERMISSIONS.MARKETING_READ), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     if (!(await ensureCampaignExists(campaignId))) {
         res.status(404).json({ error: 'Campaign not found' });
@@ -253,7 +254,7 @@ campaignRoutes.get('/:id/traces', asyncHandler(async (req, res) => {
     res.json(paginatedResponse(traces, total, page, limit));
 }));
 
-campaignRoutes.get('/:id/analytics', asyncHandler(async (req, res) => {
+campaignRoutes.get('/:id/analytics', requirePermission(PERMISSIONS.MARKETING_READ), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     const campaign = await prisma.marketingCampaign.findUnique({ where: { id: campaignId } });
     if (!campaign) {
@@ -314,7 +315,7 @@ campaignRoutes.get('/:id/analytics', asyncHandler(async (req, res) => {
     });
 }));
 
-campaignRoutes.post('/:id/test', asyncHandler(async (req, res) => {
+campaignRoutes.post('/:id/test', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     const campaign = await prisma.marketingCampaign.findUnique({
         where: { id: campaignId },
@@ -350,12 +351,12 @@ campaignRoutes.post('/:id/test', asyncHandler(async (req, res) => {
     res.json({ success: true, outboxEventId: ev.id, activityId: firstActivity.id });
 }));
 
-campaignRoutes.get('/:id', asyncHandler(async (req, res) => {
+campaignRoutes.get('/:id', requirePermission(PERMISSIONS.MARKETING_READ), asyncHandler(async (req, res) => {
     const campaign = await prisma.marketingCampaign.findUniqueOrThrow({ where: { id: +req.params.id } });
     res.json(campaign);
 }));
 
-campaignRoutes.get('/:id/activities', asyncHandler(async (req, res) => {
+campaignRoutes.get('/:id/activities', requirePermission(PERMISSIONS.MARKETING_READ), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     if (!(await ensureCampaignExists(campaignId))) {
         res.status(404).json({ error: 'Campaign not found' });
@@ -369,7 +370,7 @@ campaignRoutes.get('/:id/activities', asyncHandler(async (req, res) => {
     res.json(activities);
 }));
 
-campaignRoutes.post('/:id/activities', asyncHandler(async (req, res) => {
+campaignRoutes.post('/:id/activities', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     if (!(await ensureCampaignExists(campaignId))) {
         res.status(404).json({ error: 'Campaign not found' });
@@ -391,7 +392,7 @@ campaignRoutes.post('/:id/activities', asyncHandler(async (req, res) => {
     res.status(201).json(activity);
 }));
 
-campaignRoutes.put('/:id/activities/:activityId', asyncHandler(async (req, res) => {
+campaignRoutes.put('/:id/activities/:activityId', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     const activityId = parseId(req.params.activityId);
     if (!(await ensureCampaignExists(campaignId))) {
@@ -412,7 +413,7 @@ campaignRoutes.put('/:id/activities/:activityId', asyncHandler(async (req, res) 
     res.json(activity);
 }));
 
-campaignRoutes.post('/:id/activities/:activityId/compose', asyncHandler(async (req, res) => {
+campaignRoutes.post('/:id/activities/:activityId/compose', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     const activityId = parseId(req.params.activityId);
     if (!(await ensureCampaignExists(campaignId))) {
@@ -476,7 +477,7 @@ campaignRoutes.post('/:id/activities/:activityId/compose', asyncHandler(async (r
     });
 }));
 
-campaignRoutes.delete('/:id/activities/:activityId', asyncHandler(async (req, res) => {
+campaignRoutes.delete('/:id/activities/:activityId', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     const activityId = parseId(req.params.activityId);
     if (!(await ensureCampaignExists(campaignId))) {
@@ -488,7 +489,7 @@ campaignRoutes.delete('/:id/activities/:activityId', asyncHandler(async (req, re
     res.json({ success: true });
 }));
 
-campaignRoutes.get('/:id/participants', asyncHandler(async (req, res) => {
+campaignRoutes.get('/:id/participants', requirePermission(PERMISSIONS.MARKETING_READ), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     if (!(await ensureCampaignExists(campaignId))) {
         res.status(404).json({ error: 'Campaign not found' });
@@ -502,7 +503,7 @@ campaignRoutes.get('/:id/participants', asyncHandler(async (req, res) => {
     res.json(participants);
 }));
 
-campaignRoutes.post('/:id/participants/resolve', asyncHandler(async (req, res) => {
+campaignRoutes.post('/:id/participants/resolve', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     if (!(await ensureCampaignExists(campaignId))) {
         res.status(404).json({ error: 'Campaign not found' });
@@ -592,7 +593,7 @@ campaignRoutes.post('/:id/participants/resolve', asyncHandler(async (req, res) =
     res.status(201).json({ created: created.count, totalParticipants, targetModel: 'crm_lead' });
 }));
 
-campaignRoutes.post('/:id/launch', asyncHandler(async (req, res) => {
+campaignRoutes.post('/:id/launch', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaignId = parseId(req.params.id);
     const campaign = await prisma.marketingCampaign.findUnique({ where: { id: campaignId } });
     if (!campaign) {
@@ -641,17 +642,17 @@ campaignRoutes.post('/:id/launch', asyncHandler(async (req, res) => {
     res.json(updated);
 }));
 
-campaignRoutes.post('/', asyncHandler(async (req, res) => {
+campaignRoutes.post('/', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaign = await prisma.marketingCampaign.create({ data: req.body });
     res.status(201).json(campaign);
 }));
 
-campaignRoutes.put('/:id', asyncHandler(async (req, res) => {
+campaignRoutes.put('/:id', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     const campaign = await prisma.marketingCampaign.update({ where: { id: +req.params.id }, data: req.body });
     res.json(campaign);
 }));
 
-campaignRoutes.delete('/:id', asyncHandler(async (req, res) => {
+campaignRoutes.delete('/:id', requirePermission(PERMISSIONS.MARKETING_WRITE), asyncHandler(async (req, res) => {
     await prisma.marketingCampaign.delete({ where: { id: +req.params.id } });
     res.json({ success: true });
 }));

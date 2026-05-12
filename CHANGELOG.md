@@ -41,6 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Outbox / email path** — **`publishEvent`** matches Prisma **`eventKey`** + JSON **`payload`**; recruitment stage change and planning shift notify emit **`email.send`** for **`outboxRelay`** (with campaign flow already on outbox). Tests: **`api/src/core/__tests__/outbox.test.ts`**.
 - **`AutomationService` (EMAIL)** — **`publishEvent`** with **`eventKey: 'email.send'`**, default template **`workflow-automation`** or **`config.templateKey`**; new template in **`api/src/core/email/index.ts`** (replaces console-only stub).
 - **`AutomationService` (NOTIFICATION)** — writes **`TimelineEvent`** (**`workflow.notification`** or **`config.eventKey`**); **`ownerType`** / **`ownerId`** from config or **`workflow.model`** + record **`id`**; optional **`partnerId`**; **`payload`** includes workflow meta + **`config.meta`**.
+- **`marketing.read`** / **`marketing.write`** — **`PERMISSIONS`** + **`DEFAULT_ROLE_PERMISSIONS`** for **`viewer`** (read-only), **`sales_manager`** / **`crm_manager`** (read+write), **`sales_user`** / **`crm_user`** (read-only). **`/api/campaigns/*`** uses **`requirePermission`** on each route (mutations require **`marketing.write`**). **`/api/marketing-web/*`** uses the same guards (pages, menus, mass mailings, social); removed accidental duplicate route registrations. Re-run **`cd api && npx tsx scripts/seed-roles.ts`** after deploy so permission rows and role links exist.
 
 ## [Unreleased] — Marketing Automation Activities — 2026-05-11
 

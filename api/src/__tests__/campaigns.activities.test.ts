@@ -4,6 +4,7 @@ import { campaignRoutes } from '../routes/campaigns';
 
 jest.mock('../core/auth', () => ({
     requireAuth: (_req: any, _res: any, next: any) => next(),
+    requirePermission: (_perm: string) => (_req: any, _res: any, next: any) => next(),
 }));
 
 jest.mock('../lib/prisma', () => {

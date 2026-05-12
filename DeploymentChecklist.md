@@ -179,7 +179,7 @@ Routes that now require `requireAuth` (added this sprint):
 
 ### Database Steps
 - [ ] Run roles seed: `cd api && npx tsx scripts/seed-roles.ts` (use **`tsx`**, not **`ts-node`**, for path-aligned runs)
-  - Idempotent upsert of all roles, permissions, and role-permission links. **Re-run after introducing new `PERMISSIONS` keys** (e.g. `automation.read` / `automation.write`).
+  - Idempotent upsert of all roles, permissions, and role-permission links. **Re-run after introducing new `PERMISSIONS` keys** (e.g. `automation.read` / `automation.write`, **`marketing.read` / `marketing.write`** for **`/api/campaigns`** and **`/api/marketing-web`**).
 - [ ] No schema migration needed — `SpineRole`, `SpinePermission`, `SystemConfig`, `ChatterMessage` models already exist.
 
 ### Environment Variables

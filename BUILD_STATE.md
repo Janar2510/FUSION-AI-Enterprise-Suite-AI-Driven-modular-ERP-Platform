@@ -15,7 +15,7 @@
 
 1. Parallel dev: **[docs/RUFLO_AGENTS.md](docs/RUFLO_AGENTS.md)** — `ruflo agent spawn` / `ruflo swarm` + Cursor for implementation.
 2. User: Open **`docs/`** as an Obsidian vault ([docs/OBSIDIAN_VAULT.md](docs/OBSIDIAN_VAULT.md)).
-3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅; workflow actions ✅ + **`UPDATE_RECORD`** security blocklist ✅ + **`CRON`** periodic resync ✅; next: grep remaining direct sends, more RBAC, more action types / conditions.
+3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅ (no direct **`sendEmail`** outside relay); workflow actions ✅ + **`UPDATE_RECORD`** blocklist ✅ + **`CRON`** ✅; **`/api/campaigns`** + **`/api/marketing-web` RBAC** ✅ (`marketing.read` / `marketing.write`); next: more module RBAC, richer automation conditions / action types.
 
 ## Track B note (automation)
 

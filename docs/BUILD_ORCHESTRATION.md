@@ -29,10 +29,10 @@ These map the earlier strategy: tooling + platform, shared infrastructure, then 
 
 Ordered for leverage (edit checkboxes as you complete).
 
-- [ ] Email outbox relay wired to all module “send” paths that should use it (done: **`email.send`** via `publishEvent` for recruitment stage change, planning shift notify, campaigns; **`publishEvent`** aligned with Prisma `eventKey` + JSON `payload`; audit remaining callers)
+- [x] Email outbox relay wired to known “send” paths that should use it (**`email.send`** via **`publishEvent`** for recruitment stage change, planning shift notify, campaigns; Prisma **`eventKey`** + JSON **`payload`** aligned). **Audit:** **`sendEmail`** is only invoked from **`api/src/jobs/outboxRelay.ts`** (implementation in **`api/src/core/email/index.ts`**).
 - [x] Module settings **pattern** — CRM pilot: **Settings** UI ↔ **`GET` / `PUT /api/settings/crm`** (`crm.*` keys). Accounting (or second module) still optional as follow-up pilot.
 - [x] **`/api/automation`** RBAC — `requirePermission('automation.read')` / `requirePermission('automation.write')`; spine permissions `automation.read` / `automation.write` (`roles.ts` + idempotent **`seed-roles`**)
-- [ ] Role-per-module RBAC on remaining high-risk routes (reuse same `requirePermission` pattern)
+- [ ] Role-per-module RBAC on remaining high-risk routes (**done:** **`/api/campaigns`**, **`/api/marketing-web`** → **`marketing.read`** / **`marketing.write`**; **`/api/automation`** → **`automation.*`**; extend to e.g. legacy **`POST /api/settings`**, AI actions approve/apply, etc.)
 - [x] Shared calendar adapter — `POST /api/calendar/events` (same payload as `POST /api/calendar`; module integration path)
 - [ ] Minimal automation rules engine (trigger + action MVP — **partial:** Prisma **`$use`** middleware invokes **`AutomationService`** on create/update (non-Workflow models); **`EMAIL`** / **`NOTIFICATION`** / **`UPDATE_RECORD`** implemented (**`UPDATE_RECORD`** model blocklist for sensitive tables); **`CRON`** via **`workflowCronBootstrap`** with periodic DB resync (**`WORKFLOW_CRON_REFRESH_MS`**); deeper items: richer conditions, expand action types)
 
@@ -98,8 +98,8 @@ _Update every session end or significant milestone._
 | --- | --- |
 | **UTC date** | 2026-05-12 |
 | **Active track** | **B** — shared infrastructure (see checklist above) |
-| **Current task** | Track B: **CRON** workflow polling (**needs schedule field or convention**); **`UPDATE_RECORD`** safe apply; grep remaining **`email`** paths → outbox; more **RBAC**. |
-| **Next three tasks** | 1) Email outbox — grep for stray sends, route through `publishEvent({ eventKey: 'email.send', ... })` … 2) RBAC guards on additional modules … 3) Minimal automation rules engine MVP |
+| **Current task** | Track B: **`/api/marketing-web`** guarded with **`marketing.*`**; duplicate routes removed. Next: RBAC on **`/api/settings` bulk POST**, **`ai-actions`** mutations, or automation conditions. |
+| **Next three tasks** | 1) RBAC on additional high-risk routes (e.g. email marketing / mass mailing, admin settings) … 2) Automation — richer conditions and action types … 3) Track C prep only after B slice above is stable |
 | **Blocked by** | — |
 | **Last known good** | `npx jest src/core/__tests__/outbox.test.ts` — pass; workflow **EMAIL** → outbox; **NOTIFICATION** → **`TimelineEvent`** |
 

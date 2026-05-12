@@ -140,6 +140,9 @@ export const PERMISSIONS = {
     // Automation / workflows (engine routes under `/api/automation`)
     AUTOMATION_READ: 'automation.read',
     AUTOMATION_WRITE: 'automation.write',
+    // Marketing campaigns (`/api/campaigns`)
+    MARKETING_READ: 'marketing.read',
+    MARKETING_WRITE: 'marketing.write',
     // GDPR
     GDPR_ERASE: 'gdpr.erase',
 } as const;
@@ -165,6 +168,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<RoleKey, AllPerms> = {
         PERMISSIONS.PROJECTS_READ,
         PERMISSIONS.FLEET_READ,
         PERMISSIONS.QUALITY_READ,
+        PERMISSIONS.MARKETING_READ,
     ],
 
     accounting_manager: [
@@ -188,11 +192,14 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<RoleKey, AllPerms> = {
         PERMISSIONS.PRODUCTS_READ, PERMISSIONS.ACCOUNTING_READ,
         PERMISSIONS.AI_RUN,
         PERMISSIONS.AUTOMATION_READ, PERMISSIONS.AUTOMATION_WRITE,
+        PERMISSIONS.MARKETING_READ,
+        PERMISSIONS.MARKETING_WRITE,
     ],
     sales_user: [
         PERMISSIONS.SALES_READ, PERMISSIONS.SALES_WRITE,
         PERMISSIONS.CRM_READ, PERMISSIONS.CRM_WRITE,
         PERMISSIONS.PARTNERS_READ, PERMISSIONS.PRODUCTS_READ,
+        PERMISSIONS.MARKETING_READ,
     ],
 
     crm_manager: [
@@ -200,10 +207,13 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<RoleKey, AllPerms> = {
         PERMISSIONS.PARTNERS_READ, PERMISSIONS.PARTNERS_WRITE,
         PERMISSIONS.SALES_READ, PERMISSIONS.AI_RUN,
         PERMISSIONS.AUTOMATION_READ, PERMISSIONS.AUTOMATION_WRITE,
+        PERMISSIONS.MARKETING_READ,
+        PERMISSIONS.MARKETING_WRITE,
     ],
     crm_user: [
         PERMISSIONS.CRM_READ, PERMISSIONS.CRM_WRITE,
         PERMISSIONS.PARTNERS_READ, PERMISSIONS.SALES_READ,
+        PERMISSIONS.MARKETING_READ,
     ],
 
     purchase_manager: [
