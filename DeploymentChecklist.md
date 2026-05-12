@@ -11,6 +11,12 @@
 ### Calendar adapter (Track B, 2026-05-12)
 - [ ] Smoke: authenticated `POST /api/calendar/events` with `{ "name": "Test", "start": "<ISO>", "stop": "<ISO>" }` → 201 (same as `POST /api/calendar`)
 
+### Workflow automation EMAIL → outbox (Track B, 2026-05-12)
+
+- [ ] **Outbox relay** — same as other **`email.send`** paths: API job bootstrap runs **`outboxRelay`** so queued rows are delivered.
+- [ ] **SMTP / SendGrid fallback** — `workflow-automation` template merges **`message`** / **`subject`** from payload; misconfigured mail means stuck or failed **`Outbox`** rows (check logs / `ERROR` statuses).
+- [ ] **Smoke (optional)** — activate a **`Workflow`** with **`ON_CREATE`/`ON_UPDATE`** on a non-Workflow model + **`EMAIL`** action; create/update matching row → **`Outbox`** entry with **`eventKey`** **`email.send`**; after relay, recipient receives mail (dev: use trap or mocks).
+
 ### CRM module settings + JWT roles (Track B, 2026-05-12)
 - [ ] After deploy, **re-login** so access tokens pick up **`roles` = `SpineRole.key`** (e.g. `admin`) from `loadUserPermissions`.
 - [ ] Smoke: **`GET /api/settings/crm`** (auth) → 200 JSON (possibly `{}` first load).

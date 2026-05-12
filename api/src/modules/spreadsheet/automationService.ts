@@ -44,9 +44,47 @@ export class AutomationService {
                 console.log(`[Automation] Sending Notification: ${action.config.message || 'Workflow Triggered'}`);
                 // In a real app, emit a socket.io event or create a Notify record
                 break;
-            case 'EMAIL':
-                console.log(`[Automation] Sending Email to: ${action.config.to || data.workEmail || data.email}`);
+            case 'EMAIL': {
+                const cfg =
+                    action.config && typeof action.config === 'object' ? action.config : ({} as Record<string, unknown>);
+                const rawTo = (cfg.to as string | undefined) ?? data.workEmail ?? data.email;
+                const to = typeof rawTo === 'string' ? rawTo.trim() : '';
+                if (!to) {
+                    console.warn('[Automation] EMAIL action: missing recipient (config.to or record email/workEmail)');
+                    break;
+                }
+                const orgRaw = data.organizationId ?? cfg.organizationId;
+                const organizationId =
+                    typeof orgRaw === 'string' && orgRaw.length > 0 ? orgRaw : 'default';
+                const templateKey =
+                    typeof cfg.templateKey === 'string' && cfg.templateKey.length > 0
+                        ? cfg.templateKey
+                        : 'workflow-automation';
+                const message = String(
+                    cfg.message ?? cfg.body ?? 'A workflow ran for this record.'
+                );
+                const vars: Record<string, string> = { message };
+                if (cfg.vars && typeof cfg.vars === 'object') {
+                    for (const [k, v] of Object.entries(cfg.vars as Record<string, unknown>)) {
+                        if (v != null) vars[k] = String(v);
+                    }
+                }
+                const { publishEvent } = await import('../../core/outbox');
+                const subject =
+                    typeof cfg.subject === 'string' && cfg.subject.length > 0 ? cfg.subject : undefined;
+                await publishEvent({
+                    organizationId,
+                    eventKey: 'email.send',
+                    payload: {
+                        to,
+                        templateKey,
+                        vars,
+                        ...(subject ? { subject } : {}),
+                    },
+                });
+                console.log(`[Automation] EMAIL queued via outbox for ${to} (${templateKey})`);
                 break;
+            }
             case 'UPDATE_RECORD':
                 const { field, value } = action.config;
                 if (field && value !== undefined) {

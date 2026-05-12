@@ -109,6 +109,15 @@ const TEMPLATES: Record<string, { subject: string; html: string }> = {
         subject: '{{subjectLine}}',
         html: '{{htmlBody}}',
     },
+    /** Prisma middleware workflows (`AutomationService` EMAIL action); vars: message */
+    'workflow-automation': {
+        subject: 'Notification',
+        html: `
+<div style="font-family:sans-serif;max-width:600px;margin:auto">
+  <p style="white-space:pre-wrap">{{message}}</p>
+  <hr/><p style="color:#888;font-size:12px">FusionAI Automation</p>
+</div>`,
+    },
     'recruitment-stage-change': {
         subject: 'Application Update: {{jobName}} — {{stageName}}',
         html: `

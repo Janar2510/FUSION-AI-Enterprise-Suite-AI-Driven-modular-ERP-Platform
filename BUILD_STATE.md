@@ -15,7 +15,11 @@
 
 1. Parallel dev: **[docs/RUFLO_AGENTS.md](docs/RUFLO_AGENTS.md)** — `ruflo agent spawn` / `ruflo swarm` + Cursor for implementation.
 2. User: Open **`docs/`** as an Obsidian vault ([docs/OBSIDIAN_VAULT.md](docs/OBSIDIAN_VAULT.md)).
-3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** (`automation.read` / `automation.write`) ✅; outbox **`email.send`** for recruitment + planning + campaigns ✅; next: outbox audit, more RBAC, automation MVP.
+3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** for recruitment + planning + campaigns ✅; **workflow rules `EMAIL`** → outbox (**`workflow-automation`** template) ✅; next: grep remaining direct sends, more RBAC, **CRON**/stub actions.
+
+## Track B note (automation)
+
+- **`AutomationService`** (Prisma **`$use`**) fires on model create/update; rule action **`EMAIL`** publishes **`email.send`** to the transactional outbox → relay uses **`sendEmail`** (template key default **`workflow-automation`**).
 
 ---
 

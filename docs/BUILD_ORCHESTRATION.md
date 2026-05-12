@@ -34,7 +34,7 @@ Ordered for leverage (edit checkboxes as you complete).
 - [x] **`/api/automation`** RBAC — `requirePermission('automation.read')` / `requirePermission('automation.write')`; spine permissions `automation.read` / `automation.write` (`roles.ts` + idempotent **`seed-roles`**)
 - [ ] Role-per-module RBAC on remaining high-risk routes (reuse same `requirePermission` pattern)
 - [x] Shared calendar adapter — `POST /api/calendar/events` (same payload as `POST /api/calendar`; module integration path)
-- [ ] Minimal automation rules engine (trigger + action MVP)
+- [ ] Minimal automation rules engine (trigger + action MVP — **partial:** Prisma **`$use`** middleware invokes **`AutomationService`** on create/update (non-Workflow models); **`EMAIL`** action enqueues **`email.send`** via outbox + **`workflow-automation`** template; **`NOTIFICATION`** / **`UPDATE_RECORD`** still stubs; **CRON** triggers not polled yet)
 
 ### Track C — P1 revenue-critical depth
 
@@ -98,10 +98,10 @@ _Update every session end or significant milestone._
 | --- | --- |
 | **UTC date** | 2026-05-12 |
 | **Active track** | **B** — shared infrastructure (see checklist above) |
-| **Current task** | Track B: audit remaining **direct `sendEmail`** / outbox paths; extend **RBAC** to next route families; **automation MVP** if prioritized. |
+| **Current task** | Track B: optional **CRON** workflow polling; broaden **RBAC** on more routes; invoice/helpdesk email→outbox if any remain. |
 | **Next three tasks** | 1) Email outbox — grep for stray sends, route through `publishEvent({ eventKey: 'email.send', ... })` … 2) RBAC guards on additional modules … 3) Minimal automation rules engine MVP |
 | **Blocked by** | — |
-| **Last known good** | `npx jest src/core/__tests__/outbox.test.ts src/core/__tests__/auth.test.ts` — pass (after outbox + automation RBAC changes) |
+| **Last known good** | `npx jest src/core/__tests__/outbox.test.ts` — pass; workflow **EMAIL** → **`email.send`** outbox + **`workflow-automation`** template |
 
 ---
 
