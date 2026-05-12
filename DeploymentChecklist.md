@@ -28,6 +28,9 @@
 ### Legacy flat settings (Track B, 2026-05-12)
 - [ ] **`POST /api/settings`** (flat bulk upsert) and **`GET /api/settings/users`** require **`settings.write`** — same as **`PUT /api/settings/:module`**. Users who only saved module JSON before may need **`settings.write`** on their role for the bulk save or user roster.
 
+### AI actions API (Track B, 2026-05-12)
+- [ ] **`/api/ai`** — **`ai.run`** for run + list/read/pending; **`ai.approve`** for lifecycle mutations. After deploy run **`cd api && npx tsx scripts/seed-roles.ts`** so JWTs gain **`ai.approve`** where **`DEFAULT_ROLE_PERMISSIONS`** assigns it (**re-login**).
+
 ## Marketing Automation Activities + Audience Targeting (2026-05-11)
 
 ### Database Steps

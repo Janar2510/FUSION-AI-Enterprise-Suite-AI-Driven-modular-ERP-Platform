@@ -1,16 +1,15 @@
 /**
- * POST /api/ai/run           — run a named agent
- * GET  /api/ai/actions       — list AiActions (filterable by entityType/entityId/status)
- * GET  /api/ai/actions/:id   — get one AiAction
- * POST /api/ai/actions/:id/approve — approve (sets status APPROVED)
- * POST /api/ai/actions/:id/reject  — reject
- * POST /api/ai/actions/:id/apply   — apply (status APPLIED; agent-specific side effect)
- * POST /api/ai/actions/:id/rollback
+ * Mounted at POST /api/ai (see `index.ts`).
+ * POST /run           — run a named agent (**`ai.run`**)
+ * GET  /actions       — list AiActions (**`ai.run`**)
+ * GET  /actions/:id   — get one (**`ai.run`**)
+ * POST /actions/:id/approve | reject | apply | rollback (**`ai.approve`**)
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { requireAuth } from '../core/auth';
+import { requireAuth, requirePermission } from '../core/auth';
+import { PERMISSIONS } from '../core/auth/roles';
 import { AppError } from '../core/errors';
 import { audit } from '../core/audit';
 import {
@@ -56,7 +55,7 @@ const RunSchema = z.object({
     input: z.record(z.string(), z.unknown()).optional(),
 });
 
-router.post('/run', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/run', requireAuth, requirePermission(PERMISSIONS.AI_RUN), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const body = RunSchema.parse(req.body);
         const result = await runAgent(
@@ -72,7 +71,7 @@ router.post('/run', requireAuth, async (req: Request, res: Response, next: NextF
 
 // ── List actions ──────────────────────────────────────────────────────────────
 
-router.get('/actions', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/actions', requireAuth, requirePermission(PERMISSIONS.AI_RUN), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { entityType, entityId, status, limit = '50' } = req.query as Record<string, string>;
         const actions = await (prisma as any).aiAction?.findMany?.({
@@ -92,7 +91,7 @@ router.get('/actions', requireAuth, async (req: Request, res: Response, next: Ne
 
 // ── Get one ───────────────────────────────────────────────────────────────────
 
-router.get('/actions/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/actions/:id', requireAuth, requirePermission(PERMISSIONS.AI_RUN), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const action = await (prisma as any).aiAction?.findUnique?.({ where: { id: req.params.id } });
         if (!action) throw AppError.notFound('AiAction not found');
@@ -104,7 +103,7 @@ router.get('/actions/:id', requireAuth, async (req: Request, res: Response, next
 
 // ── Approve ───────────────────────────────────────────────────────────────────
 
-router.post('/actions/:id/approve', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/actions/:id/approve', requireAuth, requirePermission(PERMISSIONS.AI_APPROVE), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const action = await approveAction(req.params.id, req.user!.sub);
         await audit({ organizationId: req.user!.orgId, userId: req.user!.sub, action: 'ai_action.approve', model: 'AiAction', recordId: req.params.id });
@@ -116,7 +115,7 @@ router.post('/actions/:id/approve', requireAuth, async (req: Request, res: Respo
 
 // ── Reject ────────────────────────────────────────────────────────────────────
 
-router.post('/actions/:id/reject', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/actions/:id/reject', requireAuth, requirePermission(PERMISSIONS.AI_APPROVE), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const action = await rejectAction(req.params.id, req.user!.sub);
         await audit({ organizationId: req.user!.orgId, userId: req.user!.sub, action: 'ai_action.reject', model: 'AiAction', recordId: req.params.id });
@@ -128,7 +127,7 @@ router.post('/actions/:id/reject', requireAuth, async (req: Request, res: Respon
 
 // ── Apply (execute the suggestion) ───────────────────────────────────────────
 
-router.post('/actions/:id/apply', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/actions/:id/apply', requireAuth, requirePermission(PERMISSIONS.AI_APPROVE), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const action = await (prisma as any).aiAction?.findUnique?.({ where: { id: req.params.id } });
         if (!action) throw AppError.notFound('AiAction not found');
@@ -149,7 +148,7 @@ router.post('/actions/:id/apply', requireAuth, async (req: Request, res: Respons
 
 // ── Rollback ──────────────────────────────────────────────────────────────────
 
-router.post('/actions/:id/rollback', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/actions/:id/rollback', requireAuth, requirePermission(PERMISSIONS.AI_APPROVE), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const updated = await rollbackAction(req.params.id);
         await audit({ organizationId: req.user!.orgId, userId: req.user!.sub, action: 'ai_action.rollback', model: 'AiAction', recordId: req.params.id });
@@ -161,7 +160,7 @@ router.post('/actions/:id/rollback', requireAuth, async (req: Request, res: Resp
 
 // ── Pending for an entity ─────────────────────────────────────────────────────
 
-router.get('/pending', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/pending', requireAuth, requirePermission(PERMISSIONS.AI_RUN), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { entityType, entityId } = req.query as Record<string, string>;
         const actions = await getPendingActions(entityType, entityId);

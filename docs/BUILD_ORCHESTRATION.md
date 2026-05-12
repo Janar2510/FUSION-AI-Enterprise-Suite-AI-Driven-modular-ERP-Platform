@@ -32,7 +32,7 @@ Ordered for leverage (edit checkboxes as you complete).
 - [x] Email outbox relay wired to known “send” paths that should use it (**`email.send`** via **`publishEvent`** for recruitment stage change, planning shift notify, campaigns; Prisma **`eventKey`** + JSON **`payload`** aligned). **Audit:** **`sendEmail`** is only invoked from **`api/src/jobs/outboxRelay.ts`** (implementation in **`api/src/core/email/index.ts`**).
 - [x] Module settings **pattern** — CRM pilot: **Settings** UI ↔ **`GET` / `PUT /api/settings/crm`** (`crm.*` keys). Accounting (or second module) still optional as follow-up pilot.
 - [x] **`/api/automation`** RBAC — `requirePermission('automation.read')` / `requirePermission('automation.write')`; spine permissions `automation.read` / `automation.write` (`roles.ts` + idempotent **`seed-roles`**)
-- [ ] Role-per-module RBAC on remaining high-risk routes (**done:** campaigns, marketing-web, **`POST /api/settings`**, **`GET /api/settings/users`**; **`/api/automation`**; extend to **`/api/ai-actions`** mutations, etc.)
+- [ ] Role-per-module RBAC on remaining high-risk routes (**done:** campaigns, marketing-web, **`POST /api/settings`**, **`GET /api/settings/users`**; **`/api/automation`**; **`/api/ai`** **`ai.run`** + **`ai.approve`** guards; extend: automation condition depth, etc.)
 - [x] Shared calendar adapter — `POST /api/calendar/events` (same payload as `POST /api/calendar`; module integration path)
 - [ ] Minimal automation rules engine (trigger + action MVP — **partial:** Prisma **`$use`** middleware invokes **`AutomationService`** on create/update (non-Workflow models); **`EMAIL`** / **`NOTIFICATION`** / **`UPDATE_RECORD`** implemented (**`UPDATE_RECORD`** model blocklist for sensitive tables); **`CRON`** via **`workflowCronBootstrap`** with periodic DB resync (**`WORKFLOW_CRON_REFRESH_MS`**); deeper items: richer conditions, expand action types)
 
@@ -98,8 +98,8 @@ _Update every session end or significant milestone._
 | --- | --- |
 | **UTC date** | 2026-05-12 |
 | **Active track** | **B** — shared infrastructure (see checklist above) |
-| **Current task** | Track B: **`POST /api/settings`** + **`GET /api/settings/users`** require **`settings.write`**. Next: **`/api/ai-actions`** approve/apply, or automation condition depth. |
-| **Next three tasks** | 1) **`/api/ai-actions`** guard approve/apply/rollback … 2) Automation — richer conditions and action types … 3) Track C prep after B stabilizes |
+| **Current task** | Track B: **`/api/ai`** RBAC (**`ai.run`** vs **`ai.approve`**) + seed **`ai.approve`** on AI manager roles — **done**. Next: automation — richer conditions / action types. |
+| **Next three tasks** | 1) Automation — richer conditions and action types … 2) Track C prep after B stabilizes … 3) Remaining route hardening if any gaps |
 | **Blocked by** | — |
 | **Last known good** | `npx jest src/core/__tests__/outbox.test.ts` — pass; workflow **EMAIL** → outbox; **NOTIFICATION** → **`TimelineEvent`** |
 
