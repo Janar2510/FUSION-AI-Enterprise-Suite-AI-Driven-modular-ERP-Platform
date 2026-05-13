@@ -232,6 +232,24 @@ export const crmApi = {
   convert: (id: number) =>
     api.post(`/api/crm/leads/${id}/convert`),
 
+  markLost: (id: number, lostReason?: string) =>
+    api.patch(`/api/crm/leads/${id}/lost`, { lostReason }),
+
+  // Lead activities
+  listActivities: (leadId: number) =>
+    api.get(`/api/crm/leads/${leadId}/activities`),
+
+  createActivity: (
+    leadId: number,
+    data: { type: string; summary: string; body?: string; dueAt?: string }
+  ) => api.post(`/api/crm/leads/${leadId}/activities`, data),
+
+  markActivityDone: (activityId: number) =>
+    api.patch(`/api/crm/activities/${activityId}/done`, {}),
+
+  deleteActivity: (activityId: number) =>
+    api.delete(`/api/crm/activities/${activityId}`),
+
   // Stages
   stages: () =>
     api.get('/api/crm/stages'),
