@@ -7,9 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ## [Unreleased] — Build orchestration + doc aliases — 2026-05-12
 
 ### Changed
-- **CRM frontend (`CRMModule`)** — **`crmApi`** for **lead activities** (list / create / done / delete) and **mark lost** so requests use the shared **`api`** client (**JWT** + **`VITE_API_URL`** base). Replaces raw **`axios`** to **`localhost:3001`** without auth. **`CrmActivity.id`** typed **`number`**; activity row **delete** control; short error line on load/mutation failure.
+- **CRM frontend (`CRMModule`)** — **`crmApi`** for **lead activities** (list / create / done / delete) and **mark lost** so requests use the shared **`api`** client (**JWT** + **`VITE_API_URL`** base). Replaces raw **`axios`** to **`localhost:3001`** without auth. **`CrmActivity.id`** typed **`number`**; activity row **delete** control; short error line on load/mutation failure. **`CrmActivitiesPanel`** extracted to **`frontend/src/modules/crm/components/CrmActivitiesPanel.tsx`**.
 
 ### Added
+- **CRM pipeline analytics (Track C lite)** — **`GET /api/crm/analytics`** consumed via **`crmApi.analytics()`**; Zustand **`crmAnalytics`** + **`fetchCrmAnalytics`** (runs after **`fetchPipeline`** and after successful kanban **`moveStage`**). UI: **`CrmPipelineAnalyticsBar`** in **`frontend/src/modules/crm/components/CrmPipelineAnalyticsBar.tsx`**, mounted above **kanban** and **list** in **`CRMModule`**.
 - **`docs/architecture.md`** — canonical architecture index linking `SYSTEM_DESIGN.md`, `MODULE_SPECS.md`, ADRs.
 - **`docs/ai-rules.md`** — canonical AI/agent rules index linking `AGENT_RULES.md`, skills selection, MCP/skill gap logging, and RuFlo agent pairing notes.
 - **`docs/BUILD_ORCHESTRATION.md`** — live plan with Tracks A/B/C (tooling, Sprint 1 infra, P1 depth), Ruflo install notes, checkpoint template, interrupt log, outbound requests.

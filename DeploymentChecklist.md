@@ -32,6 +32,7 @@
 - [ ] Smoke: **`PUT /api/settings/crm`** with `{ "multiTeams": true, "leadMining": false, "predictiveScoring": true, "ruleBasedAssignment": false }` → 200; verify rows in `SystemConfig` with keys `crm.multiTeams`, etc.
 - [ ] UI: open **CRM → Settings**, toggle features, **Save** → success toast; reload page → values persist.
 - [ ] UI: open a **lead** → **Activities** panel uses JWT (no 401): list, **Schedule** → create, **Mark done**, **Delete** on a row.
+- [ ] **Pipeline analytics (Track C lite):** **`GET /api/crm/analytics`** (auth) → 200 with `totalLeads`, `stageBreakdown`, etc.; CRM **kanban** and **list** show the **Pipeline analytics** bar; drag a lead between stages → bar / counts refresh.
 
 ### Legacy flat settings (Track B, 2026-05-12)
 - [ ] **`POST /api/settings`** (flat bulk upsert) and **`GET /api/settings/users`** require **`settings.write`** — same as **`PUT /api/settings/:module`**. Users who only saved module JSON before may need **`settings.write`** on their role for the bulk save or user roster.

@@ -28,16 +28,27 @@ export interface CrmStage {
   leads: CrmLead[];
 }
 
+/** Matches GET /api/crm/analytics */
+export interface CrmAnalytics {
+  totalLeads: number;
+  openOpportunities: number;
+  newThisMonth: number;
+  avgDealSize: number;
+  stageBreakdown: { id: number; name: string; count: number }[];
+}
+
 interface CRMStore {
   // State
   pipelineStages: CrmStage[];
   allLeads: CrmLead[];
   loading: boolean;
   error: string | null;
+  crmAnalytics: CrmAnalytics | null;
 
   // CRUD actions
   fetchPipeline: () => Promise<void>;
   fetchAllLeads: () => Promise<void>;
+  fetchCrmAnalytics: () => Promise<void>;
   createLead: (data: Partial<CrmLead>) => Promise<CrmLead | undefined>;
   updateLead: (id: number, data: Partial<CrmLead>) => Promise<void>;
   moveLeadStage: (leadId: number, newStageId: number) => Promise<void>;
@@ -54,12 +65,23 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
   allLeads: [],
   loading: false,
   error: null,
+  crmAnalytics: null,
+
+  fetchCrmAnalytics: async () => {
+    try {
+      const res = await crmApi.analytics();
+      set({ crmAnalytics: res.data });
+    } catch {
+      /* keep previous snapshot */
+    }
+  },
 
   fetchPipeline: async () => {
     try {
       set({ loading: true, error: null });
       const res = await crmApi.pipeline();
       set({ pipelineStages: res.data, loading: false });
+      void get().fetchCrmAnalytics();
     } catch (err: any) {
       set({ error: err.message, loading: false });
     }
@@ -126,6 +148,7 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
 
     try {
       await crmApi.moveStage(leadId, newStageId);
+      void get().fetchCrmAnalytics();
     } catch (err: any) {
       set({ error: err.message });
       await get().fetchPipeline(); // Rollback on failure

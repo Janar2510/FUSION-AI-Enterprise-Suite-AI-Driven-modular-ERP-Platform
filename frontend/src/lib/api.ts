@@ -219,6 +219,9 @@ export const crmApi = {
   pipeline: () =>
     api.get('/api/crm/pipeline'),
 
+  analytics: () =>
+    api.get('/api/crm/analytics'),
+
   // Flow actions (Phase 3 flows A)
   qualify: (id: number) =>
     api.post(`/api/crm/leads/${id}/qualify`),

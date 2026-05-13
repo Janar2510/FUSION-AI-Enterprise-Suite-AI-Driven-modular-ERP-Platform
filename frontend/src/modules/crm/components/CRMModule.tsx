@@ -14,6 +14,7 @@ import { CRMSettings } from './CRMSettings';
 import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 import { crmApi } from '@/lib/api';
 import { CrmActivitiesPanel } from './CrmActivitiesPanel';
+import { CrmPipelineAnalyticsBar } from './CrmPipelineAnalyticsBar';
 
 // Internal form wrapper removed as nested routing is now handling CRM views
 
@@ -197,7 +198,9 @@ export const CRMModule: React.FC = () => {
         >
             <Routes>
                 <Route path="/" element={
-                    <OdooKanbanBase
+                    <div className="flex flex-col gap-4 min-h-0">
+                        <CrmPipelineAnalyticsBar />
+                        <OdooKanbanBase
                         columns={pipelineStages.map(stage => {
                             const filteredLeads = (stage.leads || []).filter(lead =>
                                 !searchTerm ||
@@ -226,10 +229,13 @@ export const CRMModule: React.FC = () => {
                             navigate('/module/crm/leads/new');
                         }}
                     />
+                    </div>
                 } />
 
                 <Route path="/leads/list" element={
-                    <OdooListBase
+                    <div className="flex flex-col gap-4 min-h-0">
+                        <CrmPipelineAnalyticsBar />
+                        <OdooListBase
                         data={allLeads.filter(l => l.name.toLowerCase().includes(searchTerm.toLowerCase()))}
                         onRowClick={handleRowClick}
                         keyExtractor={(l) => l.id.toString()}
@@ -258,6 +264,7 @@ export const CRMModule: React.FC = () => {
                             }
                         ]}
                     />
+                    </div>
                 } />
 
                 <Route path="/leads/*" element={
