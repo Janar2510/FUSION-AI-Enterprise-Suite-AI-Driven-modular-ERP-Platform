@@ -15,11 +15,11 @@
 
 1. Parallel dev: **[docs/RUFLO_AGENTS.md](docs/RUFLO_AGENTS.md)** — `ruflo agent spawn` / `ruflo swarm` + Cursor for implementation.
 2. User: Open **`docs/`** as an Obsidian vault ([docs/OBSIDIAN_VAULT.md](docs/OBSIDIAN_VAULT.md)).
-3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅; workflow actions ✅ + **`UPDATE_RECORD`** blocklist ✅ + **`CRON`** ✅ + **`SEQUENCE`** / **`WEBHOOK`** ✅; **`/api/campaigns`** + **`/api/marketing-web` RBAC** ✅; **`POST /api/settings`** + **`GET /api/settings/users`** require **`settings.write`** ✅; **`/api/ai`** **`ai.run`** / **`ai.approve`** guards ✅; structured **`Workflow.condition`** JSON + **`__previous`** + **`evaluateWorkflowCondition`** ✅; next: optional webhook signing/retries / more action types.
+3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅; workflow actions ✅ + **`UPDATE_RECORD`** blocklist ✅ + **`CRON`** ✅ + **`SEQUENCE`** / **`WEBHOOK`** ✅ (retries + HMAC); **`/api/campaigns`** + **`/api/marketing-web` RBAC** ✅; **`POST /api/settings`** + **`GET /api/settings/users`** require **`settings.write`** ✅; **`/api/ai`** **`ai.run`** / **`ai.approve`** guards ✅; structured **`Workflow.condition`** JSON + **`__previous`** + **`evaluateWorkflowCondition`** ✅; next: outbound queue / DLQ if volume grows.
 
 ## Track B note (automation)
 
-- **`AutomationService`** — **`NOTIFICATION`** → **`timelineEvent`**; **`EMAIL`** → outbox **`email.send`**; **`UPDATE_RECORD`** uses **`runAutomationSkipped`** + model blocklist; **`SEQUENCE`** runs nested **`actions`**; **`WEBHOOK`** posts JSON (**`record`** without **`__previous`**); **`CRON`** resynced on a timer (**`WORKFLOW_CRON_REFRESH_MS`**).
+- **`AutomationService`** — **`NOTIFICATION`** → **`timelineEvent`**; **`EMAIL`** → outbox **`email.send`**; **`UPDATE_RECORD`** uses **`runAutomationSkipped`** + model blocklist; **`SEQUENCE`** runs nested **`actions`**; **`WEBHOOK`** posts JSON (**`record`** without **`__previous`**), optional **`X-Fusion-Webhook-Signature`**, retries on **5xx**/network; **`CRON`** resynced on a timer (**`WORKFLOW_CRON_REFRESH_MS`**).
 
 ---
 

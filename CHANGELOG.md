@@ -30,8 +30,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Changed (Track B — workflow SEQUENCE + WEBHOOK)
 
 - **`SEQUENCE`** action — **`actions`**: ordered child steps (**`executeAction`** with nesting cap **8**, step cap **50**, optional **`config.maxSteps`**). **`CRON`** supplementary **`runCondition`** still reads from the **root** action’s **`config`** (place **`condition`** on a **`SEQUENCE`** root when chaining under CRON).
-- **`WEBHOOK`** action — **`config.url`** (**http**/**https**; **https** only when **`NODE_ENV=production`**), optional **`method`**, **`headers`**, **`body`** merge; **`record`** omits **`__previous`** (**`omitPreviousRowSnapshot`** in **`automationHelpers.ts`**); **15s** **`fetch`** timeout.
-- **Tests** — **`api/src/modules/spreadsheet/__tests__/automationHelpers.test.ts`**.
+- **`WEBHOOK`** action — **`config.url`** (**http**/**https**; **https** only when **`NODE_ENV=production`**), optional **`method`**, **`headers`**, **`body`** merge; **`record`** omits **`__previous`** (**`omitPreviousRowSnapshot`** in **`automationHelpers.ts`**); **15s** **`fetch`** timeout; **`config.maxRetries`** (0–5, default **2**) with exponential backoff — retries **5xx** and transport errors only; optional **`config.hmacSecret`** or **`config.hmacSecretEnv`** (loads secret from **`process.env`**) — **`X-Fusion-Webhook-Signature: sha256=<hex>`** over the exact JSON body.
+- **Implementation** — **`api/src/modules/spreadsheet/webhookDelivery.ts`** (**`deliverWebhook`**, **`signWebhookBody`**, **`resolveWebhookHmacSecret`**).
+- **Tests** — **`api/src/modules/spreadsheet/__tests__/automationHelpers.test.ts`**, **`api/src/modules/spreadsheet/__tests__/webhookDelivery.test.ts`** (signing, retries, **SEQUENCE** → dual **WEBHOOK** order).
+
+### Added (Track B — outbound WEBHOOK queue + DLQ)
+
+- **Postgres queue** — model **`AutomationWebhookDelivery`** / table **`automation_webhook_deliveries`**; optional **`AUTOMATION_WEBHOOK_QUEUE=1`** (or **`true`**) routes eligible **`WEBHOOK`** actions through **`enqueueWebhookFromAutomation`** instead of synchronous **`deliverWebhook`**. Background worker **`startWebhookQueueWorker`** (**`api/src/jobs/webhookQueueWorker.ts`**, started from **`api/src/jobs/index.ts`**) polls **`processWebhookQueueBatch`** on an interval (**`AUTOMATION_WEBHOOK_QUEUE_POLL_MS`**, default **15000** ms, minimum **3000**). Successful delivery deletes the row; failures advance **`attempts`** with **`nextRetryAt`**; after **`WEBHOOK_QUEUE_MAX_RUNS`** (**5**) the row is **`status: dead`** (DLQ). **Inline `config.hmacSecret`** workflows stay **synchronous** (secret is not stored on queued rows).
+- **Env** — **`AUTOMATION_WEBHOOK_QUEUE_BATCH`** caps rows per tick.
+- **Migration** — **`api/prisma/migrations/20260512130000_automation_webhook_queue/`**.
+- **Tests** — **`api/src/modules/spreadsheet/__tests__/webhookQueue.test.ts`**.
 
 ### Added (API)
 - **`POST /api/calendar/events`** — Track B shared calendar adapter alias; same JSON body as `POST /api/calendar` (`name`, `start`, `stop`, optional `attendeeIds`, etc.). Frontend: `calendarApi.createEvent` in `frontend/src/lib/api.ts`.

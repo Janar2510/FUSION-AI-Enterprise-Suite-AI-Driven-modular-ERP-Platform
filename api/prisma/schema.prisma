@@ -2222,6 +2222,23 @@ model Workflow {
   @@map("workflows")
 }
 
+/// Postgres-backed outbound WEBHOOK queue; rows with `status = dead` are the DLQ for ops inspection.
+model AutomationWebhookDelivery {
+  id             Int       @id @default(autoincrement())
+  status         String
+  attempts       Int       @default(0)
+  lastHttpStatus Int?
+  lastError      String?
+  payload        Json
+  workflowId     Int?
+  nextRetryAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@map("automation_webhook_deliveries")
+}
+
 model StockWarehouseOrderpoint {
   id              Int            @id @default(autoincrement())
   name            String?

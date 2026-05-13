@@ -18,6 +18,8 @@
 - [ ] **Smoke (optional)** — activate a **`Workflow`** with **`ON_CREATE`/`ON_UPDATE`** on a non-Workflow model + **`EMAIL`** action; create/update matching row → **`Outbox`** entry with **`eventKey`** **`email.send`**; after relay, recipient receives mail (dev: use trap or mocks).
 - [ ] **`UPDATE_RECORD`** — workflow on a test model updates **`config.field`** (allowlisted identifier) for **`data.id`** or **`config.id`**, or **`config.fields`** map; confirm no runaway middleware (nested write uses skip flag).
 - [ ] **`WEBHOOK`** (optional) — test endpoint receives JSON with **`workflowId`**, **`record`** (no **`__previous`** field); **`production`** rejects non-**HTTPS** URLs; verify timeout behavior against a slow URL if stress-testing ops.
+- [ ] **`WEBHOOK` HMAC** — set **`config.hmacSecret`** (or **`hmacSecretEnv`** pointing to a process env var on the API host); receiver verifies **`X-Fusion-Webhook-Signature`** (**`sha256=`** + HMAC-SHA256 hex of raw body UTF-8). **`config.maxRetries`** **0** = single attempt for deterministic integration tests.
+- [ ] **`WEBHOOK` queue (high volume)** — apply migration **`20260512130000_automation_webhook_queue`** (`cd api && npx prisma migrate deploy`). Set **`AUTOMATION_WEBHOOK_QUEUE=1`**, optionally **`AUTOMATION_WEBHOOK_QUEUE_POLL_MS`** and **`AUTOMATION_WEBHOOK_QUEUE_BATCH`**. API must run job bootstrap (**`webhookQueueWorker`**). Inspect DLQ: **`automation_webhook_deliveries`** where **`status = 'dead'`**. Workflows with **inline `hmacSecret`** are not queued (sync path only).
 
 ### Structured workflow conditions (Track B)
 

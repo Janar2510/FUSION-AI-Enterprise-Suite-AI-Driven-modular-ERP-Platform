@@ -3,6 +3,16 @@ import type { Prisma } from '@prisma/client';
 import prisma, { runAutomationSkipped } from '../../lib/prisma';
 import { omitPreviousRowSnapshot } from './automationHelpers';
 import { FormulaService } from './formulaService';
+import {
+    DEFAULT_WEBHOOK_MAX_RETRIES,
+    deliverWebhook,
+    resolveWebhookHmacSecret,
+} from './webhookDelivery';
+import {
+    canQueueWebhookConfig,
+    enqueueWebhookFromAutomation,
+    isWebhookQueueEnabled,
+} from './webhookQueue';
 
 type WorkflowTrigger = 'ON_CREATE' | 'ON_UPDATE';
 
@@ -393,26 +403,55 @@ export class AutomationService {
                     );
                 }
 
-                const ac = new AbortController();
-                const timer = setTimeout(() => ac.abort(), WEBHOOK_TIMEOUT_MS);
-                try {
-                    const res = await fetch(urlStr, {
+                const maxRetriesRaw = cfg.maxRetries;
+                const maxRetries =
+                    typeof maxRetriesRaw === 'number' &&
+                    Number.isFinite(maxRetriesRaw) &&
+                    maxRetriesRaw >= 0
+                        ? maxRetriesRaw
+                        : DEFAULT_WEBHOOK_MAX_RETRIES;
+
+                const hmacSecret = resolveWebhookHmacSecret(cfg as Record<string, unknown>);
+
+                if (isWebhookQueueEnabled() && canQueueWebhookConfig(cfg as Record<string, unknown>)) {
+                    const hmacSecretEnvStr =
+                        typeof cfg.hmacSecretEnv === 'string' && cfg.hmacSecretEnv.trim().length > 0
+                            ? cfg.hmacSecretEnv.trim()
+                            : undefined;
+                    await enqueueWebhookFromAutomation({
+                        workflowId: workflow.id,
+                        workflowName: workflow.name,
+                        url: urlStr,
                         method,
                         headers,
                         body: bodyJson,
-                        signal: ac.signal,
+                        timeoutMs: WEBHOOK_TIMEOUT_MS,
+                        maxRetries,
+                        hmacSecretEnv: hmacSecretEnvStr,
                     });
-                    if (!res.ok) {
-                        console.warn(
-                            `[Automation] WEBHOOK: ${method} ${parsed.hostname} returned ${res.status}`,
-                        );
-                    } else {
-                        console.log(`[Automation] WEBHOOK → ${method} ${parsed.hostname} OK`);
-                    }
-                } catch (err) {
-                    console.error('[Automation] WEBHOOK request failed:', err);
-                } finally {
-                    clearTimeout(timer);
+                    console.log(
+                        `[Automation] WEBHOOK queued → ${method} ${parsed.hostname} workflowId=${workflow.id}`,
+                    );
+                    break;
+                }
+
+                const result = await deliverWebhook({
+                    url: urlStr,
+                    method,
+                    headers,
+                    body: bodyJson,
+                    timeoutMs: WEBHOOK_TIMEOUT_MS,
+                    maxRetries,
+                    hmacSecret,
+                });
+                if (result.ok) {
+                    console.log(
+                        `[Automation] WEBHOOK → ${method} ${parsed.hostname} OK (${result.attempts} attempt(s))`,
+                    );
+                } else {
+                    console.warn(
+                        `[Automation] WEBHOOK: ${method} ${parsed.hostname} failed after ${result.attempts} attempt(s)${result.status != null ? ` status=${result.status}` : ''}`,
+                    );
                 }
                 break;
             }
