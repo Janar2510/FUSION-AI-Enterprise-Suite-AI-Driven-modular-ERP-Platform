@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BarChart3 } from 'lucide-react';
-import { useCRMStore, CrmAnalytics } from '../stores/crmStore';
+import { useCRMStore, CrmAnalytics, CrmForecast } from '../stores/crmStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { crmApi } from '@/lib/api';
 
@@ -81,11 +81,52 @@ function StageDistribution({ data }: { data: CrmAnalytics['stageBreakdown'] }) {
 
 type Salesperson = { id: string; name: string; email: string };
 
+function OpportunityFunnelChart({ stages }: { stages: CrmForecast['stages'] }) {
+  const maxOpp = useMemo(
+    () => Math.max(1, ...stages.map((s) => s.opportunityCount)),
+    [stages],
+  );
+  if (!stages.some((s) => s.opportunityCount > 0)) {
+    return (
+      <div className="text-white/30 text-xs py-1 text-center w-full rounded-md border border-white/5 bg-white/[0.02]">
+        No opportunities in pipeline for this scope
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-end gap-1 min-h-[88px] overflow-x-auto pb-1">
+      {stages.map((s) => {
+        if (s.opportunityCount === 0) return null;
+        const h = Math.round((s.opportunityCount / maxOpp) * 100);
+        return (
+          <div
+            key={s.stageId}
+            className="flex flex-col items-center gap-1 shrink-0 min-w-[48px]"
+            title={`${s.name}: ${s.opportunityCount} opps · $${s.weightedPipeline.toLocaleString()} weighted`}
+          >
+            <div className="flex items-end h-16 w-full justify-center px-0.5">
+              <div
+                className="w-full max-w-[36px] rounded-t-md bg-violet-500/75 min-h-[6px] transition-all"
+                style={{ height: `${Math.max(8, h)}%` }}
+              />
+            </div>
+            <span className="text-[9px] text-white/45 text-center leading-tight line-clamp-2 max-w-[72px]">
+              {s.name}
+            </span>
+            <span className="text-[10px] text-white/60 tabular-nums">{s.opportunityCount}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /**
  * Pipeline summary from GET /api/crm/analytics (stored in crmStore after fetchPipeline / drag).
  */
 export const CrmPipelineAnalyticsBar: React.FC = () => {
   const crmAnalytics = useCRMStore((s) => s.crmAnalytics);
+  const crmForecast = useCRMStore((s) => s.crmForecast);
   const crmScopeUserId = useCRMStore((s) => s.crmScopeUserId);
   const setCrmScopeUserId = useCRMStore((s) => s.setCrmScopeUserId);
   const { user } = useAuth();
@@ -253,6 +294,18 @@ export const CrmPipelineAnalyticsBar: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {crmForecast && crmForecast.stages.length > 0 && (
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 overflow-x-auto">
+          <div className="text-white/45 text-[10px] uppercase tracking-wide mb-1">
+            Opportunity funnel ({crmForecast.stages.reduce((n, s) => n + s.opportunityCount, 0)} opps)
+          </div>
+          <div className="text-white/35 text-[10px] mb-2">
+            Heights by open opportunity count per stage · bar = relative volume · tooltip shows weighted $
+          </div>
+          <OpportunityFunnelChart stages={crmForecast.stages} />
         </div>
       )}
 

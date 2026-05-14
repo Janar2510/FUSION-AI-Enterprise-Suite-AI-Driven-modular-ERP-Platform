@@ -35,7 +35,7 @@
 - [x] Kanban view — ✅ Done (per-stage columns with revenue totals, drag-and-drop, **activity badges**: overdue count, next due **`dueAt`**)
 - [x] List view — ✅ Done (Opportunity, Contact, Email, Phone, Expected Revenue, Stage columns)
 - [x] Form view — ✅ Done (header fields, status bar, Smart Buttons, Chatter stub)
-- [x] Graph / pivot reports — 🟡 Partial (**`GET /api/crm/analytics`**: stage breakdown, **weighted pipeline**, **won/lost MTD**, **`wonLostTrend`** (12 months), **`revenueByOwner`**, win rate; **`CrmPipelineAnalyticsBar`** with manager **owner scope**; no dedicated funnel chart yet)
+- [x] Graph / pivot reports — 🟡 Partial (**`GET /api/crm/analytics`**, **`GET /api/crm/forecast`**: stage breakdown, **weighted pipeline**, **won/lost MTD**, **`wonLostTrend`** (12 months), **`revenueByOwner`**, win rate; **`CrmPipelineAnalyticsBar`** with manager **owner scope**; **Opportunity funnel** bars from forecast **`stages`**)
 - [x] Calendar view (activities, follow-up deadlines) — ✅ **`GET /api/crm/activities/calendar`** (**`crmLeadFilter`**, open activities with **`dueAt`** in range); **`CrmActivitiesCalendar`** at **`/module/crm/activities/calendar`** (toolbar calendar icon; click event → lead form)
 - [x] Pipeline forecast (Odoo 17 forecasting column) — 🟡 Partial (**weightedPipeline** = Σ expectedRevenue × probability / 100 on scoped active leads; not per-stage forecast columns)
 
@@ -90,14 +90,14 @@
 - [x] GET /api/crm/activities/calendar — ✅ query **`from`**, **`to`** (ISO); open activities (**`doneAt` null**) with **`dueAt`** in window; **`crmLeadFilter`** on lead; each row includes **`lead: { id, name }`**
 - [ ] POST /api/crm/leads/:id/merge — ❌ missing
 - [ ] GET /api/crm/teams — ❌ missing
-- [ ] GET /api/crm/forecast — ❌ missing
+- [x] GET /api/crm/forecast — ✅ **`weightedPipeline`** + per-stage **`stages[]`** (**`leadCount`**, **`opportunityCount`**, **`pipelineValue`**, **`weightedPipeline`**); optional **`user_id`** (manager scope, same as analytics); **`CrmPipelineAnalyticsBar`** **Opportunity funnel** chart
 
 ---
 
 ### Missing Features Summary
-CRM has a functional kanban pipeline, lead lifecycle flows, Sales integration, **activities API + UI**, **activities calendar**, **Mark Lost with presets + detail**, **partner picker**, **pipeline + analytics scoped by `crmLeadFilter`** with optional **`user_id`** for managers, **12‑month won/lost trend** and **revenue-by-owner** analytics, **activity → calendar event** linkage, **activity summary on kanban cards**, and **chatter** on the lead form. Remaining high-impact gaps: **dedicated funnel chart**, **`GET /api/crm/forecast`**, **team-scoped** filters (**CRM Team Manager**), and deeper **sales team** modeling.
+CRM has a functional kanban pipeline, lead lifecycle flows, Sales integration, **activities API + UI**, **activities calendar**, **Mark Lost with presets + detail**, **partner picker**, **pipeline + analytics scoped by `crmLeadFilter`** with optional **`user_id`** for managers, **12‑month won/lost trend** and **revenue-by-owner** analytics, **`GET /api/crm/forecast`** with **opportunity funnel** in the analytics bar, **activity → calendar event** linkage, **activity summary on kanban cards**, and **chatter** on the lead form. Remaining high-impact gaps: **Odoo-style forecast columns**, **team-scoped** filters (**CRM Team Manager**), and deeper **sales team** modeling.
 
 ### Recommended Build Order
 1. ~~**Kanban + calendar UX**~~ ✅; ~~**calendar view**~~ ✅ **`/activities/calendar`**
-2. ~~**Forecast / analytics depth** — weighted pipeline, won/lost MTD, **12‑month trend**, **revenue by owner**~~ ✅; **funnel chart** / **`GET /api/crm/forecast`** — next
+2. ~~**Forecast / analytics depth** — weighted pipeline, won/lost MTD, **12‑month trend**, **revenue by owner**, **`GET /api/crm/forecast`**, **opportunity funnel** in UI~~ ✅; **Odoo-style forecast columns** / pivot — optional next
 3. **CRM RBAC** — manager **owner scope** ✅; **team-scoped** filters + explicit **CRM Team Manager** role UI — next

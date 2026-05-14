@@ -350,6 +350,48 @@ crmRoutes.get('/salespeople', asyncHandler(async (req, res) => {
     res.json(users);
 }));
 
+/** Per-stage funnel / forecast (Odoo-style columns): counts, pipeline and weighted value. Scoped like pipeline (`crmLeadFilter` + optional `user_id`). */
+crmRoutes.get('/forecast', asyncHandler(async (req, res) => {
+    const scope = mergeCrmLeadWhere(req, {});
+    const baseActive = { active: true as const, ...scope };
+
+    const stages = await prisma.crmStage.findMany({
+        orderBy: { sequence: 'asc' },
+        select: {
+            id: true,
+            name: true,
+            sequence: true,
+            leads: {
+                where: baseActive,
+                select: { type: true, expectedRevenue: true, probability: true },
+            },
+        },
+    });
+
+    let weightedPipeline = 0;
+    const funnelStages = stages.map(s => {
+        const rows = s.leads;
+        const opportunityCount = rows.filter(l => l.type === 'opportunity').length;
+        const pipelineValue = rows.reduce((sum, l) => sum + l.expectedRevenue, 0);
+        const stageWeighted = rows.reduce((sum, l) => sum + l.expectedRevenue * (l.probability / 100), 0);
+        weightedPipeline += stageWeighted;
+        return {
+            stageId: s.id,
+            name: s.name,
+            sequence: s.sequence,
+            leadCount: rows.length,
+            opportunityCount,
+            pipelineValue: Math.round(pipelineValue * 100) / 100,
+            weightedPipeline: Math.round(stageWeighted * 100) / 100,
+        };
+    });
+
+    res.json({
+        weightedPipeline: Math.round(weightedPipeline * 100) / 100,
+        stages: funnelStages,
+    });
+}));
+
 crmRoutes.get('/analytics', asyncHandler(async (req, res) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);

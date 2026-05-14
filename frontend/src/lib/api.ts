@@ -222,6 +222,10 @@ export const crmApi = {
   analytics: (params?: Record<string, unknown>) =>
     api.get('/api/crm/analytics', { params }),
 
+  /** Per-stage funnel: lead + opportunity counts, pipeline and weighted value (same scope as pipeline). */
+  forecast: (params?: Record<string, unknown>) =>
+    api.get('/api/crm/forecast', { params }),
+
   /** Managers / admins: org salespeople for CRM owner filter (`user_id` on scoped routes). */
   salespeople: () => api.get('/api/crm/salespeople'),
 

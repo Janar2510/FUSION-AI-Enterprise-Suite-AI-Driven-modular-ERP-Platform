@@ -16,6 +16,7 @@ This checklist ensures proper implementation and configuration of the AI-driven 
 ## CRM data surfaces (AI / agents, 2026-05-14)
 
 - **`GET /api/crm/analytics`** — includes **`wonLostTrend`**, **`revenueByOwner`**, **`stageBreakdown`**; optional **`user_id`** for manager-scoped drill-down (same spirit as **`crmLeadFilter`**).
+- **`GET /api/crm/forecast`** — **`weightedPipeline`** and per-stage **`stages`** (**`opportunityCount`**, **`weightedPipeline`**, etc.); optional **`user_id`** for manager scope.
 - **`GET /api/crm/salespeople`** — roster for **View as** / owner-scoped prompts; privilege-gated.
 - **Activities** — **`calendarEventId`** links **`CrmActivity`** to **`calendar_events`** for cross-module context (scheduling agents, “next meeting” tools).
 - **Lead form** — structured **`lostReason`** (preset + detail) and **`partnerId`** improve downstream **win/loss** and **account** analysis.

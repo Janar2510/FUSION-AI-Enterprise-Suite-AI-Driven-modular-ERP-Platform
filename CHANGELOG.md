@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added (Track C — CRM depth, 2026-05-14)
 
+- **CRM forecast** — **`GET /api/crm/forecast`** (same scope as pipeline/analytics, optional **`user_id`**): **`weightedPipeline`** and **`stages[]`** with counts and values per stage. **Frontend** — **`crmApi.forecast`**, **`crmForecast`** in **`crmStore`** (loaded with analytics via **`Promise.allSettled`**); **`CrmPipelineAnalyticsBar`**: **Opportunity funnel** bar chart by stage.
 - **Prisma** — **`crm_activities.calendar_event_id`** → **`calendar_events`** (nullable, unique, **`ON DELETE SET NULL`**); migration **`20260514120000_crm_activity_calendar_link`**.
 - **API** — **`GET /api/crm/salespeople`** (managers list reps for owner scope); **`GET /api/crm/analytics`** extended with **`wonLostTrend`** (12‑month won/lost counts) and **`revenueByOwner`**; pipeline/list/analytics accept optional **`user_id`** query for scoped CRM view (aligned with **`crmLeadFilter`** / manager tooling). Creating/updating CRM activities with **`dueAt`** can create/link **`CalendarEvent`** (**`calendarEventId`** on activity).
 - **Frontend** — **`crmApi.salespeople`**, **`crmScopeUserId`** in store; **`CrmPipelineAnalyticsBar`**: owner-scope select, 12‑month won/lost bars, pipeline-by-owner table, stage strip value hints; **`CrmActivitiesCalendar`** passes **`user_id`** when scoped; **`CRMModule`**: partner search + select (**`partnersApi`**), **Mark Lost** presets + detail, linked orders match **`partnerId`**.

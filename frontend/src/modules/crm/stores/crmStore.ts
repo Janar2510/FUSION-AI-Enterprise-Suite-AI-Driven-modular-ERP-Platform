@@ -66,6 +66,20 @@ export interface CrmAnalytics {
   }[];
 }
 
+/** GET /api/crm/forecast */
+export interface CrmForecast {
+  weightedPipeline: number;
+  stages: {
+    stageId: number;
+    name: string;
+    sequence: number;
+    leadCount: number;
+    opportunityCount: number;
+    pipelineValue: number;
+    weightedPipeline: number;
+  }[];
+}
+
 interface CRMStore {
   // State
   pipelineStages: CrmStage[];
@@ -73,6 +87,7 @@ interface CRMStore {
   loading: boolean;
   error: string | null;
   crmAnalytics: CrmAnalytics | null;
+  crmForecast: CrmForecast | null;
   /** When set (managers only), narrows pipeline/leads/analytics/calendar via `user_id` query. */
   crmScopeUserId: string | undefined;
   setCrmScopeUserId: (userId: string | undefined) => void;
@@ -98,6 +113,7 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
   loading: false,
   error: null,
   crmAnalytics: null,
+  crmForecast: null,
   crmScopeUserId: undefined,
 
   setCrmScopeUserId: (userId) => {
@@ -109,8 +125,15 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
   fetchCrmAnalytics: async () => {
     try {
       const uid = get().crmScopeUserId;
-      const res = await crmApi.analytics(uid ? { user_id: uid } : undefined);
-      set({ crmAnalytics: res.data });
+      const params = uid ? { user_id: uid } : undefined;
+      const [analyticsResult, forecastResult] = await Promise.allSettled([
+        crmApi.analytics(params),
+        crmApi.forecast(params),
+      ]);
+      const patch: Partial<Pick<CRMStore, 'crmAnalytics' | 'crmForecast'>> = {};
+      if (analyticsResult.status === 'fulfilled') patch.crmAnalytics = analyticsResult.value.data;
+      if (forecastResult.status === 'fulfilled') patch.crmForecast = forecastResult.value.data;
+      if (Object.keys(patch).length > 0) set(patch);
     } catch {
       /* keep previous snapshot */
     }
