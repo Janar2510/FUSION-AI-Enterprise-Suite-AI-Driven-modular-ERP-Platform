@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Frontend** — **`CrmLead.activitySummary`**; kanban cards show **Overdue** / **Due** / **Next** from summary; **`CrmPipelineAnalyticsBar`**: weighted forecast, won/lost MTD, win rate, **CRM access hint** (manager vs salesperson vs unassigned visibility).
 - **Auth context** — **`User.roles: string[]`** on normalized user; **`/api/auth/*`** response handling aligned (**`accessToken ?? token`**).
 
+### Added (Track C — CRM depth, 2026-05-14)
+
+- **Prisma** — **`crm_activities.calendar_event_id`** → **`calendar_events`** (nullable, unique, **`ON DELETE SET NULL`**); migration **`20260514120000_crm_activity_calendar_link`**.
+- **API** — **`GET /api/crm/salespeople`** (managers list reps for owner scope); **`GET /api/crm/analytics`** extended with **`wonLostTrend`** (12‑month won/lost counts) and **`revenueByOwner`**; pipeline/list/analytics accept optional **`user_id`** query for scoped CRM view (aligned with **`crmLeadFilter`** / manager tooling). Creating/updating CRM activities with **`dueAt`** can create/link **`CalendarEvent`** (**`calendarEventId`** on activity).
+- **Frontend** — **`crmApi.salespeople`**, **`crmScopeUserId`** in store; **`CrmPipelineAnalyticsBar`**: owner-scope select, 12‑month won/lost bars, pipeline-by-owner table, stage strip value hints; **`CrmActivitiesCalendar`** passes **`user_id`** when scoped; **`CRMModule`**: partner search + select (**`partnersApi`**), **Mark Lost** presets + detail, linked orders match **`partnerId`**.
+
 ### Changed
 - **CRM lead form chatter** — Replaced static chatter stub with shared **`ChatterPanel`** (**`ownerType=crm.lead`**, **`/api/messaging/chatter`**). New unsaved leads see a short hint until the record is saved.
 - **CRM frontend (`CRMModule`)** — **`crmApi`** for **lead activities** (list / create / done / delete) and **mark lost** so requests use the shared **`api`** client (**JWT** + **`VITE_API_URL`** base). Replaces raw **`axios`** to **`localhost:3001`** without auth. **`CrmActivity.id`** typed **`number`**; activity row **delete** control; short error line on load/mutation failure. **`CrmActivitiesPanel`** extracted to **`frontend/src/modules/crm/components/CrmActivitiesPanel.tsx`**.

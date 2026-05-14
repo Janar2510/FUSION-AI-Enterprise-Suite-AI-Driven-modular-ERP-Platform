@@ -1,12 +1,19 @@
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler, getPagination, paginatedResponse } from '../lib/utils';
 import { qualifyLead, markWon, createQuotationFromLead } from '../core/flow.service';
 import { requireAuth } from '../core/auth';
-import { crmLeadFilter } from '../core/auth/recordRules';
+import { crmLeadFilter, crmOwnerQueryFilter, isManager } from '../core/auth/recordRules';
+import { createChatterRouter } from '../core/chatter';
 
 export const crmRoutes = Router();
 crmRoutes.use(requireAuth);
+
+function mergeCrmLeadWhere(req: Request, extra: Record<string, unknown>): Record<string, unknown> {
+    const recordFilter = crmLeadFilter(req.user!);
+    const ownerExtra = crmOwnerQueryFilter(req.user!, req.query.user_id);
+    return { ...recordFilter, ...ownerExtra, ...extra };
+}
 
 // ── Stages ──────────────────────────────────────────────────
 crmRoutes.get('/stages', asyncHandler(async (_req, res) => {
@@ -55,8 +62,7 @@ crmRoutes.get('/leads', asyncHandler(async (req, res) => {
     const type = (req.query.type as string) || undefined;
     const stageId = req.query.stage_id ? parseInt(req.query.stage_id as string) : undefined;
 
-    const recordFilter = crmLeadFilter(req.user!);
-    const where: any = { active: true, ...recordFilter };
+    const where: Record<string, unknown> = { active: true, ...mergeCrmLeadWhere(req, {}) };
     if (type) where.type = type;
     if (stageId) where.stageId = stageId;
 
@@ -131,7 +137,7 @@ crmRoutes.delete('/leads/:id', asyncHandler(async (req, res) => {
 
 // ── Pipeline summary ────────────────────────────────────────
 crmRoutes.get('/pipeline', asyncHandler(async (req, res) => {
-    const recordFilter = crmLeadFilter(req.user!);
+    const recordFilter = mergeCrmLeadWhere(req, {});
     const now = new Date();
     const stages = await prisma.crmStage.findMany({
         orderBy: { sequence: 'asc' },
@@ -182,8 +188,7 @@ crmRoutes.get('/pipeline', asyncHandler(async (req, res) => {
 
 /** Open activities with dueAt in [from, to], scoped to visible leads (same as pipeline). */
 crmRoutes.get('/activities/calendar', asyncHandler(async (req, res) => {
-    const recordFilter = crmLeadFilter(req.user!);
-    const leadScope = { active: true as const, ...recordFilter };
+    const leadScope = { active: true as const, ...mergeCrmLeadWhere(req, {}) };
 
     const now = new Date();
     const defaultFrom = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
@@ -230,64 +235,157 @@ crmRoutes.post('/leads/:id/activities', asyncHandler(async (req, res) => {
         type: string; summary: string; body?: string; dueAt?: string;
     };
 
-    // Validate lead exists
-    const lead = await prisma.crmLead.findUnique({ where: { id: leadId } });
+    const lead = await prisma.crmLead.findFirst({
+        where: { id: leadId, ...crmLeadFilter(req.user!) },
+    });
     if (!lead) { res.status(404).json({ error: 'Lead not found' }); return; }
 
-    const activity = await prisma.crmActivity.create({
-        data: {
-            leadId,
-            organizationId: (req as any).user?.orgId ?? 'default',
-            createdById: (req as any).user?.sub ?? 'system',
-            type,
-            summary,
-            body,
-            dueAt: dueAt ? new Date(dueAt) : null,
-        },
+    const orgId = req.user?.orgId ?? 'default';
+    const createdById = req.user?.sub ?? 'system';
+    const due = dueAt && String(dueAt).trim() ? new Date(String(dueAt)) : null;
+    const hasValidDue = due !== null && !Number.isNaN(due!.getTime());
+
+    const activity = await prisma.$transaction(async (tx) => {
+        const act = await tx.crmActivity.create({
+            data: {
+                leadId,
+                organizationId: orgId,
+                createdById,
+                type,
+                summary,
+                body,
+                dueAt: hasValidDue ? due : null,
+            },
+        });
+
+        if (hasValidDue && due) {
+            const start = new Date(due);
+            if (start.getUTCHours() === 0 && start.getUTCMinutes() === 0 && start.getUTCSeconds() === 0) {
+                start.setUTCHours(9, 0, 0, 0);
+            }
+            const stop = new Date(start.getTime() + 60 * 60 * 1000);
+            const ev = await tx.calendarEvent.create({
+                data: {
+                    name: `[CRM] ${lead.name}: ${summary}`,
+                    description: `crmActivityId=${act.id}; leadId=${leadId}`,
+                    start,
+                    stop,
+                    allday: false,
+                },
+            });
+            return tx.crmActivity.update({
+                where: { id: act.id },
+                data: { calendarEventId: ev.id },
+            });
+        }
+
+        return act;
     });
+
     res.status(201).json(activity);
 }));
 
 crmRoutes.patch('/activities/:id/done', asyncHandler(async (req, res) => {
-    const activity = await prisma.crmActivity.update({
-        where: { id: parseInt(req.params.id) },
+    const id = parseInt(req.params.id, 10);
+    const activity = await prisma.crmActivity.findUnique({ where: { id } });
+    if (!activity) {
+        res.status(404).json({ error: 'Activity not found' });
+        return;
+    }
+    const visible = await prisma.crmLead.count({
+        where: { id: activity.leadId, ...crmLeadFilter(req.user!) },
+    });
+    if (!visible) {
+        res.status(404).json({ error: 'Activity not found' });
+        return;
+    }
+    const updated = await prisma.crmActivity.update({
+        where: { id },
         data: { doneAt: new Date() },
     });
-    res.json(activity);
+    res.json(updated);
 }));
 
 crmRoutes.delete('/activities/:id', asyncHandler(async (req, res) => {
-    await prisma.crmActivity.delete({ where: { id: parseInt(req.params.id) } });
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+        res.status(400).json({ error: 'Invalid activity id' });
+        return;
+    }
+
+    const activity = await prisma.crmActivity.findUnique({ where: { id } });
+    if (!activity) {
+        res.status(404).json({ error: 'Activity not found' });
+        return;
+    }
+
+    const visible = await prisma.crmLead.count({
+        where: { id: activity.leadId, ...crmLeadFilter(req.user!) },
+    });
+    if (!visible) {
+        res.status(404).json({ error: 'Activity not found' });
+        return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+        if (activity.calendarEventId) {
+            await tx.calendarEvent.deleteMany({ where: { id: activity.calendarEventId } });
+        }
+        await tx.crmActivity.delete({ where: { id } });
+    });
     res.status(204).send();
 }));
 
 // ── CRM Analytics ───────────────────────────────────────────────────────────
+crmRoutes.get('/salespeople', asyncHandler(async (req, res) => {
+    if (!isManager(req.user!)) {
+        res.status(403).json({ error: 'Only CRM managers and admins can list salespeople' });
+        return;
+    }
+    const users = await prisma.spineUser.findMany({
+        where: { organizationId: req.user!.orgId, active: true },
+        select: { id: true, name: true, email: true },
+        orderBy: { name: 'asc' },
+    });
+    res.json(users);
+}));
+
 crmRoutes.get('/analytics', asyncHandler(async (req, res) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const recordFilter = crmLeadFilter(req.user!);
-    const baseActive = { active: true as const, ...recordFilter };
+    const scope = mergeCrmLeadWhere(req, {});
+    const baseActive = { active: true as const, ...scope };
+
+    const trendFrom = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+
+    const monthKeys: string[] = [];
+    for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        monthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+    }
 
     const [
         totalLeads,
         openOpportunities,
         newThisMonth,
-        stageBreakdown,
+        stageRows,
         avgDeal,
         weightedRows,
         wonThisMonth,
         lostThisMonth,
+        wonTrendRows,
+        lostTrendRows,
+        ownerLeads,
     ] = await Promise.all([
         prisma.crmLead.count({ where: baseActive }),
         prisma.crmLead.count({ where: { ...baseActive, type: 'opportunity' } }),
-        prisma.crmLead.count({ where: { createdAt: { gte: startOfMonth }, ...recordFilter } }),
+        prisma.crmLead.count({ where: { createdAt: { gte: startOfMonth }, ...scope } }),
         prisma.crmStage.findMany({
             orderBy: { sequence: 'asc' },
             include: {
-                _count: {
-                    select: {
-                        leads: { where: baseActive },
-                    },
+                leads: {
+                    where: baseActive,
+                    select: { expectedRevenue: true, probability: true },
                 },
             },
         }),
@@ -301,17 +399,29 @@ crmRoutes.get('/analytics', asyncHandler(async (req, res) => {
         }),
         prisma.crmLead.count({
             where: {
-                ...recordFilter,
+                ...scope,
                 active: true,
                 dateClosed: { gte: startOfMonth },
             },
         }),
         prisma.crmLead.count({
             where: {
-                ...recordFilter,
+                ...scope,
                 active: false,
                 updatedAt: { gte: startOfMonth },
             },
+        }),
+        prisma.crmLead.findMany({
+            where: { ...scope, active: true, dateClosed: { gte: trendFrom } },
+            select: { dateClosed: true },
+        }),
+        prisma.crmLead.findMany({
+            where: { ...scope, active: false, updatedAt: { gte: trendFrom } },
+            select: { updatedAt: true },
+        }),
+        prisma.crmLead.findMany({
+            where: baseActive,
+            select: { userId: true, expectedRevenue: true, probability: true },
         }),
     ]);
 
@@ -319,6 +429,67 @@ crmRoutes.get('/analytics', asyncHandler(async (req, res) => {
         (sum, r) => sum + r.expectedRevenue * (r.probability / 100),
         0,
     );
+
+    const wonByMonth = new Map(monthKeys.map(k => [k, 0]));
+    const lostByMonth = new Map(monthKeys.map(k => [k, 0]));
+    for (const r of wonTrendRows) {
+        if (!r.dateClosed) continue;
+        const d = r.dateClosed;
+        const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        if (wonByMonth.has(k)) wonByMonth.set(k, (wonByMonth.get(k) ?? 0) + 1);
+    }
+    for (const r of lostTrendRows) {
+        const d = r.updatedAt;
+        const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        if (lostByMonth.has(k)) lostByMonth.set(k, (lostByMonth.get(k) ?? 0) + 1);
+    }
+    const wonLostTrend = monthKeys.map(month => ({
+        month,
+        won: wonByMonth.get(month) ?? 0,
+        lost: lostByMonth.get(month) ?? 0,
+    }));
+
+    const ownerAgg = new Map<string | null, { count: number; value: number; weighted: number }>();
+    for (const l of ownerLeads) {
+        const key = l.userId ?? null;
+        const cur = ownerAgg.get(key) ?? { count: 0, value: 0, weighted: 0 };
+        cur.count += 1;
+        cur.value += l.expectedRevenue;
+        cur.weighted += l.expectedRevenue * (l.probability / 100);
+        ownerAgg.set(key, cur);
+    }
+    const ownerIds = [...ownerAgg.keys()].filter((id): id is string => id !== null);
+    const users = ownerIds.length
+        ? await prisma.spineUser.findMany({
+            where: { id: { in: ownerIds } },
+            select: { id: true, name: true, email: true },
+        })
+        : [];
+    const userMap = new Map(users.map(u => [u.id, u]));
+    const revenueByOwner = [...ownerAgg.entries()]
+        .map(([userId, s]) => ({
+            userId,
+            name: userId ? userMap.get(userId)?.name ?? null : 'Unassigned',
+            email: userId ? userMap.get(userId)?.email ?? null : null,
+            leadCount: s.count,
+            pipelineValue: Math.round(s.value * 100) / 100,
+            weightedPipeline: Math.round(s.weighted * 100) / 100,
+        }))
+        .sort((a, b) => b.weightedPipeline - a.weightedPipeline);
+
+    const stageBreakdown = stageRows.map(s => {
+        const leads = s.leads;
+        const count = leads.length;
+        const pipelineValue = leads.reduce((sum, l) => sum + l.expectedRevenue, 0);
+        const weighted = leads.reduce((sum, l) => sum + l.expectedRevenue * (l.probability / 100), 0);
+        return {
+            id: s.id,
+            name: s.name,
+            count,
+            pipelineValue: Math.round(pipelineValue * 100) / 100,
+            weightedPipeline: Math.round(weighted * 100) / 100,
+        };
+    });
 
     res.json({
         totalLeads,
@@ -328,14 +499,10 @@ crmRoutes.get('/analytics', asyncHandler(async (req, res) => {
         weightedPipeline: Math.round(weightedPipeline * 100) / 100,
         wonThisMonth,
         lostThisMonth,
-        stageBreakdown: stageBreakdown.map(s => ({
-            id: s.id,
-            name: s.name,
-            count: s._count.leads,
-        })),
+        stageBreakdown,
+        wonLostTrend,
+        revenueByOwner,
     });
 }));
 
-// ── Chatter (shared thread) ────────────────────────────────────────────────────
-import { createChatterRouter } from '../core/chatter';
 crmRoutes.use('/', createChatterRouter('crm.lead'));

@@ -10,11 +10,12 @@ calendarRoutes.use(requireAuth);
 /** Shared create handler: `POST /api/calendar` and `POST /api/calendar/events` (module adapter path). */
 async function createCalendarEvent(req: Request, res: Response): Promise<void> {
     const { attendeeIds, ...data } = req.body;
+    const ids = Array.isArray(attendeeIds) ? (attendeeIds as unknown[]).map(String) : [];
     const ev = await prisma.calendarEvent.create({
         data: {
             ...data,
-            attendees: attendeeIds
-                ? { create: (attendeeIds as number[]).map((pid: number) => ({ partnerId: pid })) }
+            attendees: ids.length
+                ? { create: ids.map((partnerId: string) => ({ partnerId })) }
                 : undefined,
         },
         include: { attendees: { include: { partner: true } } },

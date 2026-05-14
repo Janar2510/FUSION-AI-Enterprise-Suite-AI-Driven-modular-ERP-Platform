@@ -12,13 +12,22 @@ import { BreadcrumbHeader } from '@/components/shared/BreadcrumbHeader';
 import { SmartButton } from '@/components/shared/SmartButton';
 import { CRMSettings } from './CRMSettings';
 import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
-import { crmApi } from '@/lib/api';
+import { crmApi, partnersApi } from '@/lib/api';
 import { CrmActivitiesPanel } from './CrmActivitiesPanel';
 import { CrmActivitiesCalendar } from './CrmActivitiesCalendar';
 import { CrmPipelineAnalyticsBar } from './CrmPipelineAnalyticsBar';
 import { ChatterPanel } from '@/components/shared/ChatterPanel';
 
 // Internal form wrapper removed as nested routing is now handling CRM views
+
+const CRM_LOST_PRESETS = [
+    'Price / budget',
+    'Timing',
+    'Competitor won',
+    'No decision',
+    'Unqualified',
+    'Other',
+] as const;
 
 export const CRMModule: React.FC = () => {
     const navigate = useNavigate();
@@ -40,17 +49,34 @@ export const CRMModule: React.FC = () => {
 
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchPipeline();
-        fetchAllLeads();
-        fetchAllOrders();
-    }, [fetchPipeline, fetchAllLeads, fetchAllOrders]);
+    const [partnerQuery, setPartnerQuery] = useState('');
+    const [partnerOptions, setPartnerOptions] = useState<{ id: string; name: string }[]>([]);
 
     let currentView: ViewType = 'kanban';
     if (location.pathname.includes('/activities/calendar')) currentView = 'calendar';
     else if (location.pathname.includes('/leads/list')) currentView = 'list';
     else if (location.pathname.includes('/leads/') || location.pathname.includes('/new')) currentView = 'form';
     else if (location.pathname.endsWith('/list')) currentView = 'list';
+
+    useEffect(() => {
+        fetchPipeline();
+        fetchAllLeads();
+        fetchAllOrders();
+    }, [fetchPipeline, fetchAllLeads, fetchAllOrders]);
+
+    useEffect(() => {
+        if (currentView !== 'form') return;
+        const t = window.setTimeout(() => {
+            void partnersApi
+                .list({
+                    limit: 80,
+                    ...(partnerQuery.trim() ? { search: partnerQuery.trim() } : {}),
+                })
+                .then((r) => setPartnerOptions(r.data.data ?? []))
+                .catch(() => setPartnerOptions([]));
+        }, 280);
+        return () => window.clearTimeout(t);
+    }, [currentView, partnerQuery]);
 
     // Route transitions
     const handleViewChange = (view: ViewType) => {
@@ -67,7 +93,11 @@ export const CRMModule: React.FC = () => {
     // Current Form State
     const [formData, setFormData] = useState<Partial<CrmLead>>({});
     const [activeRecord, setActiveRecord] = useState<CrmLead | null>(null);
-    const [markLostModal, setMarkLostModal] = useState<{ open: boolean; reason: string }>({ open: false, reason: '' });
+    const [markLostModal, setMarkLostModal] = useState<{
+        open: boolean;
+        preset: string;
+        detail: string;
+    }>({ open: false, preset: '', detail: '' });
 
     // Sync form data with URL
     useEffect(() => {
@@ -219,7 +249,8 @@ export const CRMModule: React.FC = () => {
     // Linked Sales Orders logic
     const linkedOrders = useMemo(() => {
         if (!activeRecord?.partner?.id) return [];
-        return orders.filter(o => o.partnerId === activeRecord.partner?.id);
+        const pid = String(activeRecord.partner.id);
+        return orders.filter((o) => String(o.partnerId) === pid);
     }, [activeRecord, orders]);
 
     const totalOrderValue = linkedOrders.reduce((sum, o) => sum + (o.amountTotal || 0), 0);
@@ -400,7 +431,7 @@ export const CRMModule: React.FC = () => {
                                     {formData.active !== false && (
                                         <button
                                             className="px-4 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-md text-sm font-medium transition-colors"
-                                            onClick={() => setMarkLostModal({ open: true, reason: '' })}
+                                            onClick={() => setMarkLostModal({ open: true, preset: '', detail: '' })}
                                         >
                                             ✗ Mark Lost
                                         </button>
@@ -453,13 +484,45 @@ export const CRMModule: React.FC = () => {
                         leftPanels={
                             <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 col-span-2">
                                         <label className="text-white/60 text-sm font-medium flex items-center gap-2">
-                                            <Briefcase className="w-4 h-4" /> Customer
+                                            <Briefcase className="w-4 h-4" /> Partner (contact / company)
                                         </label>
                                         <input
                                             type="text"
-                                            placeholder="Customer Name"
+                                            placeholder="Search partners by name…"
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none active:border-white/20 focus:border-primary-500 transition-all mb-2"
+                                            value={partnerQuery}
+                                            onChange={(e) => setPartnerQuery(e.target.value)}
+                                        />
+                                        <select
+                                            className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none focus:border-primary-500 transition-all"
+                                            value={formData.partnerId ?? ''}
+                                            onChange={(e) => {
+                                                const id = e.target.value;
+                                                const p = partnerOptions.find((x) => x.id === id);
+                                                setFormData({
+                                                    ...formData,
+                                                    partnerId: id || null,
+                                                    partner: p ? { id: p.id, name: p.name } : undefined,
+                                                });
+                                            }}
+                                        >
+                                            <option value="">— No partner linked —</option>
+                                            {partnerOptions.map((p) => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-white/60 text-sm font-medium flex items-center gap-2">
+                                            <Briefcase className="w-4 h-4" /> Contact label
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="Display name on card"
                                             className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-white outline-none active:border-white/20 focus:border-primary-500 transition-all"
                                             value={formData.contactName || ''}
                                             onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
@@ -552,18 +615,37 @@ export const CRMModule: React.FC = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
                     <div className="bg-[#1a1a2e] border border-white/10 rounded-xl p-6 w-full max-w-md shadow-2xl">
                         <h3 className="text-lg font-semibold text-white mb-1">Mark as Lost</h3>
-                        <p className="text-white/50 text-sm mb-4">Optionally provide a reason why this opportunity was lost.</p>
+                        <p className="text-white/50 text-sm mb-4">Choose a preset and add detail, or write a custom reason.</p>
+                        <label className="block text-white/45 text-xs mb-1">Lost reason preset</label>
+                        <select
+                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-red-500/40"
+                            value={markLostModal.preset}
+                            onChange={(e) =>
+                                setMarkLostModal((m) => ({ ...m, preset: e.target.value }))
+                            }
+                        >
+                            <option value="">— Select or use details only —</option>
+                            {CRM_LOST_PRESETS.map((p) => (
+                                <option key={p} value={p}>
+                                    {p}
+                                </option>
+                            ))}
+                        </select>
                         <textarea
                             className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white text-sm resize-none focus:outline-none focus:ring-1 focus:ring-red-500/50 placeholder-white/20"
                             rows={3}
-                            placeholder="e.g. Budget constraints, chose competitor…"
-                            value={markLostModal.reason}
-                            onChange={e => setMarkLostModal(m => ({ ...m, reason: e.target.value }))}
+                            placeholder={
+                                markLostModal.preset === 'Other'
+                                    ? 'Describe the loss reason…'
+                                    : 'Optional extra detail…'
+                            }
+                            value={markLostModal.detail}
+                            onChange={(e) => setMarkLostModal((m) => ({ ...m, detail: e.target.value }))}
                         />
                         <div className="flex justify-end gap-3 mt-4">
                             <button
                                 className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-sm transition-colors"
-                                onClick={() => setMarkLostModal({ open: false, reason: '' })}
+                                onClick={() => setMarkLostModal({ open: false, preset: '', detail: '' })}
                             >
                                 Cancel
                             </button>
@@ -571,12 +653,25 @@ export const CRMModule: React.FC = () => {
                                 className="px-4 py-2 rounded-lg bg-red-500/80 hover:bg-red-500 text-white text-sm font-medium transition-colors"
                                 onClick={async () => {
                                     if (activeRecord) {
-                                        await crmApi.markLost(activeRecord.id, markLostModal.reason || undefined);
-                                        setFormData(f => ({ ...f, active: false, lostReason: markLostModal.reason }));
+                                        const d = markLostModal.detail.trim();
+                                        const lostReason =
+                                            markLostModal.preset === 'Other'
+                                                ? d || undefined
+                                                : markLostModal.preset
+                                                  ? d
+                                                      ? `${markLostModal.preset}: ${d}`
+                                                      : markLostModal.preset
+                                                  : d || undefined;
+                                        await crmApi.markLost(activeRecord.id, lostReason);
+                                        setFormData((f) => ({
+                                            ...f,
+                                            active: false,
+                                            lostReason: lostReason ?? '',
+                                        }));
                                         fetchPipeline();
                                         fetchAllLeads();
                                     }
-                                    setMarkLostModal({ open: false, reason: '' });
+                                    setMarkLostModal({ open: false, preset: '', detail: '' });
                                 }}
                             >
                                 Mark Lost

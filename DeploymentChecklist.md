@@ -37,6 +37,14 @@
 - [ ] **Pipeline activity summary (Track C):** **`GET /api/crm/pipeline`** returns leads with **`activitySummary`** only (no embedded **`activities`**). Kanban cards show **Overdue** or next **Due** when open activities exist; smoke with a lead that has **`dueAt`** in the past vs future.
 - [ ] **Pipeline stage PATCH (Track C):** **`PATCH /api/crm/stages/:id`** with `{ "name": "…", "sequence": 1, "foldedKanban": false }` → 200; CRM **Settings** → **Edit** on a stage → **Save stage** → success toast; **kanban** column order / labels match after navigation or refresh (store refetches pipeline).
 
+### CRM analytics depth + calendar link + partner UI (Track C, 2026-05-14)
+
+- [ ] **Migration** — `cd api && npx prisma migrate deploy` applies **`20260514120000_crm_activity_calendar_link`** (`crm_activities.calendar_event_id` FK to **`calendar_events`**).
+- [ ] **`GET /api/crm/salespeople`** (manager / admin) → 200 list usable for owner-scope UI; non-manager → 403 or empty per product rules.
+- [ ] **`GET /api/crm/analytics`** includes **`wonLostTrend`** and **`revenueByOwner`**; optional **`?user_id=`** scopes like pipeline (compare totals with **`GET /api/crm/pipeline?user_id=`**).
+- [ ] **Activity with `dueAt`** — create/update via CRM activities API → row in **`calendar_events`** when server is configured for calendar adapter; **`GET /api/crm/activities/:id`** (or list) exposes **`calendarEventId`** if present.
+- [ ] **UI** — CRM analytics bar: **View as** salesperson (managers only) changes pipeline + analytics + calendar without errors; **Mark Lost** preset dropdown saves **`lostReason`**; lead form **Partner** search loads **`/api/partners`** (or equivalent **partners** list).
+
 ### Legacy flat settings (Track B, 2026-05-12)
 - [ ] **`POST /api/settings`** (flat bulk upsert) and **`GET /api/settings/users`** require **`settings.write`** — same as **`PUT /api/settings/:module`**. Users who only saved module JSON before may need **`settings.write`** on their role for the bulk save or user roster.
 

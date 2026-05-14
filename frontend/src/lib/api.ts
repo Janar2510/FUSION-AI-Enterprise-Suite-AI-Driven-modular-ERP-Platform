@@ -216,11 +216,14 @@ export const crmApi = {
   delete: (id: number) =>
     api.delete(`/api/crm/leads/${id}`),
 
-  pipeline: () =>
-    api.get('/api/crm/pipeline'),
+  pipeline: (params?: Record<string, unknown>) =>
+    api.get('/api/crm/pipeline', { params }),
 
-  analytics: () =>
-    api.get('/api/crm/analytics'),
+  analytics: (params?: Record<string, unknown>) =>
+    api.get('/api/crm/analytics', { params }),
+
+  /** Managers / admins: org salespeople for CRM owner filter (`user_id` on scoped routes). */
+  salespeople: () => api.get('/api/crm/salespeople'),
 
   // Flow actions (Phase 3 flows A)
   qualify: (id: number) =>
@@ -253,8 +256,8 @@ export const crmApi = {
   deleteActivity: (activityId: number) =>
     api.delete(`/api/crm/activities/${activityId}`),
 
-  /** Open activities with due dates in range; same lead scope as pipeline (`crmLeadFilter`). */
-  activitiesCalendar: (params: { from: string; to: string }) =>
+  /** Open activities with due dates in range; same lead scope as pipeline (`crmLeadFilter`). Optional `user_id` for managers. */
+  activitiesCalendar: (params: { from: string; to: string } & Record<string, unknown>) =>
     api.get('/api/crm/activities/calendar', { params }),
 
   // Stages

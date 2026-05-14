@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CalendarGrid } from '@/modules/calendar/components/CalendarGrid';
 import type { CalendarEvent } from '@/modules/calendar/stores/calendarStore';
 import { crmApi } from '@/lib/api';
+import { useCRMStore } from '../stores/crmStore';
 
 type CrmCalendarActivity = {
     id: number;
@@ -31,6 +32,7 @@ function activityToEvent(a: CrmCalendarActivity): CalendarEvent {
 
 export const CrmActivitiesCalendar: React.FC = () => {
     const navigate = useNavigate();
+    const crmScopeUserId = useCRMStore((s) => s.crmScopeUserId);
     const [activities, setActivities] = useState<CrmCalendarActivity[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export const CrmActivitiesCalendar: React.FC = () => {
             const res = await crmApi.activitiesCalendar({
                 from: from.toISOString(),
                 to: to.toISOString(),
+                ...(crmScopeUserId ? { user_id: crmScopeUserId } : {}),
             });
             setActivities(res.data as CrmCalendarActivity[]);
         } catch (e: unknown) {
@@ -54,7 +57,7 @@ export const CrmActivitiesCalendar: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [crmScopeUserId]);
 
     const onVisibleRangeChange = useCallback(
         (range: { from: Date; to: Date }) => {

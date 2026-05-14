@@ -400,6 +400,9 @@ model CrmActivity {
   doneAt         DateTime?
   organizationId String?
   createdById    String?
+  /// Mirror row in Calendar when `dueAt` is set (POST /api/calendar/events)
+  calendarEventId Int?            @unique
+  calendarEvent   CalendarEvent? @relation("CrmActivityCalendarEvent", fields: [calendarEventId], references: [id], onDelete: SetNull)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -1262,6 +1265,7 @@ model CalendarEvent {
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   attendees      CalendarAttendee[]
+  crmActivity    CrmActivity?       @relation("CrmActivityCalendarEvent")
 
   @@map("calendar_events")
 }

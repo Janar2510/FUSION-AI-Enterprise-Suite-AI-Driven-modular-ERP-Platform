@@ -26,8 +26,22 @@ function isAdmin(user: JwtPayload): boolean {
     return user.roles.some(r => ['admin', 'Administrator'].includes(r));
 }
 
-function isManager(user: JwtPayload): boolean {
+export function isManager(user: JwtPayload): boolean {
     return user.roles.some(r => ['admin', 'manager', 'Administrator', 'Manager'].includes(r));
+}
+
+/**
+ * Optional `user_id` query for CRM routes. AND-merge with `crmLeadFilter` — never bypasses org/role scope.
+ * - Managers may filter by any user id.
+ * - Non-managers may only request their own id (or omit).
+ */
+export function crmOwnerQueryFilter(user: JwtPayload, userIdParam: unknown): Record<string, unknown> | null {
+    if (userIdParam === undefined || userIdParam === null) return null;
+    const raw = String(userIdParam).trim();
+    if (!raw) return null;
+    if (isManager(user)) return { userId: raw };
+    if (raw === user.sub) return { userId: raw };
+    return null;
 }
 
 function isAccountant(user: JwtPayload): boolean {
