@@ -256,7 +256,12 @@ export const crmApi = {
   // Stages
   stages: () =>
     api.get('/api/crm/stages'),
-}
+
+  updateStage: (
+    id: number,
+    data: { name?: string; sequence?: number; foldedKanban?: boolean }
+  ) => api.patch(`/api/crm/stages/${id}`, data),
+};
 
 // ── Sales ────────────────────────────────────────────────────────────────────
 export const salesApi = {

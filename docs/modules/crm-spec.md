@@ -19,43 +19,43 @@
 - [x] Priority stars (0–3) — ✅ Done
 - [x] Tags on leads — ✅ Done (stored + rendered on kanban cards)
 - [x] Partner/contact link — 🟡 Partial (contactName text only; no Many2one partner picker on form)
-- [ ] Lost reason (dropdown popup when clicking Mark Lost) — ❌ Missing
-- [ ] Activities (schedule call, email, meeting with due-date tracking) — ❌ Missing
+- [x] Lost reason — ✅ **`PATCH /api/crm/leads/:id/lost`** with optional **`lostReason`**; Mark Lost modal in **`CRMModule`**
+- [x] Activities (schedule call, email, meeting with due-date tracking) — ✅ **`GET`/`POST /api/crm/leads/:id/activities`**, **`PATCH`/`DELETE /api/crm/activities/:id`**; **`CrmActivitiesPanel`** on lead form
 - [ ] Lead mining / website lead capture — ❌ Missing (setting exists as toggle but no backend)
 - [ ] Duplicate detection & merge — ❌ Missing
 - [ ] Automated lead assignment (rule-based by territory, salesperson load) — ❌ Missing (toggle exists but not wired)
 - [ ] Email integration (leads created from inbound email) — ❌ Missing (chatter is UI-only, no email gateway)
 - [ ] Phone logging / VoIP integration — ❌ Missing
 - [ ] Sales team management — ❌ Missing (Multi Teams toggle exists but no team model/backend)
-- [ ] Forecasting view (Odoo 17 revenue forecast by stage) — ❌ Missing
-- [ ] Pipeline health / report by salesperson — ❌ Missing
+- [x] Forecasting view (Odoo 17 revenue forecast by stage) — 🟡 Partial (**weightedPipeline** card + stage breakdown; not Odoo-style forecast columns)
+- [x] Pipeline health / report by salesperson — 🟡 Partial (scoped totals + win rate MTD in analytics bar; no per-owner breakdown table)
 - [ ] Customer portal access — ❌ Missing
 
 ### Views / UI
-- [x] Kanban view — ✅ Done (per-stage columns with revenue totals, drag-and-drop)
+- [x] Kanban view — ✅ Done (per-stage columns with revenue totals, drag-and-drop, **activity badges**: overdue count, next due **`dueAt`**)
 - [x] List view — ✅ Done (Opportunity, Contact, Email, Phone, Expected Revenue, Stage columns)
 - [x] Form view — ✅ Done (header fields, status bar, Smart Buttons, Chatter stub)
-- [ ] Graph / pivot reports — ❌ Missing (no Win/Loss bar chart, no revenue funnel graph)
+- [x] Graph / pivot reports — 🟡 Partial (**`GET /api/crm/analytics`**: stage breakdown, **weighted pipeline**, **won/lost MTD**, win rate; **`CrmPipelineAnalyticsBar`**; no dedicated funnel chart yet)
 - [ ] Calendar view (activities, follow-up deadlines) — ❌ Missing
-- [ ] Pipeline forecast (Odoo 17 forecasting column) — ❌ Missing
+- [x] Pipeline forecast (Odoo 17 forecasting column) — 🟡 Partial (**weightedPipeline** = Σ expectedRevenue × probability / 100 on scoped active leads; not per-stage forecast columns)
 
 ### Role & Permission Settings
-- [ ] CRM User — view/create/edit own leads; ❌ Not enforced beyond `crmLeadFilter` (salesperson ID check exists in backend but not surfaced in UI role selector)
-- [ ] CRM Team Manager — view all team leads, edit stages; ❌ Missing
-- [ ] Sales Manager / Administrator — full access + configuration; ❌ Missing (settings page exists but roles not tied to actual access control)
+- [x] CRM User — **`GET /api/crm/pipeline`** and **`GET /api/crm/analytics`** use **`crmLeadFilter`** (own + unassigned for sales users; managers see all). UI: **`CrmPipelineAnalyticsBar`** shows **access hint** (manager vs salesperson) from **`useAuth`**. Full role selector still TBD.
+- [ ] CRM Team Manager — view all team leads, edit stages; ❌ Missing (no team-scoped filter yet)
+- [x] Sales Manager / Administrator — full pipeline + analytics scope when **`crmLeadFilter`** returns unrestricted predicate; **`admin`** / privileged roles align with existing auth (**`PUT /api/settings/crm`** still separate permissions)
 
 ### Module Configuration (Settings page)
 - [x] Multi Teams — ✅ persisted via **`PUT /api/settings/crm`** as **`crm.multiTeams`** (`GET /api/settings/crm` hydrates CRM Settings)
 - [x] Lead Mining — ✅ **`crm.leadMining`**
 - [x] Predictive Lead Scoring — ✅ **`crm.predictiveScoring`**
 - [x] Rule-Based Assignment — ✅ **`crm.ruleBasedAssignment`**
-- [ ] Pipeline stage CRUD (add/rename/delete stages) — 🟡 Partial (read-only table shown, Edit button noop)
+- [ ] Pipeline stage CRUD (add/rename/delete stages) — 🟡 Partial (**Edit** modal: rename, sequence, folded kanban via **`PATCH /api/crm/stages/:id`**; add/delete stages still missing)
 - [ ] Default probability per stage — ❌ Missing
 - [ ] Automated actions / custom email templates — ❌ Missing
 
 ### Integrations
 - [ ] Calendar — activities on leads should create Calendar events; ❌ Missing
-- [ ] Mail / Discuss — chatter messages, log notes, automated emails on stage change; 🟡 Partial (Chatter UI stub present, no real message persistence/send)
+- [ ] Mail / Discuss — chatter messages, log notes, automated emails on stage change; 🟡 Partial (**`ChatterPanel`** on lead form → **`/api/messaging/chatter`**, **`ownerType=crm.lead`**; stage-change emails not wired)
 - [ ] Automation rules — trigger on lead stage change, won/lost, probability threshold; ❌ Missing
 - [x] Claude AI — AIInsightsPanel with recommendations, predictions, alerts; 🟡 Partial (mock data only, not calling real AI endpoint)
 - [ ] Sales module — ✅ New Quotation button links to SaleOrder (Flow A complete)
@@ -69,6 +69,9 @@
 
 ### API Endpoints
 - [x] GET /api/crm/stages — ✅ exists
+- [x] PATCH /api/crm/stages/:id — ✅ update **name**, **sequence**, **foldedKanban**
+- [x] GET /api/crm/pipeline — ✅ kanban payload (**`crmLeadFilter`**); each lead includes **`activitySummary`** (`openCount`, `overdueCount`, `nextDueAt`); **`activities`** not included in JSON
+- [x] GET /api/crm/analytics — ✅ scoped metrics + **`weightedPipeline`**, **`wonThisMonth`**, **`lostThisMonth`**, **`stageBreakdown`**
 - [x] GET /api/crm/leads — ✅ exists (with type/stage filters, pagination)
 - [x] GET /api/crm/leads/:id — ✅ exists
 - [x] POST /api/crm/leads — ✅ exists
@@ -80,8 +83,9 @@
 - [x] DELETE /api/crm/leads/:id — ✅ exists (soft delete via active=false)
 - [x] GET **`/api/settings/crm`** — ✅ module-scoped keys (`crm.*` in `SystemConfig`)
 - [x] PUT **`/api/settings/crm`** — ✅ requires auth; **`settings.write`** permission **or** **`admin`** / **`Administrator`** role (JWT Track B 2026-05-12)
-- [ ] POST /api/crm/leads/:id/mark-lost — ❌ missing (currently done via PUT active=false, no lost reason)
-- [ ] GET/POST /api/crm/activities — ❌ missing
+- [x] PATCH /api/crm/leads/:id/lost — ✅ optional **`lostReason`**, sets **`active: false`**
+- [x] GET/POST /api/crm/leads/:id/activities — ✅ list + create activity
+- [x] PATCH/DELETE /api/crm/activities/:id — ✅ mark done + delete
 - [ ] POST /api/crm/leads/:id/merge — ❌ missing
 - [ ] GET /api/crm/teams — ❌ missing
 - [ ] GET /api/crm/forecast — ❌ missing
@@ -89,9 +93,9 @@
 ---
 
 ### Missing Features Summary
-CRM is the most complete of the four modules, with a fully functional kanban pipeline, lead lifecycle flows, and a Sales integration. The three most impactful gaps are: (1) **Activity scheduling** — Odoo's activity model is central to salesperson workflow and drives follow-up discipline; (2) **Graph/forecast view** — the pipeline revenue forecast and win/loss bar charts are the primary management tools for pipeline reviews; (3) **Lost reason + real Chatter** — the current "Mark Lost" silently sets active=false with no reason captured, and the Chatter only renders UI with no message persistence.
+CRM has a functional kanban pipeline, lead lifecycle flows, Sales integration, **activities API + UI**, **Mark Lost with reason**, **pipeline + analytics scoped by `crmLeadFilter`**, **activity summary on kanban cards** (overdue / next due), **weighted forecast + won/lost MTD** in the analytics bar, and **persisted chatter** on the lead form via the shared messaging chatter endpoint. Remaining high-impact gaps: **lost-reason presets** (dropdown vs free text only), **calendar view** for activities, **funnel / per-owner revenue chart**, **`GET /api/crm/forecast`**, and **partner Many2one** on the form.
 
 ### Recommended Build Order
-1. First: Real Chatter message persistence (reuse ChatterPanel from Sales; POST /api/messages endpoint) + Mark Lost with reason picker
-2. Then: Activities model (schedule call/meeting/email with due dates, reminder badges on kanban cards)
-3. Finally: Forecast/Graph view (pipeline by stage chart, win/loss rate over time, revenue by salesperson)
+1. ~~**Kanban + calendar UX** — overdue/open activity indicators on cards~~ ✅ **(badges on cards)**; optional **calendar view** fed by **`CrmActivity`** — next
+2. ~~**Forecast / analytics depth** — weighted pipeline + won/lost MTD~~ ✅; **win/loss over time**, **revenue by owner**, **funnel chart** — next (extend **`/api/crm/analytics`** or **`/api/crm/forecast`**)
+3. **CRM RBAC** — **access hint** in analytics ✅; surface **CRM User / Team Manager / Sales Manager** in dedicated UI and **team-scoped** filters

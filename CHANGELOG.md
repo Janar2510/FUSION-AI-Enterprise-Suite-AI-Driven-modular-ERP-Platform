@@ -6,10 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased] — Build orchestration + doc aliases — 2026-05-12
 
+### Added (Track C — CRM pipeline scope, activity badges, analytics)
+
+- **`GET /api/crm/pipeline`** — applies **`crmLeadFilter(req.user)`** to active leads; embeds open activities for computation only; JSON includes per-lead **`activitySummary`** (`openCount`, `overdueCount`, `nextDueAt`) and omits **`activities`** array from each lead.
+- **`GET /api/crm/analytics`** — all metrics scoped with **`crmLeadFilter`**; adds **`weightedPipeline`**, **`wonThisMonth`** (**`active: true`**, **`dateClosed`** in current month), **`lostThisMonth`** (**`active: false`**, **`updatedAt`** in current month).
+- **Frontend** — **`CrmLead.activitySummary`**; kanban cards show **Overdue** / **Due** / **Next** from summary; **`CrmPipelineAnalyticsBar`**: weighted forecast, won/lost MTD, win rate, **CRM access hint** (manager vs salesperson vs unassigned visibility).
+- **Auth context** — **`User.roles: string[]`** on normalized user; **`/api/auth/*`** response handling aligned (**`accessToken ?? token`**).
+
 ### Changed
+- **CRM lead form chatter** — Replaced static chatter stub with shared **`ChatterPanel`** (**`ownerType=crm.lead`**, **`/api/messaging/chatter`**). New unsaved leads see a short hint until the record is saved.
 - **CRM frontend (`CRMModule`)** — **`crmApi`** for **lead activities** (list / create / done / delete) and **mark lost** so requests use the shared **`api`** client (**JWT** + **`VITE_API_URL`** base). Replaces raw **`axios`** to **`localhost:3001`** without auth. **`CrmActivity.id`** typed **`number`**; activity row **delete** control; short error line on load/mutation failure. **`CrmActivitiesPanel`** extracted to **`frontend/src/modules/crm/components/CrmActivitiesPanel.tsx`**.
 
 ### Added
+- **CRM pipeline stage edit (Track C)** — **`PATCH /api/crm/stages/:id`** updates **`name`**, **`sequence`**, **`foldedKanban`**; **`crmApi.updateStage`**; **CRM → Settings** opens a modal from **Edit**, saves via the API, then **`fetchPipeline`** refreshes the kanban table and board.
 - **CRM pipeline analytics (Track C lite)** — **`GET /api/crm/analytics`** consumed via **`crmApi.analytics()`**; Zustand **`crmAnalytics`** + **`fetchCrmAnalytics`** (runs after **`fetchPipeline`** and after successful kanban **`moveStage`**). UI: **`CrmPipelineAnalyticsBar`** in **`frontend/src/modules/crm/components/CrmPipelineAnalyticsBar.tsx`**, mounted above **kanban** and **list** in **`CRMModule`**.
 - **`docs/architecture.md`** — canonical architecture index linking `SYSTEM_DESIGN.md`, `MODULE_SPECS.md`, ADRs.
 - **`docs/ai-rules.md`** — canonical AI/agent rules index linking `AGENT_RULES.md`, skills selection, MCP/skill gap logging, and RuFlo agent pairing notes.

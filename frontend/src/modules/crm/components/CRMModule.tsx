@@ -15,6 +15,7 @@ import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 import { crmApi } from '@/lib/api';
 import { CrmActivitiesPanel } from './CrmActivitiesPanel';
 import { CrmPipelineAnalyticsBar } from './CrmPipelineAnalyticsBar';
+import { ChatterPanel } from '@/components/shared/ChatterPanel';
 
 // Internal form wrapper removed as nested routing is now handling CRM views
 
@@ -134,9 +135,44 @@ export const CRMModule: React.FC = () => {
             return colors[(colorIndex || 0) % colors.length];
         };
 
+        const sum = lead.activitySummary;
+        const nextDue = sum?.nextDueAt ? new Date(sum.nextDueAt) : null;
+        const dueLabel =
+            nextDue && !Number.isNaN(nextDue.getTime())
+                ? nextDue.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                : null;
+
         return (
             <div onClick={() => handleRowClick(lead)}>
                 <h4 className="font-bold text-white mb-2 line-clamp-2">{lead.name}</h4>
+                {sum && (sum.overdueCount > 0 || dueLabel) && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                        {sum.overdueCount > 0 && (
+                            <span
+                                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-red-500/25 text-red-300 border border-red-400/30"
+                                title={`${sum.overdueCount} open activit${sum.overdueCount === 1 ? 'y' : 'ies'} past due`}
+                            >
+                                Overdue{sum.overdueCount > 1 ? ` ×${sum.overdueCount}` : ''}
+                            </span>
+                        )}
+                        {dueLabel && sum.overdueCount === 0 && (
+                            <span
+                                className="text-[10px] font-medium px-1.5 py-0.5 rounded-sm bg-amber-500/15 text-amber-200/90 border border-amber-400/20"
+                                title="Next open activity due date"
+                            >
+                                Due {dueLabel}
+                            </span>
+                        )}
+                        {dueLabel && sum.overdueCount > 0 && (
+                            <span
+                                className="text-[10px] font-medium px-1.5 py-0.5 rounded-sm bg-white/10 text-white/70 border border-white/10"
+                                title="Next upcoming due date (after overdue items)"
+                            >
+                                Next {dueLabel}
+                            </span>
+                        )}
+                    </div>
+                )}
                 {lead.tags && lead.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-2">
                         {lead.tags.map(tag => (
@@ -475,46 +511,19 @@ export const CRMModule: React.FC = () => {
                             </div>
                         }
                         chatter={
-                            showMessages && (
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-6 mt-6">
-                                    <div className="flex gap-4 border-b border-white/10 pb-4 mb-4">
-                                        <button className="text-primary-500 font-medium text-sm flex items-center gap-2">
-                                            <Mail className="w-4 h-4" /> Send Message
-                                        </button>
-                                        <button className="text-white/60 font-medium text-sm hover:text-white transition-colors">
-                                            Log Note
-                                        </button>
-                                        <button className="text-white/60 font-medium text-sm hover:text-white transition-colors">
-                                            Schedule Activity
-                                        </button>
-                                    </div>
-                                    <textarea
-                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm outline-none focus:border-primary-500 transition-colors mb-4"
-                                        rows={3}
-                                        placeholder="Type a message..."
-                                    />
-                                    <div className="flex justify-end">
-                                        <button className="bg-primary-500 hover:bg-primary-500/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                            Send
-                                        </button>
-                                    </div>
-
-                                    <div className="mt-8 space-y-4">
-                                        <div className="flex gap-4">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
-                                                S
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-white font-medium text-sm">System</span>
-                                                    <span className="text-white/40 text-xs">2 hours ago</span>
-                                                </div>
-                                                <p className="text-white/70 text-sm mt-1">Lead created automatically from incoming email.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
+                            showMessages &&
+                            (activeRecord ? (
+                                <ChatterPanel
+                                    ownerType="crm.lead"
+                                    ownerId={activeRecord.id}
+                                    showTimeline
+                                    className="mt-6"
+                                />
+                            ) : (
+                                <p className="text-sm text-white/50 mt-6 px-1">
+                                    Save the lead to enable record chatter and timeline.
+                                </p>
+                            ))
                         }
                     />
                 } />

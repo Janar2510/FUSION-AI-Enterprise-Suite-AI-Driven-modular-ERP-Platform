@@ -18,6 +18,12 @@ export interface CrmLead {
   tags: { id: number; name: string; color: number }[];
   partner?: { id: number; name: string };
   stage?: CrmStage;
+  /** Per GET /api/crm/pipeline — open activities / overdue / next due */
+  activitySummary?: {
+    openCount: number;
+    overdueCount: number;
+    nextDueAt: string | null;
+  };
 }
 
 export interface CrmStage {
@@ -34,6 +40,12 @@ export interface CrmAnalytics {
   openOpportunities: number;
   newThisMonth: number;
   avgDealSize: number;
+  /** Sum of expectedRevenue × probability/100 for active leads with value (scoped). */
+  weightedPipeline: number;
+  /** Closed-won count this month (dateClosed in range, scoped). */
+  wonThisMonth: number;
+  /** Soft-deleted / lost count this month (updatedAt in range, scoped). */
+  lostThisMonth: number;
   stageBreakdown: { id: number; name: string; count: number }[];
 }
 

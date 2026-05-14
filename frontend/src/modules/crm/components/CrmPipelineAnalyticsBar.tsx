@@ -1,6 +1,15 @@
 import React, { useMemo } from 'react';
 import { BarChart3 } from 'lucide-react';
 import { useCRMStore, CrmAnalytics } from '../stores/crmStore';
+import { useAuth } from '@/contexts/AuthContext';
+
+function crmAccessHint(roles: string[] | undefined): string {
+  const r = roles?.length ? roles : [];
+  const isMgr = r.some((x) => ['admin', 'Administrator', 'manager', 'Manager'].includes(x));
+  return isMgr
+    ? 'CRM visibility: all leads (manager / admin).'
+    : 'CRM visibility: your assigned leads and unassigned leads.';
+}
 
 function SummaryCard({
   label,
@@ -63,6 +72,7 @@ function StageDistribution({ data }: { data: CrmAnalytics['stageBreakdown'] }) {
  */
 export const CrmPipelineAnalyticsBar: React.FC = () => {
   const crmAnalytics = useCRMStore((s) => s.crmAnalytics);
+  const { user } = useAuth();
 
   if (!crmAnalytics) {
     return (
@@ -73,18 +83,48 @@ export const CrmPipelineAnalyticsBar: React.FC = () => {
     );
   }
 
-  const { totalLeads, openOpportunities, newThisMonth, avgDealSize, stageBreakdown } = crmAnalytics;
+  const {
+    totalLeads,
+    openOpportunities,
+    newThisMonth,
+    avgDealSize,
+    weightedPipeline = 0,
+    wonThisMonth = 0,
+    lostThisMonth = 0,
+    stageBreakdown,
+  } = crmAnalytics;
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-white/50 text-xs font-medium uppercase tracking-wide">
-        <BarChart3 className="w-3.5 h-3.5" />
-        Pipeline analytics
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2 text-white/50 text-xs font-medium uppercase tracking-wide">
+          <BarChart3 className="w-3.5 h-3.5" />
+          Pipeline analytics
+        </div>
+        <div className="text-white/40 text-[10px] leading-snug max-w-xl sm:text-right">
+          {crmAccessHint(user?.roles)}
+        </div>
       </div>
       <div className="flex flex-wrap gap-2 items-stretch">
         <SummaryCard label="Active leads" value={totalLeads} />
         <SummaryCard label="Open opportunities" value={openOpportunities} />
         <SummaryCard label="New this month" value={newThisMonth} />
+        <SummaryCard
+          label="Weighted forecast"
+          value={weightedPipeline > 0 ? `$${weightedPipeline.toLocaleString()}` : '—'}
+          sub="Σ revenue × probability (active)"
+        />
+        <SummaryCard label="Won (MTD)" value={wonThisMonth} sub="Closed-won this month" />
+        <SummaryCard label="Lost (MTD)" value={lostThisMonth} sub="Inactive updated this month" />
+        <SummaryCard
+          label="Win rate (MTD)"
+          value={
+            wonThisMonth + lostThisMonth > 0
+              ? `${Math.round((wonThisMonth / (wonThisMonth + lostThisMonth)) * 100)}%`
+              : '—'
+          }
+          sub="Won ÷ (won + lost)"
+        />
         <SummaryCard
           label="Avg deal size"
           value={avgDealSize > 0 ? `$${avgDealSize.toLocaleString()}` : '—'}

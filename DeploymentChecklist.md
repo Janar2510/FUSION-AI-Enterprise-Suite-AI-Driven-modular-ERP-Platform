@@ -32,7 +32,9 @@
 - [ ] Smoke: **`PUT /api/settings/crm`** with `{ "multiTeams": true, "leadMining": false, "predictiveScoring": true, "ruleBasedAssignment": false }` → 200; verify rows in `SystemConfig` with keys `crm.multiTeams`, etc.
 - [ ] UI: open **CRM → Settings**, toggle features, **Save** → success toast; reload page → values persist.
 - [ ] UI: open a **lead** → **Activities** panel uses JWT (no 401): list, **Schedule** → create, **Mark done**, **Delete** on a row.
-- [ ] **Pipeline analytics (Track C lite):** **`GET /api/crm/analytics`** (auth) → 200 with `totalLeads`, `stageBreakdown`, etc.; CRM **kanban** and **list** show the **Pipeline analytics** bar; drag a lead between stages → bar / counts refresh.
+- [ ] **Pipeline analytics (Track C):** **`GET /api/crm/analytics`** (auth) → 200 with `totalLeads`, `stageBreakdown`, **`weightedPipeline`**, **`wonThisMonth`**, **`lostThisMonth`** (and related win rate in UI); metrics must match **`crmLeadFilter`** for the caller (sales user vs manager). CRM **kanban** / **list**: **Pipeline analytics** bar shows access hint + new cards; drag a lead between stages → bar / counts refresh.
+- [ ] **Pipeline activity summary (Track C):** **`GET /api/crm/pipeline`** returns leads with **`activitySummary`** only (no embedded **`activities`**). Kanban cards show **Overdue** or next **Due** when open activities exist; smoke with a lead that has **`dueAt`** in the past vs future.
+- [ ] **Pipeline stage PATCH (Track C):** **`PATCH /api/crm/stages/:id`** with `{ "name": "…", "sequence": 1, "foldedKanban": false }` → 200; CRM **Settings** → **Edit** on a stage → **Save stage** → success toast; **kanban** column order / labels match after navigation or refresh (store refetches pipeline).
 
 ### Legacy flat settings (Track B, 2026-05-12)
 - [ ] **`POST /api/settings`** (flat bulk upsert) and **`GET /api/settings/users`** require **`settings.write`** — same as **`PUT /api/settings/:module`**. Users who only saved module JSON before may need **`settings.write`** on their role for the bulk save or user roster.

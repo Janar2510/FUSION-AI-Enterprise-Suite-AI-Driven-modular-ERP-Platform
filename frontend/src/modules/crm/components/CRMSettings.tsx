@@ -3,10 +3,13 @@ import { motion } from 'framer-motion';
 import { Save, Settings2, ShieldCheck, Shuffle, Users, Zap } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import { useCRMStore } from '../stores/crmStore';
+import axios from 'axios';
+import { useCRMStore, type CrmStage } from '../stores/crmStore';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { BreadcrumbHeader } from '@/components/shared/BreadcrumbHeader';
-import { moduleSettingsApi } from '@/lib/api';
+import { crmApi, moduleSettingsApi } from '@/lib/api';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
 
 const CRM_FEATURE_DEFAULTS = {
     multiTeams: false,
@@ -28,12 +31,28 @@ function mergeCrmSettings(raw: Record<string, unknown>): CrmFeatureSettings {
     };
 }
 
+type StageDraft = { id: number; name: string; sequence: number; foldedKanban: boolean };
+
+function stageToDraft(stage: CrmStage): StageDraft {
+    return {
+        id: stage.id,
+        name: stage.name,
+        sequence: stage.sequence,
+        foldedKanban: stage.foldedKanban,
+    };
+}
+
 export const CRMSettings: React.FC = () => {
-    const { pipelineStages } = useCRMStore();
+    const { pipelineStages, fetchPipeline } = useCRMStore();
     const queryClient = useQueryClient();
     const [saved, setSaved] = useState(false);
+    const [stageDraft, setStageDraft] = useState<StageDraft | null>(null);
 
     const [settings, setSettings] = useState<CrmFeatureSettings>(CRM_FEATURE_DEFAULTS);
+
+    useEffect(() => {
+        void fetchPipeline();
+    }, [fetchPipeline]);
 
     const { data: crmPayload, isLoading } = useQuery({
         queryKey: ['settings', 'crm'],
@@ -62,8 +81,40 @@ export const CRMSettings: React.FC = () => {
         },
     });
 
+    const updateStageMutation = useMutation({
+        mutationFn: async (draft: StageDraft) => {
+            await crmApi.updateStage(draft.id, {
+                name: draft.name.trim(),
+                sequence: draft.sequence,
+                foldedKanban: draft.foldedKanban,
+            });
+        },
+        onSuccess: () => {
+            toast.success('Pipeline stage updated');
+            setStageDraft(null);
+            void fetchPipeline();
+        },
+        onError: (err: unknown) => {
+            let msg = 'Could not update stage';
+            if (axios.isAxiosError(err)) {
+                const e = err.response?.data as { error?: string } | undefined;
+                if (typeof e?.error === 'string') msg = e.error;
+            }
+            toast.error(msg);
+        },
+    });
+
     const handleSave = () => {
         saveMutation.mutate(settings);
+    };
+
+    const handleSaveStage = () => {
+        if (!stageDraft) return;
+        if (!stageDraft.name.trim()) {
+            toast.error('Stage name is required');
+            return;
+        }
+        updateStageMutation.mutate(stageDraft);
     };
 
     return (
@@ -174,7 +225,13 @@ export const CRMSettings: React.FC = () => {
                                         <td className="py-3 px-4 text-white font-medium">{stage.name}</td>
                                         <td className="py-3 px-4 text-white/60">{stage.foldedKanban ? 'Yes' : 'No'}</td>
                                         <td className="py-3 px-4 text-right">
-                                            <button className="text-primary-500 hover:text-white transition-colors text-sm">Edit</button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setStageDraft(stageToDraft(stage))}
+                                                className="text-primary-500 hover:text-white transition-colors text-sm"
+                                            >
+                                                Edit
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -183,6 +240,81 @@ export const CRMSettings: React.FC = () => {
                     </GlassCard>
                 </motion.div>
             </div>
+
+            <Modal
+                open={stageDraft !== null}
+                onClose={() => {
+                    if (!updateStageMutation.isPending) setStageDraft(null);
+                }}
+                title="Edit pipeline stage"
+                size="sm"
+                footer={
+                    <>
+                        <Button
+                            variant="ghost"
+                            type="button"
+                            onClick={() => setStageDraft(null)}
+                            disabled={updateStageMutation.isPending}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            type="button"
+                            onClick={handleSaveStage}
+                            loading={updateStageMutation.isPending}
+                            disabled={updateStageMutation.isPending}
+                        >
+                            Save stage
+                        </Button>
+                    </>
+                }
+            >
+                {stageDraft && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-white/70 mb-1.5">Stage name</label>
+                            <input
+                                type="text"
+                                value={stageDraft.name}
+                                onChange={(e) => setStageDraft((d) => (d ? { ...d, name: e.target.value } : null))}
+                                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                                autoComplete="off"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-white/70 mb-1.5">Sequence</label>
+                            <input
+                                type="number"
+                                value={stageDraft.sequence}
+                                onChange={(e) =>
+                                    setStageDraft((d) =>
+                                        d
+                                            ? {
+                                                  ...d,
+                                                  sequence: Number.parseInt(e.target.value, 10) || 0,
+                                              }
+                                            : null
+                                    )
+                                }
+                                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                            />
+                            <p className="text-white/40 text-xs mt-1">Lower numbers appear earlier in the pipeline.</p>
+                        </div>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={stageDraft.foldedKanban}
+                                onChange={(e) =>
+                                    setStageDraft((d) => (d ? { ...d, foldedKanban: e.target.checked } : null))
+                                }
+                                className="w-4 h-4 bg-transparent border-white/20 rounded text-primary-500 focus:ring-primary-500"
+                            />
+                            <span className="text-white/80 text-sm">Folded in kanban (collapsed column)</span>
+                        </label>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };

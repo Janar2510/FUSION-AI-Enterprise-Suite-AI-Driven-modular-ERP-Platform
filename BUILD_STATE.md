@@ -9,13 +9,13 @@
 | Field | Value |
 | --- | --- |
 | **Phase** | Track **B** — shared infrastructure (with RuFlo parallel agents optional) |
-| **Last updated** | 2026-05-12 |
+| **Last updated** | 2026-05-14 |
 
 ## Next actions (queues)
 
 1. Parallel dev: **[docs/RUFLO_AGENTS.md](docs/RUFLO_AGENTS.md)** — `ruflo agent spawn` / `ruflo swarm` + Cursor for implementation.
 2. User: Open **`docs/`** as an Obsidian vault ([docs/OBSIDIAN_VAULT.md](docs/OBSIDIAN_VAULT.md)).
-3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅; workflow actions ✅ + **`UPDATE_RECORD`** blocklist ✅ + **`CRON`** ✅ + **`SEQUENCE`** / **`WEBHOOK`** ✅ (retries + HMAC); optional Postgres **`AUTOMATION_WEBHOOK_QUEUE`** + DLQ ✅; **`/api/campaigns`** + **`/api/marketing-web` RBAC** ✅; **`POST /api/settings`** + **`GET /api/settings/users`** require **`settings.write`** ✅; **`/api/ai`** **`ai.run`** / **`ai.approve`** guards ✅; structured **`Workflow.condition`** JSON + **`__previous`** + **`evaluateWorkflowCondition`** ✅; Track C: CRM depth, pipeline analytics (see gap summary).
+3. Build order: **[docs/BUILD_ORCHESTRATION.md](docs/BUILD_ORCHESTRATION.md)** Track B — calendar adapter ✅; CRM settings UI ✅; **`/api/automation` RBAC** ✅; outbox **`email.send`** ✅; workflow actions ✅ + **`UPDATE_RECORD`** blocklist ✅ + **`CRON`** ✅ + **`SEQUENCE`** / **`WEBHOOK`** ✅ (retries + HMAC); optional Postgres **`AUTOMATION_WEBHOOK_QUEUE`** + DLQ ✅; **`/api/campaigns`** + **`/api/marketing-web` RBAC** ✅; **`POST /api/settings`** + **`GET /api/settings/users`** require **`settings.write`** ✅; **`/api/ai`** **`ai.run`** / **`ai.approve`** guards ✅; structured **`Workflow.condition`** JSON + **`__previous`** + **`evaluateWorkflowCondition`** ✅. **Track C CRM slice (2026-05-14):** pipeline **`crmLeadFilter`** + **`activitySummary`** on cards; analytics **weighted / won-lost MTD** + access hint; see **`docs/modules/crm-spec.md`**.
 
 ## Track B note (automation)
 

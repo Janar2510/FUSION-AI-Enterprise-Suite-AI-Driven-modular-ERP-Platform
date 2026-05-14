@@ -9,8 +9,27 @@ interface User {
   email: string
   name: string
   avatar?: string
+  /** First role from JWT (compat). */
   role: string
+  /** All roles from JWT / GET /api/auth/me. */
+  roles: string[]
   permissions: string[]
+}
+
+/** Map Spine user + JWT claims to a single frontend user shape. */
+function normalizeAuthUser(data: Record<string, unknown>): User {
+  const rolesRaw = data.roles
+  const roles = Array.isArray(rolesRaw) ? (rolesRaw as string[]) : []
+  const single = typeof data.role === 'string' ? data.role : ''
+  return {
+    id: String(data.id ?? ''),
+    email: String(data.email ?? ''),
+    name: String(data.name ?? ''),
+    avatar: typeof data.avatar === 'string' ? data.avatar : undefined,
+    role: roles[0] ?? single,
+    roles: roles.length > 0 ? roles : single ? [single] : [],
+    permissions: Array.isArray(data.permissions) ? (data.permissions as string[]) : [],
+  }
 }
 
 interface AuthContextType {
@@ -55,8 +74,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
-      const response = await api.get('/auth/me')
-      return response.data
+      const response = await api.get('/api/auth/me')
+      return normalizeAuthUser(response.data as Record<string, unknown>)
     },
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -65,12 +84,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const response = await api.post('/auth/login', { email, password })
+      const response = await api.post('/api/auth/login', { email, password })
       return response.data
     },
-    onSuccess: (data) => {
-      setUser(data.user)
-      localStorage.setItem('token', data.token)
+    onSuccess: (data: { accessToken?: string; token?: string; user: Record<string, unknown> }) => {
+      const token = data.accessToken ?? data.token
+      if (token) {
+        localStorage.setItem('token', token)
+      }
+      setUser(normalizeAuthUser(data.user))
       queryClient.invalidateQueries({ queryKey: ['auth'] })
     },
     onError: (error) => {
@@ -82,12 +104,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterData) => {
-      const response = await api.post('/auth/register', data)
+      const response = await api.post('/api/auth/register', data)
       return response.data
     },
-    onSuccess: (data) => {
-      setUser(data.user)
-      localStorage.setItem('token', data.token)
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] })
     },
     onError: (error) => {
@@ -99,11 +119,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: Partial<User>) => {
-      const response = await api.patch('/auth/profile', data)
+      const response = await api.patch('/api/auth/profile', data)
       return response.data
     },
-    onSuccess: (data) => {
-      setUser(data.user)
+    onSuccess: (data: { user?: Record<string, unknown> }) => {
+      if (data?.user) {
+        setUser(normalizeAuthUser(data.user))
+      }
       queryClient.invalidateQueries({ queryKey: ['auth'] })
     },
     onError: (error) => {
@@ -153,7 +175,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const verification = await authApi.verifyPasskeyLogin(authResponse)
 
       if (verification.data.verified) {
-        setUser(verification.data.user)
+        setUser(normalizeAuthUser(verification.data.user as Record<string, unknown>))
         // Backend sets cookie, no localStorage token needed but we clear it to be clean
         localStorage.removeItem('token')
         delete api.defaults.headers.common['Authorization']
