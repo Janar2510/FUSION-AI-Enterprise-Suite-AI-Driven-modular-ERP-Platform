@@ -8,6 +8,14 @@
 - [ ] **Ruflo (optional dev tooling):** run `npm install -g ruflo@latest` then `ruflo init` locally if using Ruflo swarm; not required for production deploy (see `docs/BUILD_ORCHESTRATION.md`).
 - [ ] **Orchestration docs:** Keep [`BUILD_STATE.md`](BUILD_STATE.md) and [`docs/BUILD_ORCHESTRATION.md`](docs/BUILD_ORCHESTRATION.md) aligned after major milestones (pause/resume handshake).
 
+### CRM teams + stage lifecycle + scoped calendar (Track C, 2026-05-15)
+
+- [ ] **Migration** — `cd api && npx prisma migrate deploy` applies **`20260515143000_crm_teams_stages_forecast`** (**`crm_teams`**, **`crm_team_members`**, **`crm_leads.team_id`**, forecast-supported schema as in migration).
+- [ ] **`GET /api/crm/teams`** (auth) → 200; **`POST /api/crm/teams`** (manager) → 201 with valid **`name`**.
+- [ ] **Scoped reads** — **`GET /api/crm/pipeline?team_id=<cuid>`**, **`GET /api/crm/analytics?team_id=`**, **`GET /api/crm/forecast?team_id=`**, **`GET /api/crm/activities/calendar?...&team_id=`** return subsets consistent with **`crmLeadFilter`** + team membership rules.
+- [ ] **Stages** — **`POST /api/crm/stages`** `{ "name": "QA" }` (manager) → 201; **`DELETE /api/crm/stages/:id`** on empty stage → 204; on stage with leads → 400 without **`move_to_stage_id`**; with **`{ "move_to_stage_id": <other> }`** in body → 204 and leads moved.
+- [ ] **UI** — CRM **Settings** (manager): **Create stage**, **Delete** with move-to when stage has leads; analytics bar **Team** filter changes pipeline + forecast + calendar data.
+
 ### Calendar adapter (Track B, 2026-05-12)
 - [ ] Smoke: authenticated `POST /api/calendar/events` with `{ "name": "Test", "start": "<ISO>", "stop": "<ISO>" }` → 201 (same as `POST /api/calendar`)
 

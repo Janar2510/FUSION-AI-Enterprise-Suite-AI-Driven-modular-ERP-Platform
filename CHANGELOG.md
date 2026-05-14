@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased] — Build orchestration + doc aliases — 2026-05-12
 
+### Added (Track C — CRM teams, stage lifecycle, forecast enrichment — 2026-05-15)
+
+- **CRM teams** — Prisma **`CrmTeam`**, **`CrmTeamMember`**, **`crm_leads.team_id`**; **`GET` / `POST /api/crm/teams`** (create managers-only). **`team_id`** query on pipeline, list, analytics, forecast, and activities calendar (with **`crmLeadFilter`**).
+- **Stages** — **`POST /api/crm/stages`** (managers), **`DELETE /api/crm/stages/:id`** with optional body **`move_to_stage_id`** when leads exist (reassign then delete).
+- **Forecast API** — per-stage **`avgProbability`**, **`closingWithin30DaysCount`**, **`closingWithin30DaysValue`**, **`closingWithin30DaysWeighted`** on **`GET /api/crm/forecast`**.
+- **Frontend** — **`crmApi.teams`**, **`createTeam`**, **`createStage`**, **`deleteStage`**; **`crmScopeTeamId`** in **`crmStore`**; **`CrmPipelineAnalyticsBar`**-team scope; **`CrmActivitiesCalendar`** passes **`team_id`**; **`CRMSettings`** manager **Add stage** / **Delete stage** (move leads modal); **`isCrmManager`** in **`crmRoles.ts`**.
+
 ### Added (Track C — CRM pipeline scope, activity badges, analytics)
 
 - **CRM activities calendar** — **`GET /api/crm/activities/calendar`** (`from` / `to` query, **`crmLeadFilter`**, open activities by **`dueAt`**); **`crmApi.activitiesCalendar`**; **`CrmActivitiesCalendar`** + route **`/module/crm/activities/calendar`**; **`OdooViewManager`** calendar toolbar; **`CalendarGrid`** **`onVisibleRangeChange`** for range refetch.

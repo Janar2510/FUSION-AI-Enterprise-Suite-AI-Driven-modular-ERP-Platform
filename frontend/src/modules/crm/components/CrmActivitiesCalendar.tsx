@@ -33,6 +33,7 @@ function activityToEvent(a: CrmCalendarActivity): CalendarEvent {
 export const CrmActivitiesCalendar: React.FC = () => {
     const navigate = useNavigate();
     const crmScopeUserId = useCRMStore((s) => s.crmScopeUserId);
+    const crmScopeTeamId = useCRMStore((s) => s.crmScopeTeamId);
     const [activities, setActivities] = useState<CrmCalendarActivity[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,7 @@ export const CrmActivitiesCalendar: React.FC = () => {
                 from: from.toISOString(),
                 to: to.toISOString(),
                 ...(crmScopeUserId ? { user_id: crmScopeUserId } : {}),
+                ...(crmScopeTeamId ? { team_id: crmScopeTeamId } : {}),
             });
             setActivities(res.data as CrmCalendarActivity[]);
         } catch (e: unknown) {
@@ -57,7 +59,7 @@ export const CrmActivitiesCalendar: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [crmScopeUserId]);
+    }, [crmScopeUserId, crmScopeTeamId]);
 
     const onVisibleRangeChange = useCallback(
         (range: { from: Date; to: Date }) => {

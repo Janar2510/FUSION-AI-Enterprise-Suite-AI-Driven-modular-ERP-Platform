@@ -229,6 +229,12 @@ export const crmApi = {
   /** Managers / admins: org salespeople for CRM owner filter (`user_id` on scoped routes). */
   salespeople: () => api.get('/api/crm/salespeople'),
 
+  /** CRM teams: all org teams for managers; teams the user belongs to otherwise. */
+  teams: () => api.get('/api/crm/teams'),
+
+  /** Managers only — create team. */
+  createTeam: (data: { name: string }) => api.post('/api/crm/teams', data),
+
   // Flow actions (Phase 3 flows A)
   qualify: (id: number) =>
     api.post(`/api/crm/leads/${id}/qualify`),
@@ -272,6 +278,20 @@ export const crmApi = {
     id: number,
     data: { name?: string; sequence?: number; foldedKanban?: boolean }
   ) => api.patch(`/api/crm/stages/${id}`, data),
+
+  /** Managers only — create pipeline stage. */
+  createStage: (data: { name: string; sequence?: number }) => api.post('/api/crm/stages', data),
+
+  /**
+   * Managers only — delete stage. If leads exist, pass `moveToStageId` to reassign first.
+   */
+  deleteStage: (id: number, moveToStageId?: number) =>
+    api.delete(`/api/crm/stages/${id}`, {
+      data:
+        moveToStageId != null && Number.isFinite(moveToStageId)
+          ? { move_to_stage_id: moveToStageId }
+          : {},
+    }),
 };
 
 // ── Sales ────────────────────────────────────────────────────────────────────

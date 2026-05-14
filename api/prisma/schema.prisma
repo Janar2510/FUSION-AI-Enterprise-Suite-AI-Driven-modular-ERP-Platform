@@ -24,6 +24,7 @@ model Organization {
   companies SpineCompany[]
   users     SpineUser[]
   roles     SpineRole[]  @relation("OrgRoles")
+  crmTeams  CrmTeam[]
 }
 
 enum OrgStatus {
@@ -62,6 +63,7 @@ model SpineUser {
   updatedAt      DateTime        @updatedAt
   organization   Organization    @relation(fields: [organizationId], references: [id])
   userRoles      SpineUserRole[]
+  crmTeamMembers CrmTeamMember[]
   aiActions      AiAction[]      @relation("TriggeredBy")
   approvedActions AiAction[]     @relation("ApprovedBy")
 
@@ -339,6 +341,36 @@ model CrmStage {
   @@map("crm_stages")
 }
 
+enum CrmTeamMemberRole {
+  MANAGER
+  MEMBER
+}
+
+model CrmTeam {
+  id             String          @id @default(cuid())
+  organizationId String
+  name           String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members        CrmTeamMember[]
+  leads          CrmLead[]
+
+  @@index([organizationId])
+  @@map("crm_teams")
+}
+
+model CrmTeamMember {
+  teamId String
+  userId String
+  role   CrmTeamMemberRole @default(MEMBER)
+  team   CrmTeam   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user   SpineUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@map("crm_team_members")
+}
+
 model CrmTag {
   id    Int       @id @default(autoincrement())
   name  String
@@ -371,6 +403,7 @@ model CrmLead {
   color           Int         @default(0)
   organizationId  String?
   userId          String?     // salesperson (SpineUser.id)
+  teamId          String?
   stageId         Int
   partnerId       String?
   dateDeadline    DateTime?
@@ -378,6 +411,7 @@ model CrmLead {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   partner         Partner?    @relation(fields: [partnerId], references: [id])
+  team            CrmTeam?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
   stage           CrmStage    @relation(fields: [stageId], references: [id])
   saleOrders      SaleOrder[]
   tags            CrmTag[]        @relation("CrmLeadToCrmTag")
@@ -385,6 +419,7 @@ model CrmLead {
 
   @@index([organizationId])
   @@index([userId])
+  @@index([teamId])
   @@map("crm_leads")
 }
 

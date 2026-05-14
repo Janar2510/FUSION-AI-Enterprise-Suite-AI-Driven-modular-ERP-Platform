@@ -3,16 +3,15 @@ import { BarChart3 } from 'lucide-react';
 import { useCRMStore, CrmAnalytics, CrmForecast } from '../stores/crmStore';
 import { useAuth } from '@/contexts/AuthContext';
 import { crmApi } from '@/lib/api';
+import { isCrmManager } from '../crmRoles';
 
-function isCrmManager(roles: string[] | undefined): boolean {
-  const r = roles?.length ? roles : [];
-  return r.some((x) => ['admin', 'Administrator', 'manager', 'Manager'].includes(x));
-}
-
-function crmAccessHint(roles: string[] | undefined): string {
+function crmAccessHint(roles: string[] | undefined, teamScoped: boolean): string {
+  if (teamScoped) {
+    return 'CRM visibility: leads assigned to the selected team. Owner scope narrows further within that team.';
+  }
   return isCrmManager(roles)
-    ? 'CRM visibility: all leads (manager / admin). Use owner filter to narrow.'
-    : 'CRM visibility: your assigned leads and unassigned leads.';
+    ? 'CRM visibility: all leads (manager / admin). Use team and owner filters to narrow.'
+    : 'CRM visibility: your assigned leads and unassigned leads (use team filter when you belong to teams).';
 }
 
 function SummaryCard({
@@ -81,6 +80,8 @@ function StageDistribution({ data }: { data: CrmAnalytics['stageBreakdown'] }) {
 
 type Salesperson = { id: string; name: string; email: string };
 
+type CrmTeamListItem = { id: string; name: string };
+
 function OpportunityFunnelChart({ stages }: { stages: CrmForecast['stages'] }) {
   const maxOpp = useMemo(
     () => Math.max(1, ...stages.map((s) => s.opportunityCount)),
@@ -98,11 +99,16 @@ function OpportunityFunnelChart({ stages }: { stages: CrmForecast['stages'] }) {
       {stages.map((s) => {
         if (s.opportunityCount === 0) return null;
         const h = Math.round((s.opportunityCount / maxOpp) * 100);
+        const avgP = s.avgProbability != null ? ` · avg ${s.avgProbability}% prob` : '';
+        const c30 =
+          s.closingWithin30DaysCount != null && s.closingWithin30DaysCount > 0
+            ? ` · 30d: ${s.closingWithin30DaysCount} ($${(s.closingWithin30DaysWeighted ?? 0).toLocaleString()} wgt)`
+            : '';
         return (
           <div
             key={s.stageId}
             className="flex flex-col items-center gap-1 shrink-0 min-w-[48px]"
-            title={`${s.name}: ${s.opportunityCount} opps · $${s.weightedPipeline.toLocaleString()} weighted`}
+            title={`${s.name}: ${s.opportunityCount} opps · $${s.weightedPipeline.toLocaleString()} weighted${avgP}${c30}`}
           >
             <div className="flex items-end h-16 w-full justify-center px-0.5">
               <div
@@ -129,10 +135,28 @@ export const CrmPipelineAnalyticsBar: React.FC = () => {
   const crmForecast = useCRMStore((s) => s.crmForecast);
   const crmScopeUserId = useCRMStore((s) => s.crmScopeUserId);
   const setCrmScopeUserId = useCRMStore((s) => s.setCrmScopeUserId);
+  const crmScopeTeamId = useCRMStore((s) => s.crmScopeTeamId);
+  const setCrmScopeTeamId = useCRMStore((s) => s.setCrmScopeTeamId);
   const { user } = useAuth();
   const [salespeople, setSalespeople] = useState<Salesperson[] | null>(null);
+  const [teams, setTeams] = useState<CrmTeamListItem[] | null>(null);
 
   const manager = isCrmManager(user?.roles);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await crmApi.teams();
+        if (!cancelled) setTeams(res.data as CrmTeamListItem[]);
+      } catch {
+        if (!cancelled) setTeams([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!manager) return;
@@ -149,6 +173,15 @@ export const CrmPipelineAnalyticsBar: React.FC = () => {
       cancelled = true;
     };
   }, [manager]);
+
+  const trendMax = useMemo(() => {
+    const trend = crmAnalytics?.wonLostTrend ?? [];
+    let m = 1;
+    for (const t of trend) {
+      m = Math.max(m, t.won + t.lost);
+    }
+    return m;
+  }, [crmAnalytics?.wonLostTrend]);
 
   if (!crmAnalytics) {
     return (
@@ -172,14 +205,6 @@ export const CrmPipelineAnalyticsBar: React.FC = () => {
     revenueByOwner = [],
   } = crmAnalytics;
 
-  const trendMax = useMemo(() => {
-    let m = 1;
-    for (const t of wonLostTrend) {
-      m = Math.max(m, t.won + t.lost);
-    }
-    return m;
-  }, [wonLostTrend]);
-
   return (
     <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -188,6 +213,25 @@ export const CrmPipelineAnalyticsBar: React.FC = () => {
           Pipeline analytics
         </div>
         <div className="flex flex-col gap-2 sm:items-end">
+          {teams && teams.length > 0 && (
+            <label className="flex items-center gap-2 text-[10px] text-white/45">
+              <span className="shrink-0">Team scope</span>
+              <select
+                className="bg-white/10 border border-white/15 rounded-md px-2 py-1 text-white text-xs max-w-[220px]"
+                value={crmScopeTeamId ?? ''}
+                onChange={(e) =>
+                  setCrmScopeTeamId(e.target.value ? e.target.value : undefined)
+                }
+              >
+                <option value="">All teams</option>
+                {teams.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           {manager && salespeople && salespeople.length > 0 && (
             <label className="flex items-center gap-2 text-[10px] text-white/45">
               <span className="shrink-0">Owner scope</span>
@@ -208,7 +252,7 @@ export const CrmPipelineAnalyticsBar: React.FC = () => {
             </label>
           )}
           <div className="text-white/40 text-[10px] leading-snug max-w-xl sm:text-right">
-            {crmAccessHint(user?.roles)}
+            {crmAccessHint(user?.roles, Boolean(crmScopeTeamId))}
           </div>
         </div>
       </div>
@@ -303,7 +347,7 @@ export const CrmPipelineAnalyticsBar: React.FC = () => {
             Opportunity funnel ({crmForecast.stages.reduce((n, s) => n + s.opportunityCount, 0)} opps)
           </div>
           <div className="text-white/35 text-[10px] mb-2">
-            Heights by open opportunity count per stage · bar = relative volume · tooltip shows weighted $
+            Heights by open opportunity count per stage · tooltips include avg probability and 30‑day closing bucket when present
           </div>
           <OpportunityFunnelChart stages={crmForecast.stages} />
         </div>

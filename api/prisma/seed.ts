@@ -46,6 +46,20 @@ async function main() {
         data: { userId: adminUser.id, roleId: adminRole.id },
     });
 
+    const defaultCrmTeam = await prisma.crmTeam.create({
+        data: {
+            organizationId: org.id,
+            name: 'Default',
+        },
+    });
+    await prisma.crmTeamMember.create({
+        data: {
+            teamId: defaultCrmTeam.id,
+            userId: adminUser.id,
+            role: 'MANAGER',
+        },
+    });
+
     console.log(`  ✓ Organization: ${org.id} | Company: ${company.id} | Admin: ${adminUser.id}`);
 
     // ── Partner Tags ──────────────────────────────────────────

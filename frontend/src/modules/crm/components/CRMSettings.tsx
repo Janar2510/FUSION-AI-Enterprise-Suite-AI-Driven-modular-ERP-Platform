@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Save, Settings2, ShieldCheck, Shuffle, Users, Zap } from 'lucide-react';
+import { Save, Settings2, ShieldCheck, Shuffle, Trash2, Users, Zap } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { useCRMStore, type CrmStage } from '../stores/crmStore';
+import { isCrmManager } from '../crmRoles';
+import { useAuth } from '@/contexts/AuthContext';
 import { GlassCard } from '@/components/shared/GlassCard';
 import { BreadcrumbHeader } from '@/components/shared/BreadcrumbHeader';
 import { crmApi, moduleSettingsApi } from '@/lib/api';
@@ -43,10 +45,16 @@ function stageToDraft(stage: CrmStage): StageDraft {
 }
 
 export const CRMSettings: React.FC = () => {
+    const { user } = useAuth();
+    const manager = isCrmManager(user?.roles);
     const { pipelineStages, fetchPipeline } = useCRMStore();
     const queryClient = useQueryClient();
     const [saved, setSaved] = useState(false);
     const [stageDraft, setStageDraft] = useState<StageDraft | null>(null);
+    const [newStageName, setNewStageName] = useState('');
+    const [newStageSequence, setNewStageSequence] = useState('');
+    const [deleteTarget, setDeleteTarget] = useState<CrmStage | null>(null);
+    const [moveToStageId, setMoveToStageId] = useState<number | ''>('');
 
     const [settings, setSettings] = useState<CrmFeatureSettings>(CRM_FEATURE_DEFAULTS);
 
@@ -104,6 +112,53 @@ export const CRMSettings: React.FC = () => {
         },
     });
 
+    const createStageMutation = useMutation({
+        mutationFn: async () => {
+            const name = newStageName.trim();
+            if (!name) throw new Error('name');
+            const seqRaw = newStageSequence.trim();
+            const payload =
+                seqRaw === ''
+                    ? { name }
+                    : { name, sequence: Number.parseInt(seqRaw, 10) || 0 };
+            await crmApi.createStage(payload);
+        },
+        onSuccess: () => {
+            toast.success('Pipeline stage created');
+            setNewStageName('');
+            setNewStageSequence('');
+            void fetchPipeline();
+        },
+        onError: (err: unknown) => {
+            let msg = 'Could not create stage';
+            if (axios.isAxiosError(err)) {
+                const e = err.response?.data as { error?: string } | undefined;
+                if (typeof e?.error === 'string') msg = e.error;
+            }
+            toast.error(msg);
+        },
+    });
+
+    const deleteStageMutation = useMutation({
+        mutationFn: async ({ id, moveTo }: { id: number; moveTo?: number }) => {
+            await crmApi.deleteStage(id, moveTo);
+        },
+        onSuccess: () => {
+            toast.success('Pipeline stage deleted');
+            setDeleteTarget(null);
+            setMoveToStageId('');
+            void fetchPipeline();
+        },
+        onError: (err: unknown) => {
+            let msg = 'Could not delete stage';
+            if (axios.isAxiosError(err)) {
+                const e = err.response?.data as { error?: string } | undefined;
+                if (typeof e?.error === 'string') msg = e.error;
+            }
+            toast.error(msg);
+        },
+    });
+
     const handleSave = () => {
         saveMutation.mutate(settings);
     };
@@ -115,6 +170,31 @@ export const CRMSettings: React.FC = () => {
             return;
         }
         updateStageMutation.mutate(stageDraft);
+    };
+
+    const openDeleteStage = (stage: CrmStage) => {
+        const others = pipelineStages.filter((s) => s.id !== stage.id);
+        if (stage.leads.length > 0 && others.length === 0) {
+            toast.error('Cannot delete the only stage while it has leads');
+            return;
+        }
+        setDeleteTarget(stage);
+        const first = others[0]?.id;
+        setMoveToStageId(stage.leads.length > 0 && first !== undefined ? first : '');
+    };
+
+    const confirmDeleteStage = () => {
+        if (!deleteTarget) return;
+        const hasLeads = deleteTarget.leads.length > 0;
+        if (hasLeads) {
+            if (moveToStageId === '' || typeof moveToStageId !== 'number') {
+                toast.error('Choose a stage to move leads to');
+                return;
+            }
+            deleteStageMutation.mutate({ id: deleteTarget.id, moveTo: moveToStageId });
+        } else {
+            deleteStageMutation.mutate({ id: deleteTarget.id });
+        }
     };
 
     return (
@@ -208,6 +288,43 @@ export const CRMSettings: React.FC = () => {
                         <p className="text-white/60 text-sm">Configure your sales funnel. You have {pipelineStages.length} active stages.</p>
                     </div>
 
+                    {manager && (
+                        <GlassCard className="p-4">
+                            <div className="text-white/70 text-sm font-medium mb-3">Add stage</div>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                                <div className="flex-1">
+                                    <label className="block text-xs text-white/50 mb-1">Name</label>
+                                    <input
+                                        type="text"
+                                        value={newStageName}
+                                        onChange={(e) => setNewStageName(e.target.value)}
+                                        placeholder="e.g. Negotiation"
+                                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                                    />
+                                </div>
+                                <div className="w-full sm:w-28">
+                                    <label className="block text-xs text-white/50 mb-1">Sequence (optional)</label>
+                                    <input
+                                        type="number"
+                                        value={newStageSequence}
+                                        onChange={(e) => setNewStageSequence(e.target.value)}
+                                        placeholder="Auto"
+                                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    disabled={createStageMutation.isPending || !newStageName.trim()}
+                                    onClick={() => createStageMutation.mutate()}
+                                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-orange-600 text-white text-sm font-medium disabled:opacity-50 disabled:pointer-events-none"
+                                >
+                                    {createStageMutation.isPending ? 'Creating…' : 'Create stage'}
+                                </button>
+                            </div>
+                            <p className="text-white/40 text-xs mt-2">Leave sequence empty to append after the current max order.</p>
+                        </GlassCard>
+                    )}
+
                     <GlassCard className="p-0 overflow-hidden">
                         <table className="w-full text-left border-collapse">
                             <thead>
@@ -224,7 +341,7 @@ export const CRMSettings: React.FC = () => {
                                         <td className="py-3 px-4 text-white/80">{stage.sequence}</td>
                                         <td className="py-3 px-4 text-white font-medium">{stage.name}</td>
                                         <td className="py-3 px-4 text-white/60">{stage.foldedKanban ? 'Yes' : 'No'}</td>
-                                        <td className="py-3 px-4 text-right">
+                                        <td className="py-3 px-4 text-right space-x-3">
                                             <button
                                                 type="button"
                                                 onClick={() => setStageDraft(stageToDraft(stage))}
@@ -232,6 +349,16 @@ export const CRMSettings: React.FC = () => {
                                             >
                                                 Edit
                                             </button>
+                                            {manager && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openDeleteStage(stage)}
+                                                    className="text-red-400/90 hover:text-red-300 transition-colors text-sm inline-flex items-center gap-1"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                    Delete
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -312,6 +439,77 @@ export const CRMSettings: React.FC = () => {
                             />
                             <span className="text-white/80 text-sm">Folded in kanban (collapsed column)</span>
                         </label>
+                    </div>
+                )}
+            </Modal>
+
+            <Modal
+                open={deleteTarget !== null}
+                onClose={() => {
+                    if (!deleteStageMutation.isPending) {
+                        setDeleteTarget(null);
+                        setMoveToStageId('');
+                    }
+                }}
+                title={deleteTarget ? `Delete stage “${deleteTarget.name}”` : 'Delete stage'}
+                size="sm"
+                footer={
+                    <>
+                        <Button
+                            variant="ghost"
+                            type="button"
+                            onClick={() => {
+                                setDeleteTarget(null);
+                                setMoveToStageId('');
+                            }}
+                            disabled={deleteStageMutation.isPending}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            type="button"
+                            onClick={confirmDeleteStage}
+                            loading={deleteStageMutation.isPending}
+                            disabled={deleteStageMutation.isPending}
+                        >
+                            Delete
+                        </Button>
+                    </>
+                }
+            >
+                {deleteTarget && (
+                    <div className="space-y-4">
+                        {deleteTarget.leads.length > 0 ? (
+                            <>
+                                <p className="text-white/70 text-sm">
+                                    This stage has {deleteTarget.leads.length} lead
+                                    {deleteTarget.leads.length === 1 ? '' : 's'}. Move them to another stage before
+                                    deletion.
+                                </p>
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-1.5">Move leads to</label>
+                                    <select
+                                        value={moveToStageId === '' ? '' : String(moveToStageId)}
+                                        onChange={(e) => {
+                                            const v = e.target.value;
+                                            setMoveToStageId(v === '' ? '' : Number.parseInt(v, 10));
+                                        }}
+                                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                                    >
+                                        {pipelineStages
+                                            .filter((s) => s.id !== deleteTarget.id)
+                                            .map((s) => (
+                                                <option key={s.id} value={s.id}>
+                                                    {s.name} (#{s.sequence})
+                                                </option>
+                                            ))}
+                                    </select>
+                                </div>
+                            </>
+                        ) : (
+                            <p className="text-white/70 text-sm">No leads in this stage. It will be removed permanently.</p>
+                        )}
                     </div>
                 )}
             </Modal>

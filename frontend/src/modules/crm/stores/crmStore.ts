@@ -15,6 +15,8 @@ export interface CrmLead {
   /** Many2one partner (cuid). */
   partnerId?: string | null;
   stageId: number;
+  /** CRM team (cuid); optional until multi-teams assigned. */
+  teamId?: string | null;
   createdAt: string;
   updatedAt: string;
   tags: { id: number; name: string; color: number }[];
@@ -77,6 +79,10 @@ export interface CrmForecast {
     opportunityCount: number;
     pipelineValue: number;
     weightedPipeline: number;
+    avgProbability?: number;
+    closingWithin30DaysCount?: number;
+    closingWithin30DaysValue?: number;
+    closingWithin30DaysWeighted?: number;
   }[];
 }
 
@@ -91,6 +97,9 @@ interface CRMStore {
   /** When set (managers only), narrows pipeline/leads/analytics/calendar via `user_id` query. */
   crmScopeUserId: string | undefined;
   setCrmScopeUserId: (userId: string | undefined) => void;
+  /** When set, limits CRM list/pipeline/analytics/forecast/calendar to leads on that team. */
+  crmScopeTeamId: string | undefined;
+  setCrmScopeTeamId: (teamId: string | undefined) => void;
 
   // CRUD actions
   fetchPipeline: () => Promise<void>;
@@ -115,6 +124,7 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
   crmAnalytics: null,
   crmForecast: null,
   crmScopeUserId: undefined,
+  crmScopeTeamId: undefined,
 
   setCrmScopeUserId: (userId) => {
     set({ crmScopeUserId: userId });
@@ -122,10 +132,23 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
     void get().fetchAllLeads();
   },
 
+  setCrmScopeTeamId: (teamId) => {
+    set({ crmScopeTeamId: teamId });
+    void get().fetchPipeline();
+    void get().fetchAllLeads();
+  },
+
   fetchCrmAnalytics: async () => {
     try {
       const uid = get().crmScopeUserId;
-      const params = uid ? { user_id: uid } : undefined;
+      const tid = get().crmScopeTeamId;
+      const params =
+        uid || tid
+          ? {
+              ...(uid ? { user_id: uid } : {}),
+              ...(tid ? { team_id: tid } : {}),
+            }
+          : undefined;
       const [analyticsResult, forecastResult] = await Promise.allSettled([
         crmApi.analytics(params),
         crmApi.forecast(params),
@@ -143,7 +166,15 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
     try {
       set({ loading: true, error: null });
       const uid = get().crmScopeUserId;
-      const res = await crmApi.pipeline(uid ? { user_id: uid } : undefined);
+      const tid = get().crmScopeTeamId;
+      const params =
+        uid || tid
+          ? {
+              ...(uid ? { user_id: uid } : {}),
+              ...(tid ? { team_id: tid } : {}),
+            }
+          : undefined;
+      const res = await crmApi.pipeline(params);
       set({ pipelineStages: res.data, loading: false });
       void get().fetchCrmAnalytics();
     } catch (err: any) {
@@ -155,7 +186,12 @@ export const useCRMStore = create<CRMStore>((set, get) => ({
     try {
       set({ loading: true, error: null });
       const uid = get().crmScopeUserId;
-      const res = await crmApi.list({ limit: 1000, ...(uid ? { user_id: uid } : {}) });
+      const tid = get().crmScopeTeamId;
+      const res = await crmApi.list({
+        limit: 1000,
+        ...(uid ? { user_id: uid } : {}),
+        ...(tid ? { team_id: tid } : {}),
+      });
       set({ allLeads: res.data.data, loading: false });
     } catch (err: any) {
       set({ error: err.message, loading: false });

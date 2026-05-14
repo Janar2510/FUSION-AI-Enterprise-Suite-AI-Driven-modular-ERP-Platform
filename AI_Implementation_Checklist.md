@@ -19,7 +19,9 @@ This checklist ensures proper implementation and configuration of the AI-driven 
 - **`GET /api/crm/forecast`** — **`weightedPipeline`** and per-stage **`stages`** (**`opportunityCount`**, **`weightedPipeline`**, etc.); optional **`user_id`** for manager scope.
 - **`GET /api/crm/salespeople`** — roster for **View as** / owner-scoped prompts; privilege-gated.
 - **Activities** — **`calendarEventId`** links **`CrmActivity`** to **`calendar_events`** for cross-module context (scheduling agents, “next meeting” tools).
-- **Lead form** — structured **`lostReason`** (preset + detail) and **`partnerId`** improve downstream **win/loss** and **account** analysis.
+- **`team_id`** on **`GET /api/crm/pipeline`**, **`/analytics`**, **`/forecast`**, **`/activities/calendar`** — narrows leads to a **`CrmTeam`** in the caller’s org (see **`crmLeadFilter`** + team rules).
+- **`POST /api/crm/stages`**, **`DELETE /api/crm/stages/:id`** — stage lifecycle for managers; delete may require **`move_to_stage_id`** when **`_count.leads > 0`**.
+- **`GET /api/crm/forecast`** — optional enriched stage metrics (**`avgProbability`**, **30-day closing** buckets) for agent summaries.
 
 ## Pre-Implementation Checklist
 
