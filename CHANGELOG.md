@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added (Track C — CRM pipeline scope, activity badges, analytics)
 
+- **CRM activities calendar** — **`GET /api/crm/activities/calendar`** (`from` / `to` query, **`crmLeadFilter`**, open activities by **`dueAt`**); **`crmApi.activitiesCalendar`**; **`CrmActivitiesCalendar`** + route **`/module/crm/activities/calendar`**; **`OdooViewManager`** calendar toolbar; **`CalendarGrid`** **`onVisibleRangeChange`** for range refetch.
 - **`GET /api/crm/pipeline`** — applies **`crmLeadFilter(req.user)`** to active leads; embeds open activities for computation only; JSON includes per-lead **`activitySummary`** (`openCount`, `overdueCount`, `nextDueAt`) and omits **`activities`** array from each lead.
 - **`GET /api/crm/analytics`** — all metrics scoped with **`crmLeadFilter`**; adds **`weightedPipeline`**, **`wonThisMonth`** (**`active: true`**, **`dateClosed`** in current month), **`lostThisMonth`** (**`active: false`**, **`updatedAt`** in current month).
 - **Frontend** — **`CrmLead.activitySummary`**; kanban cards show **Overdue** / **Due** / **Next** from summary; **`CrmPipelineAnalyticsBar`**: weighted forecast, won/lost MTD, win rate, **CRM access hint** (manager vs salesperson vs unassigned visibility).

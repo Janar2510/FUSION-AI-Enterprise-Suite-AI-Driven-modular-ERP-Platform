@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X, Clock, MapPin } from 'lucide-react';
 import { CalendarEvent } from '../stores/calendarStore';
 
@@ -8,6 +8,8 @@ interface Props {
     events: CalendarEvent[];
     onNewAt?: (start: string) => void;
     onEventClick?: (event: CalendarEvent) => void;
+    /** Fires when the user changes month/week/day or navigates; use to refetch server-backed events. */
+    onVisibleRangeChange?: (range: { from: Date; to: Date }) => void;
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -42,6 +44,28 @@ function formatTime(iso: string) {
 
 function addDays(d: Date, n: number) {
     const r = new Date(d); r.setDate(r.getDate() + n); return r;
+}
+
+function getVisibleRange(anchor: Date, view: GridView): { from: Date; to: Date } {
+    if (view === 'month') {
+        const from = new Date(anchor.getFullYear(), anchor.getMonth(), 1, 0, 0, 0, 0);
+        const to = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0, 23, 59, 59, 999);
+        return { from, to };
+    }
+    if (view === 'week') {
+        const weekStart = new Date(anchor);
+        weekStart.setDate(anchor.getDate() - anchor.getDay());
+        weekStart.setHours(0, 0, 0, 0);
+        const to = new Date(weekStart);
+        to.setDate(weekStart.getDate() + 6);
+        to.setHours(23, 59, 59, 999);
+        return { from: weekStart, to };
+    }
+    const from = new Date(anchor);
+    from.setHours(0, 0, 0, 0);
+    const to = new Date(anchor);
+    to.setHours(23, 59, 59, 999);
+    return { from, to };
 }
 
 // ── EventChip ─────────────────────────────────────────────────────────────────
@@ -351,10 +375,14 @@ const TimedGrid: React.FC<{
 
 // ── CalendarGrid (main export) ────────────────────────────────────────────────
 
-export const CalendarGrid: React.FC<Props> = ({ events, onNewAt, onEventClick }) => {
+export const CalendarGrid: React.FC<Props> = ({ events, onNewAt, onEventClick, onVisibleRangeChange }) => {
     const [view, setView] = useState<GridView>('month');
     const [anchor, setAnchor] = useState(() => new Date());
     const [popup, setPopup] = useState<{ event: CalendarEvent; x: number; y: number } | null>(null);
+
+    useEffect(() => {
+        onVisibleRangeChange?.(getVisibleRange(anchor, view));
+    }, [anchor, view, onVisibleRangeChange]);
 
     // Navigation
     const navigate = (dir: 1 | -1) => {

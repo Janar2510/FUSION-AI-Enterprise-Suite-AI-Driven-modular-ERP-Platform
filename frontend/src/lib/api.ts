@@ -253,6 +253,10 @@ export const crmApi = {
   deleteActivity: (activityId: number) =>
     api.delete(`/api/crm/activities/${activityId}`),
 
+  /** Open activities with due dates in range; same lead scope as pipeline (`crmLeadFilter`). */
+  activitiesCalendar: (params: { from: string; to: string }) =>
+    api.get('/api/crm/activities/calendar', { params }),
+
   // Stages
   stages: () =>
     api.get('/api/crm/stages'),

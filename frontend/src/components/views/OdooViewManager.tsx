@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Search, Filter, ArrowLeft, LayoutList, LayoutGrid, LayoutDashboard, Settings, Network, Table } from 'lucide-react';
+import { Plus, Search, Filter, ArrowLeft, LayoutList, LayoutGrid, LayoutDashboard, Settings, Network, Table, CalendarDays } from 'lucide-react';
 
-export type ViewType = 'list' | 'kanban' | 'form' | 'dashboard' | 'timeline' | 'hierarchy';
+export type ViewType = 'list' | 'kanban' | 'form' | 'dashboard' | 'timeline' | 'hierarchy' | 'calendar';
 
 interface OdooViewManagerProps {
     title: React.ReactNode;
@@ -38,13 +38,17 @@ export function OdooViewManager({
             {/* Top Action Bar */}
             <div className="flex items-center justify-between p-4 border-b border-white/10 bg-white/5 backdrop-blur-md sticky top-0 z-20">
                 <div className="flex items-center gap-4">
-                    {(currentView === 'form' || (currentView === 'list' && viewsAvailable.includes('dashboard'))) && (
+                    {(currentView === 'form'
+                        || (currentView === 'list' && viewsAvailable.includes('dashboard'))
+                        || (currentView === 'calendar' && viewsAvailable.includes('kanban'))) && (
                         <button
                             onClick={() => {
                                 if (currentView === 'form') {
                                     onViewChange(viewsAvailable.includes('list') ? 'list' : viewsAvailable[0]);
                                 } else if (currentView === 'list' && viewsAvailable.includes('dashboard')) {
                                     onViewChange('dashboard');
+                                } else if (currentView === 'calendar' && viewsAvailable.includes('kanban')) {
+                                    onViewChange('kanban');
                                 }
                             }}
                             className="text-white/60 hover:text-white transition-colors"
@@ -143,6 +147,15 @@ export function OdooViewManager({
                                 className={`p-1.5 rounded-sm transition-colors ${currentView === 'hierarchy' ? 'bg-white/20 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}
                             >
                                 <Network className="w-4 h-4" />
+                            </button>
+                        )}
+                        {viewsAvailable.includes('calendar') && (
+                            <button
+                                onClick={() => onViewChange('calendar')}
+                                className={`p-1.5 rounded-sm transition-colors ${currentView === 'calendar' ? 'bg-white/20 text-white shadow-sm' : 'text-white/40 hover:text-white/80'}`}
+                                title="Calendar"
+                            >
+                                <CalendarDays className="w-4 h-4" />
                             </button>
                         )}
                     </div>

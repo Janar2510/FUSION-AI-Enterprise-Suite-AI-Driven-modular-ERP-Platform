@@ -179,6 +179,42 @@ crmRoutes.get('/pipeline', asyncHandler(async (req, res) => {
 }));
 
 // ── CRM Activities (calls, emails, meetings) ────────────────────────────────
+
+/** Open activities with dueAt in [from, to], scoped to visible leads (same as pipeline). */
+crmRoutes.get('/activities/calendar', asyncHandler(async (req, res) => {
+    const recordFilter = crmLeadFilter(req.user!);
+    const leadScope = { active: true as const, ...recordFilter };
+
+    const now = new Date();
+    const defaultFrom = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const defaultTo = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const parseBound = (q: unknown, fallback: Date): Date => {
+        if (typeof q !== 'string' || Number.isNaN(Date.parse(q))) return fallback;
+        return new Date(q);
+    };
+
+    let from = parseBound(req.query.from, defaultFrom);
+    let to = parseBound(req.query.to, defaultTo);
+    if (from > to) {
+        const t = from;
+        from = to;
+        to = t;
+    }
+
+    const activities = await prisma.crmActivity.findMany({
+        where: {
+            doneAt: null,
+            dueAt: { not: null, gte: from, lte: to },
+            lead: { is: leadScope },
+        },
+        orderBy: [{ dueAt: 'asc' }, { id: 'asc' }],
+        include: { lead: { select: { id: true, name: true } } },
+    });
+
+    res.json(activities);
+}));
+
 crmRoutes.get('/leads/:id/activities', asyncHandler(async (req, res) => {
     const leadId = parseInt(req.params.id);
     const activities = await prisma.crmActivity.findMany({

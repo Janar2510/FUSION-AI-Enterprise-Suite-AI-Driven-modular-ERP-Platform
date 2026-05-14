@@ -14,6 +14,7 @@ import { CRMSettings } from './CRMSettings';
 import { AiActionsPanel } from '@/components/shared/AiActionsPanel';
 import { crmApi } from '@/lib/api';
 import { CrmActivitiesPanel } from './CrmActivitiesPanel';
+import { CrmActivitiesCalendar } from './CrmActivitiesCalendar';
 import { CrmPipelineAnalyticsBar } from './CrmPipelineAnalyticsBar';
 import { ChatterPanel } from '@/components/shared/ChatterPanel';
 
@@ -46,7 +47,8 @@ export const CRMModule: React.FC = () => {
     }, [fetchPipeline, fetchAllLeads, fetchAllOrders]);
 
     let currentView: ViewType = 'kanban';
-    if (location.pathname.includes('/leads/list')) currentView = 'list';
+    if (location.pathname.includes('/activities/calendar')) currentView = 'calendar';
+    else if (location.pathname.includes('/leads/list')) currentView = 'list';
     else if (location.pathname.includes('/leads/') || location.pathname.includes('/new')) currentView = 'form';
     else if (location.pathname.endsWith('/list')) currentView = 'list';
 
@@ -54,6 +56,7 @@ export const CRMModule: React.FC = () => {
     const handleViewChange = (view: ViewType) => {
         if (view === 'list') navigate('/module/crm/leads/list');
         else if (view === 'kanban') navigate('/module/crm');
+        else if (view === 'calendar') navigate('/module/crm/activities/calendar');
         else if (view === 'form') navigate('/module/crm/leads/new');
     };
 
@@ -121,6 +124,9 @@ export const CRMModule: React.FC = () => {
         const labels: Record<string, string> = {
             '/module/crm/leads': 'Leads'
         };
+        if (location.pathname.includes('/activities/calendar')) {
+            labels['/module/crm/activities/calendar'] = 'Activities calendar';
+        }
         if (activeRecord) {
             labels[`/module/crm/leads/${activeRecord.id}`] = activeRecord.name;
         } else if (location.pathname.endsWith('/new')) {
@@ -230,6 +236,7 @@ export const CRMModule: React.FC = () => {
             onDiscard={handleDiscard}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
+            viewsAvailable={['list', 'kanban', 'calendar', 'form']}
             onSettings={() => navigate('/module/crm/settings')}
         >
             <Routes>
@@ -265,6 +272,13 @@ export const CRMModule: React.FC = () => {
                             navigate('/module/crm/leads/new');
                         }}
                     />
+                    </div>
+                } />
+
+                <Route path="/activities/calendar" element={
+                    <div className="flex flex-col gap-4 min-h-0 flex-1">
+                        <CrmPipelineAnalyticsBar />
+                        <CrmActivitiesCalendar />
                     </div>
                 } />
 
